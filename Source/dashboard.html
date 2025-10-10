@@ -1,0 +1,3083 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+    <link rel="icon" type="image/png" href="/img/favicon-256x256.png" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  
+    
+        <link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"
+    />
+    
+    <link rel="stylesheet" href="dashboard.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- Hamburger Button -->
+      <button class="hamburger" id="hamburgerBtn">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <!-- Sidebar -->
+      <div class="sidebar" id="sidebar">
+        <div class="company-brand">
+          <!-- Profile Image -->
+          <div class="profile-section">
+            <img src="img/Profileimg.png" alt="Profile" class="profile-img" />
+          </div>
+
+          <div class="brand-logo">
+            <div class="welcome-message">
+              <p id="userWelcome">Your dashboard is ready to explore.</p>
+              <div class="user-info">
+                <small id="userRole">Role: Loading...</small>
+                <small id="userId">ID: Loading...</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <nav class="nav-menu" id="sidebarMenu">
+          <!-- Dynamic menu items will be injected here -->
+        </nav>
+
+        <!-- Logout Button -->
+        <div class="logout-section">
+          <button class="logout-btn" id="logoutBtn">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <header class="header">
+          <!-- Left: Day & Time -->
+          <div class="header-left">
+            <div id="dateTimeDisplay" class="date-time-header"></div>
+          </div>
+
+          <!-- Center: Logo -->
+          <div class="header-logo">
+            <img src="img/Fisto logo new.png" alt="Logo" />
+          </div>
+
+          <!-- Right: Actions -->
+          <div class="header-right">
+            <button class="icon-btn" id="notificationBtn">
+              <i class="fas fa-bell"></i>
+              <span class="notification-badge" id="notificationBadge">3</span>
+              <span class="tooltip">Notifications</span>
+            </button>
+
+            <button class="icon-btn" id="attendanceBtn">
+              <i class="fas fa-calendar-check"></i>
+              <span class="tooltip">Attendance</span>
+            </button>
+
+            <button class="icon-btn" id="profileBtn" onclick="showProfileModal()">
+              <i class="fas fa-user-circle"></i>
+              <span class="tooltip">Profile</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- Dynamic Content Area -->
+        <div class="dashboard-content" id="mainContent">
+          <!-- Dashboard Content -->
+          <div class="content-section active" id="dashboard-content">
+            <!-- Welcome Row with 3 Cards -->
+            <div class="welcome-row">
+              <!-- Welcome Card -->
+              <div class="welcome-card">
+                <div class="welcome-content">
+                  <h2>Hello, User</h2>
+                  <p>
+                    "Formal education will make you a living; self-education
+                    will make you a fortune".
+                  </p>
+                  <p style="margin-top: 1rem; color: #888">
+                    Have a Nice Day...
+                  </p>
+                </div>
+                <div class="welcome-image">
+                  <img
+                    src="img/Team.png"
+                    alt="Welcome"
+                    style="width: 100px; height: 100px"
+                  />
+                </div>
+              </div>
+
+              <!-- Wishes & Upcoming Event Card -->
+              <div class="welcome-card">
+                <div class="welcome-content" id="wishes">
+                  <h3>Wishes & Upcoming Event</h3>
+                  <p>You have new updates.</p>
+                  <p style="margin-top: 1rem; font-weight: 600;">Don't miss celebration this Friday!</p>
+                </div>
+                <div class="welcome-image">
+                  <img src="img/ballon.jpg" alt="Event Image" style="width: 100px; height: 100px" />
+                </div>
+              </div>
+
+             <!-- Meeting & Schedules Card -->
+              <div class="welcome-card" style="display: flex; align-items: flex-start; justify-content: space-between;">
+                <div class="welcome-content" style="flex: 1; padding-right: 1rem;">
+                  <h3 style="margin: 0 0 0.5rem 0;">Meeting & Schedules</h3>
+                  <p style="margin: 0 0 0.5rem 0; color: #666;">1 Meetings are Scheduled.</p>
+                  
+                  <!-- Meeting Details List -->
+                 <div class="meeting-list" style="font-size: 0.8rem; position: relative;">
+                    <div class="meeting-item" style="margin-bottom: 0.8rem; padding: 0.4rem; background: rgba(0,0,0,0.05); border-radius: 4px; border-left: 3px solid #4ecdc4; position: relative;">
+                      
+                      <!-- Show More button -->
+                      <button 
+                        style="
+                          position: absolute; 
+                          top: 0.3rem; 
+                          right: 0.4rem; 
+                          background: none; 
+                          border: none; 
+                          color: #4ecdc4; 
+                          cursor: pointer; 
+                          font-size: 0.75rem; 
+                          font-weight: 600;
+                        " 
+                        onclick="openModal()"
+                        aria-label="Show more meeting details"
+                      >
+                        Show More
+                      </button>
+                      
+                      <div style="font-weight: 600; color: #333; margin-bottom: 0.2rem; margin-right: 0.2rem;">Team Meeting</div>
+                      <div style="color: #666; font-size: 0.75rem; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.2rem;">
+                        <span><i class="fas fa-calendar" style="width: 12px;"></i> Aug 11, 2025</span>
+                        <span><i class="fas fa-clock" style="width: 12px;"></i> 10:00 AM - 11:00 AM</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Modal -->
+                  <div id="meetingScheduleModal" class="unique-modal" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 9999;">
+                  <div style="background: white; width: 320px; margin: 100px auto; padding: 20px; border-radius: 8px; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.3); animation: fadeInScale 0.3s ease;">
+                    <h3>Meeting Schedule Details</h3>
+                    <p><strong>Team Meeting</strong></p>
+                    <p>Date: Aug 11, 2025</p>
+                    <p>Time: 10:00 AM - 11:00 AM</p>
+                    <p>Initial discussion on deliverables and team roles.</p>
+                    <button onclick="closeMeetingScheduleModal()" style="margin-top: 10px; cursor: pointer;">Close</button>
+                  </div>
+                </div>
+                </div>
+                <div class="welcome-image" style="flex-shrink: 0; align-self: center;">
+                  <img src="img/project.jpg" alt="Schedule Image" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Two Column Layout -->
+            <div class="colored-stats-container">
+              <!-- Colored Stats Grid -->
+              <div class="colored-stats-grid">
+                <!-- Stat 1 -->
+                <div class="colored-stat-card stat-card-teal">
+                  <div class="stat-info">
+                    <div class="value">
+                      <h3>12</h3>
+                      <p>Total Project</p>
+                    </div>
+                    <div class="value">
+                      <h3>7</h3>
+                      <p>Ongoing Project</p>
+                    </div>
+                  </div>
+                  <div class="stat-icon">
+                    <i class="fas fa-project-diagram"></i>
+                  </div>
+                </div>
+
+                <!-- Stat 2 -->
+                <div class="colored-stat-card single stat-card-red">
+                  <div class="stat-info">
+                    <div class="stat-block">
+                      <h3>21</h3>
+                      <p>Customers</p>
+                    </div>
+                  </div>
+                  <div class="stat-icon">
+                    <i class="fas fa-user"></i>
+                  </div>
+                </div>
+
+                <!-- Stat 3 -->
+                <div class="colored-stat-card stat-card-olive">
+                  <div class="stat-info">
+                    <div class="value">
+                      <h3>16</h3>
+                      <p>Total<br />Employees</p>
+                    </div>
+                    <div class="value">
+                      <h3>12</h3>
+                      <p>Active<br />Employees</p>
+                    </div>
+                  </div>
+                  <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                  </div>
+                </div>
+
+                <!-- Stat 4 -->
+                <div class="colored-stat-card stat-card-purple">
+                  <div class="stat-info">
+                    <div class="value">
+                      <h3>8</h3>
+                      <p>Completed Tasks</p>
+                    </div>
+                    <div class="value">
+                      <h3>15</h3>
+                      <p>Pending Tasks</p>
+                    </div>
+                  </div>
+                  <div class="stat-icon">
+                    <i class="fas fa-tasks"></i>
+                  </div>
+                </div>
+
+                <!-- Stat 5 -->
+                <div class="colored-stat-card stat-card-orange">
+                  <div class="stat-info">
+                    <div class="value">
+                      <h3>95%</h3>
+                      <p>Client Satisfaction</p>
+                    </div>
+                    <div class="value">
+                      <h3>4.8</h3>
+                      <p>Avg Rating</p>
+                    </div>
+                  </div>
+                  <div class="stat-icon">
+                    <i class="fas fa-star"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pie Charts Section -->
+            <div class="charts-container">
+              <div class="chart-card">
+                <h4>UI/UX Team</h4>
+                <canvas id="uiuxChart"></canvas>
+              </div>
+              <div class="chart-card">
+                <h4>Software Team</h4>
+                <canvas id="softwareChart"></canvas>
+              </div>
+              <div class="chart-card">
+                <h4>3D Artist Team</h4>
+                <canvas id="artistChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Analysis Content -->
+          <div class="content-section" id="analysis-content">
+            <div class="grid-2">
+              <div class="content-card">
+                <h3>Revenue Analysis</h3>
+                <p>
+                  Monthly revenue trends and forecasting data to help you make
+                  informed business decisions.
+                </p>
+                <div class="metrics-box">
+                  <strong>Key Metrics:</strong><br />
+                  • Average Monthly Growth: 8.5%<br />
+                  • Best Performing Quarter: Q3 2024<br />
+                  • Revenue Target Achievement: 102%
+                </div>
+              </div>
+
+              <div class="content-card">
+                <h3>Market Trends</h3>
+                <p>
+                  Industry analysis and competitive positioning to stay ahead of
+                  market changes.
+                </p>
+                <div class="metrics-box">
+                  <strong>Market Insights:</strong><br />
+                  • Market Share: 15.2%<br />
+                  • Customer Satisfaction: 94%<br />
+                  • Brand Recognition: 78%
+                </div>
+              </div>
+            </div>
+          </div>
+
+    
+
+            <!-- clients Content -->
+
+          <div class="content-section" id="clients-content">
+            <form id="clientForm" class="form-container">
+            <!-- Client Details Section -->
+           <div class="app-client">
+        <div class="container-client">
+            <!-- Header -->
+               <h1 class="title">Client Details</h1>
+              <button class="add-client-btn" onclick="openForm()">
+                  <i class="fas fa-plus"></i>
+                  Add Client
+              </button>
+
+            <!-- Client Table -->
+            <div class="table-container">
+                <table class="client-table" id="clientTable">
+                    <thead >
+                        <tr>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Customer ID</th>
+                            <th>Company Name</th>
+                            <th>Customer Name</th>
+                            <th>Phone Number</th>
+                            <th>Mail ID</th>
+                            <th>View</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientTableBody">
+                        <tr class="empty-state">
+                            <td colspan="8">
+                                <div class="empty-content">
+                                    <i class="fas fa-users"></i>
+                                    <p>No clients found</p>
+                                    <small>Click "Add Client" to get started</small>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Add Client Modal -->
+            <div class="modal" id="clientModal">
+                <div class="modal-content-client">
+                    <div class="modal-header-client">
+                        <h2>Add New Client</h2>
+                        <button class="close-btn" onclick="closeForm()">&times;</button>
+                        
+                    </div>
+                    <form class="client-form" id="clientForm">
+                      <div class="form-grid1">
+                            <div class="form-group">
+                                <label for="customerId">Customer ID *</label>
+                                <input type="text" id="customerId" name="customerId" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="companyName">Company Name *</label>
+                                <input type="text" id="companyName" name="companyName" required>
+                            </div>
+                             <div class="form-group full-width">
+                                <label for="address">Address</label>
+                                <textarea id="address" name="address" rows="3"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="customerName">Customer Name *</label>
+                                <input type="text" id="customerName" name="customerName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="contactPerson">Contact Person *</label>
+                                <input type="text" id="contactPerson" name="contactPerson">
+                            </div>
+                             <div class="form-group">
+                                <label for="phoneNo">Phone No *</label>
+                                <input type="tel" id="phoneNo" name="phoneNo" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="mailId">Mail ID *</label>
+                                <input type="email" id="mailId" name="mailId" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Repeated Client</label>
+                                <div class="radio-group">
+                                    <input type="radio" id="repeatedYes" name="repeatedClient" value="yes">
+                                    <label for="repeatedYes">Yes</label>
+                                    <input type="radio" id="repeatedNo" name="repeatedClient" value="no" checked>
+                                    <label for="repeatedNo">No</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="industrySegment">Industry Segment</label>
+                                <input type="text" id="industrySegment" name="industrySegment">
+                            </div>
+                            <div class="form-group">
+                                <label for="manufacturersOf">Manufacturers Of</label>
+                                <input type="text" id="manufacturersOf" name="manufacturersOf">
+                            </div>
+                            <div class="form-group">
+                                <label for="reference">Reference</label>
+                                <input type="text" id="reference" name="reference">
+                            </div>
+                            <div class="form-group">
+                                <label for="gstNo">GST No</label>
+                                <input type="text" id="gstNo" name="gstNo">
+                            </div>
+                            <div class="form-group">
+                                <label for="createdDate">Created Date *</label>
+                                <input type="date" id="createdDate" name="createdDate" required>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <!-- <button type="button" class="cancel-btn" onclick="closeForm()">Cancel</button> -->
+                            <button type="submit" class="submit-btn">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- View Client Modal -->
+            <div class="modal" id="viewModal">
+                <div class="modal-content-client">
+                    <div class="modal-header-client1">
+                        <h2>Client Details</h2>
+                        <button class="close-btn" onclick="closeViewModal()">&times;</button>
+                    </div>
+                    <div class="view-content" id="viewContent">
+                        <!-- Client details will be populated here -->
+                    </div> 
+                </div>
+            </div>
+
+            <!-- Toast Container -->
+            <div class="toast-container" id="toastContainer"></div>
+        </div>
+        <div id="confirmModal" class="modal">
+  <div class="modal-content-c confirm-content-c">
+    <p id="confirmMessage">Are you sure?</p>
+    <div class="confirm-buttons-c">
+      <button id="confirmYesBtn">Yes</button>
+      <button id="confirmNoBtn">No</button>
+    </div>
+  </div>
+</div>
+
+    </div>
+    </div>
+          </div>
+
+
+          
+          <!-- Projects Content -->
+          <div class="content-section" id="projects-content">
+            <div class="tab-header">
+              <button id="tabProject" class="tab-btn active" onclick="switchTab('project')">Project</button>
+              <button id="tabAllocation" class="tab-btn" onclick="switchTab('allocation')">Project Allocation</button>
+               <button id="tabTaskAllocation" class="tab-btn" onclick="switchTab('task')">Task Allocation</button>
+            </div>
+            <div id="task-section" class="tab-content">
+              <div class="header-project-task">
+                <h1>Task Allocation</h1>
+                <button class="add-btn" onclick="openTaskAllocationForm()">
+                  <i class="fas fa-plus"></i> Add New Task
+                </button>
+              </div>
+              
+              <div class="table-containerTask">
+                <table class="projects-table">
+                  <thead>
+                    <tr>
+                      <th>Task name</th>
+                      <th>Description</th>
+                      <th>Start Date</th>
+                      <th>End Date</th>
+                      <th>Assigned To</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="TaskallocationTableBody">
+                    <tr class="empty-state">
+                      <td colspan="6">
+                        <div class="empty-content">
+                          <i class="fas fa-users-cog"></i>
+                          <p>No allocations found</p>
+                          <small>Click "Add Allocation" to get started</small>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Add Task Allocation Modal -->
+              <div id="addTaskAllocationModal" class="modal">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h2>Add Task Allocation</h2>
+                    <button class="close-btn" onclick="closeTaskAllocationForm()">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+
+
+
+                  <!-- Task Allocation Form -->
+
+                  <form id="TaskallocationForm" class="project-form">
+                    <div class="form-grid2">
+                      <div class="form-group">
+                        <label for="TaskProjectName">Project Name <span class="required">*</span></label>
+                        <select name="TaskProjectName" id="TaskProjectName">
+                          <option value="">Select Projet Name</option>
+                        </select>
+                      </div>
+                      <div class="form-group">
+                        <label for="TaskProjectDescription">Project Description</label>
+                        <textarea id="TaskProjectDescription" name="TaskProjectDescription" rows="4" placeholder="Enter project description..."></textarea>
+                      </div>
+                         <div class="form-group">
+                        <label for="TaskTeamName">Team Name <span class="required">*</span></label>
+                        <input type="text" id="TaskTeamName" name="TaskTeamName" required>
+                      </div>
+                      <div class="form-group">
+                        <label for="TaskName">Task Name <span class="required">*</span></label>
+                        <input type="text" id="TaskName" name="TaskName" required>
+                      </div>
+                      <div class="form-group">
+                        <label for="TaskStartDate">Start Date <span class="required">*</span></label>
+                        <input type="date" id="TaskStartDate" name="TaskStartDate" required>
+                      </div>
+                      <div class="form-group">
+                        <label for="TaskEndDate">End Date <span class="required">*</span></label>
+                        <input type="date" id="TaskEndDate" name="TaskEndDate" required>
+                      </div>
+                      <div class="form-group">
+                        <label for="allocAssignedTo">Assigned To <span class="required">*</span></label>
+                        <select id="allocAssignedTo" name="allocAssignedTo" required>
+                          <option value="">Select Employee</option>
+                          <option value="Sameer">Sameer</option>
+                          <option value="Harish">Harish</option>
+                          <option value="Murugan">Murugan</option>
+                          <option value="Sham">Sham</option>
+                          <option value="Shafiq">Shafiq</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="Add-More-Task">
+                      <button  type="submit" class="Add-More-Task-btn" >add</button>
+                    </div>
+                    <div class="form-actions">
+                      <button type="submit" class="submit-btn">Submit</button>
+                    </div>
+                  </form>
+                   <table id="tempTaskTable" aria-label="Temporary task list">
+                      <thead>
+                        <tr>
+                          <th>Task Name</th>
+                          <th>Description</th>
+                          <th>Start Date</th>
+                          <th>End Date</th>
+                          <th>Assigned To</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr class="empty-state-temp"><td colspan="6">No tasks added yet</td></tr>
+                      </tbody>
+                    </table>
+                </div>
+                </div>
+
+
+            </div>
+
+            <!-- Project Allocation Section -->
+
+           <div id="allocation-section" class="form-section tab-content">
+  <div class="header-project">
+    <h1>Project Allocation</h1>
+    <button class="add-btn" onclick="openAllocationForm()">
+      <i class="fas fa-plus"></i> Add Allocation
+    </button>
+  </div>
+  <div class="table-container">
+    <table class="projects-table">
+      <thead>
+        <tr>
+          <th>S No.</th>
+          <th>Project Name</th>
+          <th>Start Date</th>
+          <th>Deadline</th>
+          <th>Team Name</th>
+          <th>Assigned To</th>
+        </tr>
+      </thead>
+      <tbody id="allocationTableBody">
+        <tr class="empty-state">
+          <td colspan="6">
+            <div class="empty-content">
+              <i class="fas fa-users-cog"></i>
+              <p>No allocations found</p>
+              <small>Click "Add Allocation" to get started</small>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Allocation Modal -->
+<div id="addAllocationModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Add Project Allocation</h2>
+      <button class="close-btn" onclick="closeAllocationForm()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <form id="allocationForm" class="project-form">
+      <div class="form-grid2">
+        <div class="form-group">
+          <label for="allocProjectName">Project Name <span class="required">*</span></label>
+          <input type="text" id="allocProjectName" name="allocProjectName" required>
+        </div>
+        <div class="form-group">
+          <label for="allocStartDate">Start Date <span class="required">*</span></label>
+          <input type="date" id="allocStartDate" name="allocStartDate" required>
+        </div>
+        <div class="form-group">
+          <label for="allocDeadline">Deadline <span class="required">*</span></label>
+          <input type="date" id="allocDeadline" name="allocDeadline" required>
+        </div>
+        <div class="form-group full-width">
+          <label for="allocProjectDescription">Project Description</label>
+          <textarea id="allocProjectDescription" name="allocProjectDescription" rows="4" placeholder="Enter project description..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="allocTeamName">Team Name <span class="required">*</span></label>
+          <select id="allocTeamName" name="allocTeamName" required>
+            <option value="">Select Team</option>
+            <option value="Developer">Developer</option>
+            <option value="UI/UX">UI/UX</option>
+            <option value="AR/VR">AR/VR</option>
+            <option value="2D/3D">2D/3D</option>
+            <option value="Digital catalogue">Digital catalogue</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="allocAssignedBy">Assigned By <span class="required">*</span></label>
+          <input type="text" id="allocAssignedBy" name="allocAssignedBy" required>
+        </div>
+        <div class="form-group">
+          <label for="allocAssignedTo">Assigned To <span class="required">*</span></label>
+          <select id="allocAssignedTo" name="allocAssignedTo" required>
+            <option value="">Select Employee</option>
+            <option value="Sameer">Sameer</option>
+            <option value="Harish">Harish</option>
+            <option value="Murugan">Murugan</option>
+            <option value="Sham">Sham</option>
+            <option value="Shafiq">Shafiq</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="submit-btn">Submit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+            <div class="grid-3 tab-content active" id="projects-section">
+              <div class="form-section">
+                <div class="header-project">
+            <h1>Project</h1>
+            <button class="add-btn" onclick="openProjectForm()">
+                <i class="fas fa-plus"></i>
+                Add Project
+            </button>
+        </div>
+
+        <!-- Projects Table -->
+        <div class="table-container">
+            <table class="projects-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Project Name</th>
+                        <th>Customer ID</th>
+                        <th>Contact Number</th>
+                        <th>Type of Project</th>
+                        <th>Specification</th>
+                        <th>View</th>
+                    </tr>
+                </thead>
+                <tbody id="projectTableBody">
+                    <tr class="empty-state">
+                        <td colspan="7">
+                            <div class="empty-content">
+                                <i class="fas fa-project-diagram"></i>
+                                <p>No projects found</p>
+                                <small>Click "Add Project" to get started</small>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add Project Modal -->
+    <div id="addProjectModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Project</h2>
+                <button class="close-btn" onclick="closeProjectForm()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="projectForm" class="project-form">
+                <div class="form-grid2">
+                    <div class="form-group">
+                        <label for="projectName">Project Name <span class="required">*</span></label>
+                        <input type="text" id="projectName" name="projectName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="customerId">Customer ID <span class="required">*</span></label>
+                        <input type="text" id="customerId" name="customerId" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contactNumber">Contact Number <span class="required">*</span></label>
+                        <input type="tel" id="contactNumber" name="contactNumber" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="typeOfProject">Type of Project <span class="required">*</span></label>
+                        <select id="typeOfProject" name="typeOfProject" onchange="handleProjectTypeChange()" required>
+                            <option value="">Select Project Type</option>
+                            <option value="ar/vr">AR/VR</option>
+                            <option value="2d/3d">2D/3D</option>
+                            <option value="web development">Web Development</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <input type="text" id="customProjectType" name="customProjectType" placeholder="Specify project type" style="display: none; margin-top: 8px;">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="division">Division <span class="required">*</span></label>
+                        <select id="division" name="division" required>
+                            <option value="">Select Division</option>
+                            <option value="sales">Sales</option>
+                            <option value="tech">Tech</option>
+                            <option value="design">Design</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category">Category <span class="required">*</span></label>
+                        <select id="category" name="category" required>
+                            <option value="">Select Category</option>
+                            <option value="internal">Internal</option>
+                            <option value="external">External</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="date">Date <span class="required">*</span></label>
+                        <input type="date" id="date" name="date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="deadline">Deadline <span class="required">*</span></label>
+                        <input type="date" id="deadline" name="deadline" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status">Status <span class="required">*</span></label>
+                        <select id="status" name="status" required>
+                            <option value="">Select Status</option>
+                            <option value="planning">Planning</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="on-hold">On Hold</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="specification">Specification</label>
+                        <textarea id="specification" name="specification" rows="4" placeholder="Enter project specifications..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="submit-btn">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Project Modal -->
+    <div id="viewProjectModal" class="modal">
+        <div class="modal-content-project">
+            <div class="modal-header">
+                <h2>Project Details</h2>
+                <button class="close-btn" onclick="closeProjectViewModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="projectViewContent" class="view-content">
+                <!-- Project details will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="projectToastContainer" class="toast-container"></div>
+                    </div>
+                  </div>
+       
+          
+
+
+
+
+
+
+
+
+
+          <!-- task allocation -->
+
+
+
+           <div class="content-section" id="taskContent">
+            
+        <div class="form-container">
+            <!-- Project Information Display -->
+            <div class="form-section">
+                <!-- <div class="project-info">
+                    <div class="info-item">
+                        <strong>Project Name:</strong>
+                        <span id="displayProjectName">-</span>
+                    </div> -->
+                <div class="form-group">
+                      <label for="projectSelect"> <strong>Select Project</strong></label>
+                      <select id="projectSelect" name="projectSelect" required>
+                        <option value="">Select a project</option>
+                    </select>
+                </div>
+                
+                <!-- Project Information Display (Hidden by default) -->
+                <div id="projectDetails" class="project-info" style="display: none;">
+                    <div class="info-item">
+                        <strong>Description:</strong>
+                        <span id="displayDescription">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Type of Project:</strong>
+                        <span id="displayProjectType">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Allocation Form -->
+            <div class="form-section">
+                <div class="form-grid4">
+                    <div class="form-group">
+                        <label for="employee"><strong>Employee </strong></label>
+                        <select id="employee" name="employee" required>
+                            <option value="">Select employee</option>
+                            <option value="Sameer">Sameer</option>
+                            <option value="Harish">Harish</option>
+                            <option value="Murugan">Murugan</option>
+                            <option value="Praveen">Praveen</option>
+                            <option value="Sham">Sham</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <strong>Deadline</strong>
+                        <!-- <h3 class="section-title"></h3> -->
+                    <div class="form-grid4">
+                        <div class="form-group">
+                            <label for="startDate">Start Date</label>
+                            <input type="datetime-local" id="startDate" name="startDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="endDate">End Date</label>
+                            <input type="datetime-local" id="endDate" name="endDate" required>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- Countdown Display -->
+                <div id="countdownContainer" class="countdown-container" style="display: none;">
+                    <div class="countdown-box">
+                        <h3>Time Remaining</h3>
+                        <div id="countdownDisplay" class="countdown-display"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="submit-container">
+                <button type="button" id="allocateBtn" class="submit-btn">
+                    Allocate
+                </button>
+            </div>
+        </div>
+
+        <!-- Allocation Success Message -->
+        <div id="allocationSuccess" class="success-message" style="display: none;">
+            <p>✅ Successfully allocated to employee!</p>
+        </div>
+
+        <!-- Allocation Summary Sheet -->
+        <div id="allocationSheet" class="allocation-sheet" style="display: none;">
+            <h2 class="section-title">Allocation Summary</h2>
+            <div class="allocation-details">
+                <div class="detail-item">
+                    <strong>Employee:</strong>
+                    <span id="sheetEmployee">-</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Project Name:</strong>
+                    <span id="sheetProjectName">-</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Type of Project:</strong>
+                    <span id="sheetProjectType">-</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Description:</strong>
+                    <span id="sheetDescription">-</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Deadline:</strong>
+                    <span id="sheetDeadline">-</span>
+                </div>
+            </div>
+        </div>
+           </div>
+
+
+          <!-- Employee Details -->
+          <div class="content-section" id="employee-content">
+            <div class="content-card">
+              <h3>Employee Directory</h3>
+              <div class="table-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Name</th>
+                      <th>Role</th>
+                      <th>Department</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>EMP001</td>
+                      <td>John Doe</td>
+                      <td>Project Manager</td>
+                      <td>Developer</td>
+                      <td><span class="status-active">Active</span></td>
+                    </tr>
+                    <tr>
+                      <td>EMP002</td>
+                      <td>Jane Smith</td>
+                      <td>Senior Developer</td>
+                      <td>Developer</td>
+                      <td><span class="status-active">Active</span></td>
+                    </tr>
+                    <tr>
+                      <td>EMP003</td>
+                      <td>Mike Johnson</td>
+                      <td>UI/UX Designer</td>
+                      <td>Design</td>
+                      <td><span class="status-leave">On Leave</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- DailyReports Content -->
+          <div class="content-section" id="dailyreport-content">
+            <div class="page-header"></div>
+
+            <!-- Submit Report Tab -->
+            <div id="dailyreport-submit" class="tab-content active">
+              <div class="content-card">
+                <h3>Daily Report</h3>
+                <form id="dailyReportForm" class="form-container">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="employee-id">Employee ID *</label>
+                      <input
+                        type="text"
+                        id="employee-id"
+                        required
+                        placeholder="Enter employee ID"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label for="employee-name">Employee Name*</label>
+                      <input
+                        type="text"
+                        id="employee-name"
+                        required
+                        placeholder="Enter employee name"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="reportDate">Report Date *</label>
+                      <input type="date" id="reportDate" readonly required />
+                    </div>
+                    <div class="form-group">
+                      <label for="workHours">Hours Worked *</label>
+                      <input
+                        type="number"
+                        id="workHours"
+                        min="0"
+                        max="24"
+                        step="0.5"
+                        readonly
+                        required
+                        placeholder="Work Hours Automatically calculated"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="project-name">Project Name *</label>
+                      <input
+                        type="text"
+                        id="project-name"
+                        required
+                        placeholder="Enter Project Name"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label for="taskStatus">Task Status *</label>
+                      <select id="taskStatus" required>
+                        <option value="">Select Status</option>
+                        <option value="completed">Completed</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="pending">Pending</option>
+                        <option value="onhold">On Hold</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="tasksCompleted">Tasks Completed Today *</label>
+                    <textarea
+                      id="tasksCompleted"
+                      rows="3"
+                      placeholder="List the tasks you completed today..."
+                      required
+                    ></textarea>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="nextDayPlan">Tomorrow's Plan</label>
+                    <textarea
+                      id="nextDayPlan"
+                      rows="3"
+                      placeholder="What do you plan to work on tomorrow..."
+                    ></textarea>
+                  </div>
+
+                  <button type="submit" class="btn">Submit Daily Report</button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- Budget Content -->
+          <div class="content-section" id="budget-content">
+            <div class="grid-3">
+              <div class="content-card">
+                <h3>Total Budget</h3>
+                <p class="budget-amount budget-total">$500,000</p>
+                <p>Annual budget allocation</p>
+              </div>
+
+              <div class="content-card">
+                <h3>Spent</h3>
+                <p class="budget-amount budget-spent">$325,000</p>
+                <p>65% of total budget</p>
+              </div>
+
+              <div class="content-card">
+                <h3>Remaining</h3>
+                <p class="budget-amount budget-remaining">$175,000</p>
+                <p>35% remaining</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Marketing Content -->
+          <div class="content-section" id="marketing-content">
+            <div class="content-card">
+              <h3>Campaign Performance</h3>
+              <p>
+                Overview of current marketing campaigns and their effectiveness.
+              </p>
+              <div class="marketing-stats">
+                <div class="marketing-stat">
+                  <p class="stat-number stat-blue">12,450</p>
+                  <p class="stat-label">Impressions</p>
+                </div>
+                <div class="marketing-stat">
+                  <p class="stat-number stat-green">2.3%</p>
+                  <p class="stat-label">CTR</p>
+                </div>
+                <div class="marketing-stat">
+                  <p class="stat-number stat-orange">$1,250</p>
+                  <p class="stat-label">Spent</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Clients Content -->
+          <div class="content-section" id="clients-content">
+            <div class="grid-2">
+              <div class="content-card">
+                <h3>Active Clients</h3>
+                <p>Currently engaged client accounts</p>
+                <p class="client-number client-blue">42</p>
+                <p>Active client relationships</p>
+              </div>
+
+              <div class="content-card">
+                <h3>Client Satisfaction</h3>
+                <p>Average satisfaction rating</p>
+                <p class="client-number client-green">4.8/5</p>
+                <p>Based on latest feedback</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Registration Content -->
+          <div class="content-section" id="registration-content">
+            <div class="form-container" id="reg-header">
+              <h3>Employee Registration</h3>
+
+              <form id="registerForm">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="employee-id-reg">Employee ID *</label>
+                    <input
+                      type="text"
+                      id="employee-id-reg"
+                      required
+                      placeholder="Enter employee ID"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="employee-name-reg">Employee Name *</label>
+                    <input
+                      type="text"
+                      id="employee-name-reg"
+                      required
+                      placeholder="Enter full name"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Job Role *</label>
+                    <div class="radio-group">
+                      <label
+                        ><input
+                          type="radio"
+                          name="jobrole"
+                          value="onrole"
+                          required
+                        />
+                        Onrole</label
+                      >
+                      <label
+                        ><input type="radio" name="jobrole" value="intern" />
+                        Intern</label
+                      >
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="designation">Designation *</label>
+                    <select id="designation" required>
+                      <option value="" disabled selected>
+                        Select designation
+                      </option>
+                      <option value="md">Managing Director</option>
+                      <option value="sbuhead">SBU Head</option>
+                      <option value="phead">Project Head</option>
+                      <option value="thead">Team Head</option>
+                      <option value="hr">Human Resource</option>
+                      <option value="dev">Junior Developer</option>
+                      <option value="devintern">Developer Intern</option>
+                      <option value="designer">UI/UX Designer</option>
+                      <option value="uiuxintern">UI/UX Intern</option>
+                      <option value="3dartist">3D Artist</option>
+                      <option value="3dintern">3D Artist Intern</option>
+                      <option value="admin">Admin</option>
+                      <option value="marketing">Marketing</option>
+                      <option value="marketingassociate">
+                        Marketing Associate
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Onrole Area -->
+                <div id="onrole-area" style="display: none">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="jod">Join Of Date *</label>
+                      <input type="date" id="jod" />
+                    </div>
+                    <div class="form-group">
+                      <label for="dob-onrole">Date of Birth *</label>
+                      <input type="date" id="dob-onrole" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Intern Area -->
+                <div id="intern-area" style="display: none">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="start-date">Intern Period *</label>
+                      <input type="date" id="start-date" />
+                    </div>
+                    <span class="range-separator">to</span>
+                    <div class="form-group">
+                      <input type="date" id="end-date" />
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="duration">Duration (in months)</label>
+                      <input
+                        type="text"
+                        id="duration"
+                        placeholder="Auto-calculated"
+                        readonly
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label for="dob-intern">Date of Birth *</label>
+                      <input type="date" id="dob-intern" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="working-status">Working Status </label>
+                    <select id="working-status" required>
+                      <option value="" disabled selected>
+                        Select working Status
+                      </option>
+                      <option value="working">Working</option>
+                      <option value="relived">Relieved</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Gender *</label>
+                    <div class="radio-group">
+                      <label
+                        ><input
+                          type="radio"
+                          name="gender"
+                          value="male"
+                          required
+                        />
+                        Male</label
+                      >
+                      <label
+                        ><input type="radio" name="gender" value="female" />
+                        Female</label
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="email-personal"
+                      >Email Address(Personal) *</label
+                    >
+                    <input
+                      type="email"
+                      id="email-personal"
+                      required
+                      placeholder="employee@company.com"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="email-office">Email Address(Office) *</label>
+                    <input
+                      type="email"
+                      id="email-office"
+                      required
+                      placeholder="employee@company.com"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="phone-personal">Phone Number(Personal) *</label>
+                    <input
+                      type="tel"
+                      id="phone-personal"
+                      pattern="[0-9]{10}"
+                      required
+                      placeholder="1234567890"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="phone-office">Phone Number(Office) </label>
+                    <input
+                      type="tel"
+                      id="phone-office"
+                      pattern="[0-9]{10}"
+                      placeholder="1234567890"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="address">Address *</label>
+                    <textarea
+                      id="address"
+                      rows="3"
+                      required
+                      placeholder="Enter complete address"
+                    ></textarea>
+                  </div>
+                </div>
+
+                <div class="upload-section">
+                  <label class="upload-section-label"> Document Upload *</label>
+                  <div class="upload-container">
+                    <div class="upload-card" data-type="photo">
+                      <i class="fas fa-camera upload-icon"></i>
+                      <img id="preview1" alt="Preview" />
+                      <div class="filename" id="filename1">Employee Photo</div>
+                      <label for="file1" class="upload-label">
+                        <i class="fas fa-upload"></i> Choose Photo
+                      </label>
+                      <input
+                        type="file"
+                        id="file1"
+                        accept="image/*"
+                        onchange="handleFileChange(event, 1)"
+                      />
+                      <button
+                        type="button"
+                        class="remove-file"
+                        onclick="removeFile(1)"
+                      >
+                        ×
+                      </button>
+                    </div>
+
+                    <div class="upload-card" data-type="resume">
+                      <i class="fas fa-file-alt upload-icon"></i>
+                      <img id="preview2" alt="Preview" />
+                      <div class="filename" id="filename2">Resume/CV</div>
+                      <label for="file2" class="upload-label">
+                        <i class="fas fa-upload"></i> Choose Resume
+                      </label>
+                      <input
+                        type="file"
+                        id="file2"
+                        accept=".pdf,.doc,.docx"
+                        onchange="handleFileChange(event, 2)"
+                      />
+                      <button
+                        type="button"
+                        class="remove-file"
+                        onclick="removeFile(2)"
+                      >
+                        ×
+                      </button>
+                    </div>
+
+                    <div class="upload-card" data-type="id">
+                      <i class="fas fa-id-card upload-icon"></i>
+                      <img id="preview3" alt="Preview" />
+                      <div class="filename" id="filename3">ID Proof</div>
+                      <label for="file3" class="upload-label">
+                        <i class="fas fa-upload"></i> Choose ID
+                      </label>
+                      <input
+                        type="file"
+                        id="file3"
+                        accept="image/*,.pdf"
+                        onchange="handleFileChange(event, 3)"
+                      />
+                      <button
+                        type="button"
+                        class="remove-file"
+                        onclick="removeFile(3)"
+                      >
+                        ×
+                      </button>
+                    </div>
+
+                    <div class="upload-card" data-type="certificate">
+                      <i class="fas fa-certificate upload-icon"></i>
+                      <img id="preview4" alt="Preview" />
+                      <div class="filename" id="filename4">Certificates</div>
+                      <label for="file4" class="upload-label">
+                        <i class="fas fa-upload"></i> Choose File
+                      </label>
+                      <input
+                        type="file"
+                        id="file4"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onchange="handleFileChange(event, 4)"
+                      />
+                      <button
+                        type="button"
+                        class="remove-file"
+                        onclick="removeFile(4)"
+                      >
+                        ×
+                      </button>
+                    </div>
+
+                    <div class="upload-card" data-type="other">
+                      <i class="fas fa-file upload-icon"></i>
+                      <img id="preview5" alt="Preview" />
+                      <div class="filename" id="filename5">Other Documents</div>
+                      <label for="file5" class="upload-label">
+                        <i class="fas fa-upload"></i> Choose File
+                      </label>
+                      <input
+                        type="file"
+                        id="file5"
+                        accept="*"
+                        onchange="handleFileChange(event, 5)"
+                      />
+                      <button
+                        type="button"
+                        class="remove-file"
+                        onclick="removeFile(5)"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="password">Password *</label>
+                    <div class="password-input-container">
+                      <input
+                        type="password"
+                        id="password"
+                        required
+                        placeholder="Enter password"
+                      />
+                      <button
+                        type="button"
+                        class="password-toggle"
+                        onclick="togglePassword('password')"
+                      >
+                        <i class="fas fa-eye-slash"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="confirm-password">Confirm Password *</label>
+                    <div class="password-input-container">
+                      <input
+                        type="password"
+                        id="confirm-password"
+                        required
+                        placeholder="Confirm password"
+                      />
+                      <button
+                        type="button"
+                        class="password-toggle"
+                        onclick="togglePassword('confirm-password')"
+                      >
+                        <i class="fas fa-eye-slash"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn">Register Employee</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Request Management Content -->
+          <div class="content-section" id="leave-content">
+            <div class="page-header">
+              <h2><i class="fas fa-calendar-check"></i> Request Management</h2>
+            </div>
+
+           
+              <!-- Updated Employee View Tab Buttons -->
+              <div class="tabs-container">
+              <button class="tab-btn active" onclick="switchEmployeeTab('leave-apply')">
+                <i class="fas fa-calendar"></i> Apply Leave
+              </button>
+              <button class="tab-btn" onclick="switchEmployeeTab('permission-apply')">
+                <i class="fas fa-user-clock"></i> Request Permission
+              </button>
+              <button class="tab-btn" onclick="switchEmployeeTab('schedule-meeting')">
+                <i class="fas fa-calendar-plus"></i> Schedule Meeting
+              </button>
+              </div>
+
+             <div class="content-area">
+             <div id="leave-apply" class="tab-content active">
+        <div class="form-container">
+            <h2 style="margin-bottom: 30px;">
+                <i class="fas fa-calendar"></i> Apply Leave
+            </h2>
+        
+            <form id="leaveApplicationForm">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="leaveType">Leave Type *</label>
+                    <select id="leaveType" required onchange="toggleOtherLeaveType()">
+                        <option value="">Select Leave Type</option>
+                        <option value="sick">Sick Leave</option>
+                        <option value="annual">Annual Leave</option>
+                        <option value="emergency">Emergency Leave</option>
+                        <option value="maternity">Maternity/Paternity Leave</option>
+                        <option value="other">Other</option>
+                    </select>
+                    
+                    <!-- Other leave type input field -->
+                    <div id="otherLeaveTypeDiv" class="other-leave-input hidden">
+                       <label for="customDaysInput">Other</label>
+                        <input 
+                            type="text" 
+                            id="otherLeaveType" 
+                            name="otherLeaveType" 
+                            placeholder="Please specify the type of leave"
+                            maxlength="50"
+                        />
+                    </div>
+                </div>
+
+
+                    <div class="form-group">
+                        <label for="numberOfDays">Number of Days *</label>
+                        <select id="numberOfDays" required onchange="updateLeaveDateFields()">
+                            <option value="">Select Duration</option>
+                            <option value="halfday">Half Day</option>
+                            <option value="1">1 Day</option>
+                            <option value="2">2 Days</option>
+                            <option value="3">3 Days</option>
+                            <option value="4">4 Days</option>
+                            <option value="5">5 Days</option>
+                            <option value="custom">More than 5 Days</option>
+                        </select>
+
+                        <!-- This div appears below the select -->
+                        <div id="customDaysGroup" class="hidden">
+                            <label for="customDaysInput">Enter number of days:</label>
+                            <input type="number" id="customDaysInput" placeholder="Enter days (6 or more)" min="6" />
+                        </div>
+                    </div>
+                </div>
+                    
+
+                    <div id="singleDateGroup" class="form-row hidden">
+                      <div class="form-group">
+                        <label for="singleDate">Leave Date *</label>
+                        <input type="date" id="singleDate" />
+                      </div>
+                    </div>
+
+                    <div id="halfDayPeriodGroup" class="form-row hidden">
+                      <div class="form-group">
+                        <label>Half Day Period *</label>
+                        <div class="radio-group">
+                          <label
+                            ><input
+                              type="radio"
+                              name="halfDayPeriod"
+                              value="morning"
+                            />
+                            Morning (First Half)</label
+                          >
+                          <label
+                            ><input
+                              type="radio"
+                              name="halfDayPeriod"
+                              value="afternoon"
+                            />
+                            Afternoon (Second Half)</label
+                          >
+                        </div>
+                      </div>
+                    </div>
+
+                    <div id="startDateGroup" class="form-row hidden">
+                      <div class="form-group">
+                        <label for="startDate">From Date *</label>
+                        <input
+                          type="date"
+                          id="startDate"
+                          onchange="calculateLeaveDuration()"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label for="endDate">To Date *</label>
+                        <input
+                          type="date"
+                          id="endDate"
+                          onchange="calculateLeaveDuration()"
+                        />
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="leaveReason">Reason for Leave *</label>
+                      <textarea
+                        id="leaveReason"
+                        rows="4"
+                        placeholder="Please provide reason for your leave request..."
+                        required
+                      ></textarea>
+                    </div>
+
+                    <button type="submit" class="btn">
+                      <i class="fas fa-paper-plane"></i> Submit Leave
+                      Application
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+                <!-- Permission Apply Tab -->
+                <div id="permission-apply" class="tab-content">
+                  <div class="form-container">
+                   <h2 style=" margin-bottom: 30px;">
+                      <i class="fas fa-user-clock"></i> Request Permission
+                    </h2>
+                    <form id="permissionForm">
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label for="permissionDate">Date *</label>
+                          <input type="date" id="permissionDate" required />
+                        </div>
+                        <div class="form-group">
+                          <label for="fromTime">From Time *</label>
+                          <input type="time" id="fromTime" required />
+                        </div>
+                        <div class="form-group">
+                          <label for="toTime">To Time</label>
+                          <input type="time" id="toTime" />
+                        </div>
+                      </div>
+
+                      <div class="form-row">
+                        <div class="form-group">
+                        <label for="delayDuration">Delay Duration</label>
+                        <input type="text" id="delayDuration" readonly />
+                      </div>
+                      <div class="form-group">
+                        <label for="permissionReason"
+                          >Reason for Permission *</label
+                        >
+                        <textarea
+                          id="permissionReason"
+                          rows="4"
+                          placeholder="Please explain the reason for your permission request..."
+                          required
+                        ></textarea>
+                      </div>
+                      </div>
+
+
+                      <button type="submit" class="btn">
+                        <i class="fas fa-paper-plane"></i> Submit Permission
+                        Request
+                      </button>
+                    </form>
+                  </div>
+                </div>
+
+                <!-- Schedule Meeting Tab -->
+                <div id="schedule-meeting" class="tab-content">
+                  <div class="form-container">
+                  <h2 style="margin-bottom: 30px;">
+                      <i class="fas fa-calendar-plus"></i> Schedule Meeting
+                    </h2>
+                    <form id="meetingForm">
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label for="meetingTitle">Meeting Title *</label>
+                          <input
+                            type="text"
+                            id="meetingTitle"
+                            placeholder="Enter meeting title"
+                            required
+                          />
+                        </div>
+                        <div class="form-group">
+                          <label for="meetingDate">Meeting Date *</label>
+                          <input
+                            type="date"
+                            id="meetingDate"
+                            required
+                            onchange="loadTimeSlots()"
+                          />
+                        </div>
+                      </div>
+
+                    <div class="form-row">
+                    <div class="form-group">
+                      <label for="meetingFromTime">From Time *</label>
+                      <input
+                        type="time"
+                        id="meetingFromTime"
+                        required
+                        placeholder="Select start time"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label for="meetingToTime">To Time *</label>
+                      <input
+                        type="time"
+                        id="meetingToTime"
+                        required
+                        placeholder="Select end time"
+                      />
+                    </div>
+                     <div class="form-group">
+                        <label for="meetingDuration"
+                          >Duration (minutes) *</label
+                        >
+                        <select id="meetingDuration" required>
+                          <option value="">Select Duration</option>
+                          <option value="30">30 minutes</option>
+                          <option value="60">1 hour</option>
+                          <option value="90">1.5 hours</option>
+                          <option value="120">2 hours</option>
+                        </select>
+                      </div>
+                  </div>
+
+
+                      <div class="form-group">
+                        <label for="attendees">Attendees (Employee IDs) *</label>
+                        <input
+                          type="text"
+                          id="attendees"
+                          class="form-control"
+                          placeholder="Enter employee IDs (e.g., EMP001, EMP002)"
+                          required
+                        />
+                      </div>
+
+
+                      <div class="form-group">
+                        <label for="meetingDescription"
+                          >Meeting Description</label
+                        >
+                        <textarea
+                          id="meetingDescription"
+                          rows="4"
+                          placeholder="Describe the purpose and agenda of the meeting..."
+                        ></textarea>
+                      </div>
+
+                      <button type="submit" class="btn">
+                        <i class="fas fa-calendar-check"></i> Schedule Meeting
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- HR View -->
+            <div id="hr-view" class="hidden">
+              <div class="tabs-container">
+                <button
+                  class="tab-btn active"
+                  onclick="switchTab('leave-requests')"
+                >
+                  <i class="fas fa-inbox"></i> Leave Requests
+                </button>
+                <button
+                  class="tab-btn"
+                  onclick="switchTab('permission-requests')"
+                >
+                  <i class="fas fa-user-clock"></i> Permission Requests
+                </button>
+                <button class="tab-btn" onclick="switchTab('hr-leave-apply')">
+                  <i class="fas fa-calender"></i> Apply Leave
+                </button>
+                <button
+                  class="tab-btn"
+                  onclick="switchTab('hr-permission-apply')"
+                >
+                  <i class="fas fa-user-clock"></i> Apply Permission
+                </button>
+                <button
+                  class="tab-btn"
+                  onclick="switchTab('hr-schedule-meeting')"
+                >
+                  <i class="fas fa-calendar-plus"></i> Schedule Meeting
+                </button>
+              </div>
+
+              <div class="content-area">
+                <!-- Leave Requests Tab -->
+                <div id="leave-requests" class="tab-content active">
+                  <div class="stats-grid">
+                    <div class="stat-card">
+                      <div class="stat-number">8</div>
+                      <div class="stat-label">Pending Requests</div>
+                    </div>
+                    <div class="stat-card">
+                      <div class="stat-number">25</div>
+                      <div class="stat-label">Approved This Month</div>
+                    </div>
+                    <div class="stat-card">
+                      <div class="stat-number">3</div>
+                      <div class="stat-label">Rejected This Month</div>
+                    </div>
+                  </div>
+
+                  <div class="form-container">
+                    <h3><i class="fas fa-list"></i> Pending Leave Requests</h3>
+                    <div class="table-container">
+                      <table class="data-table">
+                        <thead>
+                          <tr>
+                            <th>Employee</th>
+                            <th>Leave Type</th>
+                            <th>From Date</th>
+                            <th>To Date</th>
+                            <th>Days</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>John Doe (EMP001)</td>
+                            <td>Sick Leave</td>
+                            <td>2024-09-10</td>
+                            <td>2024-09-12</td>
+                            <td>3</td>
+                            <td>
+                              <span class="status-badge status-pending"
+                                >Pending</span
+                              >
+                            </td>
+                            <td>
+                              <button
+                                class="btn btn-success"
+                                onclick="approveLeave(1)"
+                              >
+                                <i class="fas fa-check"></i> Approve
+                              </button>
+                              <button
+                                class="btn btn-danger"
+                                onclick="rejectLeave(1)"
+                              >
+                                <i class="fas fa-times"></i> Reject
+                              </button>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>Jane Smith (EMP002)</td>
+                            <td>Annual Leave</td>
+                            <td>2024-09-15</td>
+                            <td>2024-09-20</td>
+                            <td>6</td>
+                            <td>
+                              <span class="status-badge status-pending"
+                                >Pending</span
+                              >
+                            </td>
+                            <td>
+                              <button
+                                class="btn btn-success"
+                                onclick="approveLeave(2)"
+                              >
+                                <i class="fas fa-check"></i> Approve
+                              </button>
+                              <button
+                                class="btn btn-danger"
+                                onclick="rejectLeave(2)"
+                              >
+                                <i class="fas fa-times"></i> Reject
+                              </button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Permission Requests Tab -->
+                <div id="permission-requests" class="tab-content">
+                  <div class="stats-grid">
+                    <div class="stat-card">
+                      <div class="stat-number">5</div>
+                      <div class="stat-label">Pending Requests</div>
+                    </div>
+                    <div class="stat-card">
+                      <div class="stat-number">18</div>
+                      <div class="stat-label">Approved This Month</div>
+                    </div>
+                    <div class="stat-card">
+                      <div class="stat-number">2</div>
+                      <div class="stat-label">Rejected This Month</div>
+                    </div>
+                  </div>
+
+                  <div class="form-container">
+                    <h3>
+                      <i class="fas fa-list"></i> Pending Permission Requests
+                    </h3>
+                    <div class="table-container">
+                      <table class="data-table">
+                        <thead>
+                          <tr>
+                            <th>Employee</th>
+                            <th>Date</th>
+                            <th>Permission Type</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>John Doe (EMP001)</td>
+                            <td>2024-09-04</td>
+                            <td>Late Arrival</td>
+                            <td>09:00 - 09:45</td>
+                            <td>
+                              <span class="status-badge status-pending"
+                                >Pending</span
+                              >
+                            </td>
+                            <td>
+                              <button
+                                class="btn btn-success"
+                                onclick="approvePermission(1)"
+                              >
+                                <i class="fas fa-check"></i> Approve
+                              </button>
+                              <button
+                                class="btn btn-danger"
+                                onclick="rejectPermission(1)"
+                              >
+                                <i class="fas fa-times"></i> Reject
+                              </button>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>Mike Johnson (EMP003)</td>
+                            <td>2024-09-05</td>
+                            <td>Early Departure</td>
+                            <td>16:00 - 17:00</td>
+                            <td>
+                              <span class="status-badge status-pending"
+                                >Pending</span
+                              >
+                            </td>
+                            <td>
+                              <button
+                                class="btn btn-success"
+                                onclick="approvePermission(2)"
+                              >
+                                <i class="fas fa-check"></i> Approve
+                              </button>
+                              <button
+                                class="btn btn-danger"
+                                onclick="rejectPermission(2)"
+                              >
+                                <i class="fas fa-times"></i> Reject
+                              </button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- HR Leave Apply Tab -->
+                <div id="hr-leave-apply" class="tab-content">
+                  <div class="form-container">
+                    <h2>
+                      <i class="fas fa-calendar-plus"></i> Apply for Leave (HR)
+                    </h2>
+                    <form id="hrLeaveApplicationForm">
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label for="hrLeaveType">Leave Type *</label>
+                          <select id="hrLeaveType" required>
+                            <option value="">Select Leave Type</option>
+                            <option value="sick">Sick Leave</option>
+                            <option value="annual">Annual Leave</option>
+                            <option value="emergency">Emergency Leave</option>
+                            <option value="maternity">
+                              Maternity/Paternity Leave
+                            </option>
+                            <option value="other">Other</option>
+                          </select>
+                        </div>
+                        <div class="form-group">
+                          <label for="hrNumberOfDays">Number of Days *</label>
+                          <select id="hrNumberOfDays" required>
+                            <option value="">Select Duration</option>
+                            <option value="halfday">Half Day</option>
+                            <option value="1">1 Day</option>
+                            <option value="2">2 Days</option>
+                            <option value="3">3 Days</option>
+                            <option value="4">4 Days</option>
+                            <option value="5">5 Days</option>
+                            <option value="custom">More than 5 Days</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <!-- Custom days input field (initially hidden) -->
+                    <div id="customDaysGroup" class="form-row hidden">
+                      <div class="form-group">
+                        <label for="customDaysInput">Enter Number of Days *</label>
+                        <input 
+                          type="number" 
+                          id="customDaysInput" 
+                          min="6" 
+                          max="365" 
+                          placeholder="Enter number of days (6 or more)"
+                          onchange="calculateCustomLeaveDuration()"
+                        />
+                        <small class="form-help">Enter the exact number of days you need (minimum 6 days)</small>
+                      </div>
+                    </div>
+
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label for="hrStartDate">From Date *</label>
+                          <input type="date" id="hrStartDate" required />
+                        </div>
+                        <div class="form-group">
+                          <label for="hrEndDate">To Date *</label>
+                          <input type="date" id="hrEndDate" required />
+                        </div>
+                      </div>
+
+                      <div class="form-group">
+                        <label for="hrLeaveReason">Reason for Leave *</label>
+                        <textarea
+                          id="hrLeaveReason"
+                          rows="4"
+                          placeholder="Please provide reason for your leave request..."
+                          required
+                        ></textarea>
+                      </div>
+
+                      <button type="submit" class="btn">
+                        <i class="fas fa-paper-plane"></i> Submit Leave
+                        Application
+                      </button>
+                    </form>
+                  </div>
+                </div>
+
+                <!-- HR Permission Apply Tab -->
+                <div id="hr-permission-apply" class="tab-content">
+                  <div class="form-container">
+                    <h2>
+                      <i class="fas fa-user-clock"></i> Request Permission (HR)
+                    </h2>
+                    <form id="hrPermissionForm">
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label for="hrPermissionDate">Date *</label>
+                          <input type="date" id="hrPermissionDate" required />
+                        </div>
+                        <div class="form-group">
+                          <label for="hrPermissionType"
+                            >Permission Type *</label
+                          >
+                          <select id="hrPermissionType" required>
+                            <option value="">Select Permission Type</option>
+                            <option value="late-arrival">Late Arrival</option>
+                            <option value="early-departure">
+                              Early Departure
+                            </option>
+                            <option value="extended-break">
+                              Extended Break
+                            </option>
+                            <option value="personal-work">Personal Work</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label for="hrFromTime">From Time *</label>
+                          <input type="time" id="hrFromTime" required />
+                        </div>
+                        <div class="form-group">
+                          <label for="hrToTime">To Time</label>
+                          <input type="time" id="hrToTime" />
+                        </div>
+                      </div>
+
+                      <div class="form-group">
+                        <label for="hrPermissionReason"
+                          >Reason for Permission *</label
+                        >
+                        <textarea
+                          id="hrPermissionReason"
+                          rows="4"
+                          placeholder="Please explain the reason for your permission request..."
+                          required
+                        ></textarea>
+                      </div>
+
+                      <button type="submit" class="btn">
+                        <i class="fas fa-paper-plane"></i> Submit Permission
+                        Request
+                      </button>
+                    </form>
+                  </div>
+                </div>
+
+                <!-- HR Schedule Meeting Tab -->
+                <div id="hr-schedule-meeting" class="tab-content">
+                  <div class="form-container">
+                    <h2>
+                      <i class="fas fa-calendar-plus"></i> Schedule Meeting (HR)
+                    </h2>
+                    <form id="hrMeetingForm">
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label for="hrMeetingTitle">Meeting Title *</label>
+                          <input
+                            type="text"
+                            id="hrMeetingTitle"
+                            placeholder="Enter meeting title"
+                            required
+                          />
+                        </div>
+                        <div class="form-group">
+                          <label for="hrMeetingDate">Meeting Date *</label>
+                          <input
+                            type="date"
+                            id="hrMeetingDate"
+                            required
+                            onchange="loadHRTimeSlots()"
+                          />
+                        </div>
+                      </div>
+
+                      <div class="form-group">
+                        <label>Available Time Slots *</label>
+                        <div id="hrTimeSlots" class="time-slots">
+                          <!-- Time slots will be populated dynamically -->
+                        </div>
+                      </div>
+
+                      <div class="form-group">
+                        <label for="hrMeetingDuration"
+                          >Duration (minutes) *</label
+                        >
+                        <select id="hrMeetingDuration" required>
+                          <option value="">Select Duration</option>
+                          <option value="30">30 minutes</option>
+                          <option value="60">1 hour</option>
+                          <option value="90">1.5 hours</option>
+                          <option value="120">2 hours</option>
+                        </select>
+                      </div>
+
+                      <div class="form-group">
+                        <label for="hrAttendees"
+                          >Attendees (Employee IDs) *</label
+                        >
+                        <input
+                          type="text"
+                          id="hrAttendees"
+                          placeholder="Enter employee IDs separated by commas (e.g., EMP001, EMP002)"
+                          required
+                        />
+                      </div>
+
+                      <div class="form-group">
+                        <label for="meetingRoom">Meeting Room/Location</label>
+                        <select id="meetingRoom">
+                          <option value="">Select Room</option>
+                          <option value="conference-a">
+                            Conference Room A
+                          </option>
+                          <option value="conference-b">
+                            Conference Room B
+                          </option>
+                          <option value="boardroom">Board Room</option>
+                          <option value="online">Online Meeting</option>
+                        </select>
+                      </div>
+
+                      <div class="form-group">
+                        <label for="hrMeetingDescription"
+                          >Meeting Description</label
+                        >
+                        <textarea
+                          id="hrMeetingDescription"
+                          rows="4"
+                          placeholder="Describe the purpose and agenda of the meeting..."
+                        ></textarea>
+                      </div>
+
+                      <button type="submit" class="btn">
+                        <i class="fas fa-calendar-check"></i> Schedule Meeting
+                      </button>
+                    </form>
+                  </div>
+
+                  <!-- All Meetings Management -->
+                  <div style="margin-top: 30px">
+                    <h3>
+                      <i class="fas fa-calendar-alt"></i> All Scheduled Meetings
+                    </h3>
+                    <div class="table-container">
+                      <table class="data-table">
+                        <thead>
+                          <tr>
+                            <th>Meeting Title</th>
+                            <th>Date & Time</th>
+                            <th>Duration</th>
+                            <th>Attendees</th>
+                            <th>Room</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>Project Review</td>
+                            <td>2024-09-10, 10:00 AM</td>
+                            <td>60 min</td>
+                            <td>EMP001, EMP002, EMP003</td>
+                            <td>Conference Room A</td>
+                            <td>
+                              <button
+                                class="btn btn-secondary"
+                                onclick="editMeeting(1)"
+                              >
+                                <i class="fas fa-edit"></i> Edit
+                              </button>
+                              <button
+                                class="btn btn-danger"
+                                onclick="cancelMeeting(1)"
+                              >
+                                <i class="fas fa-trash"></i> Cancel
+                              </button>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>Team Building Activity</td>
+                            <td>2024-09-12, 2:00 PM</td>
+                            <td>120 min</td>
+                            <td>All Staff</td>
+                            <td>Conference Room B</td>
+                            <td>
+                              <button
+                                class="btn btn-secondary"
+                                onclick="editMeeting(2)"
+                              >
+                                <i class="fas fa-edit"></i> Edit
+                              </button>
+                              <button
+                                class="btn btn-danger"
+                                onclick="cancelMeeting(2)"
+                              >
+                                <i class="fas fa-trash"></i> Cancel
+                              </button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Special Day Management Content -->
+          <div class="content-section" id="specialday-content">
+            <!-- Tab Navigation -->
+            <div class="tabs-container">
+              <button class="tab-btn active" onclick="switchTab('quotes')">
+                <i class="fas fa-quote-right"></i> Motivation Quotes
+              </button>
+              <button class="tab-btn" onclick="switchTab('specialdays')">
+                <i class="fas fa-calendar-star"></i> Special Days
+              </button>
+            </div>
+
+            <!-- Motivation Quotes Tab -->
+            <div id="quotes-tab" class="tab-content active">
+              <div class="grid-2">
+                <!-- Add Quote Form -->
+                <div class="content-card">
+                  <h3>
+                    <i class="fas fa-plus-circle"></i> Add Motivation Quote
+                  </h3>
+                  <form id="quoteForm">
+                    <div class="form-group">
+                      <label for="quoteDate">Date *</label>
+                      <input type="date" id="quoteDate" required />
+                    </div>
+
+                    <div class="form-group">
+                      <label for="quoteText">Quote *</label>
+                      <textarea
+                        id="quoteText"
+                        placeholder="Enter an inspiring quote..."
+                        required
+                      ></textarea>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="quoteAuthor">Author (Optional)</label>
+                      <input
+                        type="text"
+                        id="quoteAuthor"
+                        placeholder="Quote author or source"
+                      />
+                    </div>
+
+                    <button type="submit" class="btn">
+                      <i class="fas fa-save"></i> Add Quote
+                    </button>
+                  </form>
+                </div>
+
+                <!-- Random Quote Display -->
+                <div class="content-card">
+                  <h3><i class="fas fa-lightbulb"></i> Quote of the Day</h3>
+                  <div id="randomQuote" class="quote-display">
+                    <p>
+                      "Success is not final, failure is not fatal: it is the
+                      courage to continue that counts."
+                    </p>
+                    <div class="quote-author">- Winston Churchill</div>
+                  </div>
+                  <button class="btn btn-secondary" onclick="showRandomQuote()">
+                    <i class="fas fa-refresh"></i> Get New Quote
+                  </button>
+                </div>
+              </div>
+
+              <!-- Quotes List -->
+              <div class="content-card">
+                <h3><i class="fas fa-list"></i> Saved Quotes</h3>
+                <div class="table-container">
+                  <table class="data-table" id="quotesTable">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Quote</th>
+                        <th>Author</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="quotesTableBody">
+                      <!-- Dynamic content -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Special Days Tab -->
+            <div id="specialdays-tab" class="tab-content">
+              <div class="grid-2">
+                <!-- Add Special Day Form -->
+                <div class="content-card">
+                  <h3><i class="fas fa-calendar-plus"></i> Add Special Day</h3>
+                  <form id="specialDayForm">
+                    <div class="form-group">
+                      <label for="eventDate">Date *</label>
+                      <input type="date" id="eventDate" required />
+                    </div>
+
+                    <div class="form-group">
+                      <label for="eventName">Event Name *</label>
+                      <input
+                        type="text"
+                        id="eventName"
+                        placeholder="Enter event name..."
+                        required
+                      />
+                    </div>
+
+                    <div class="form-group">
+                      <label for="eventCategory">Category *</label>
+                      <select id="eventCategory" required>
+                        <option value="">Select Category</option>
+                        <option value="Birthday">Birthday</option>
+                        <option value="Holiday">Holiday</option>
+                        <option value="Announcement">Announcement</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="eventQuote"
+                        >Associated Quote (Optional)</label
+                      >
+                      <textarea
+                        id="eventQuote"
+                        placeholder="Add a special quote for this day..."
+                      ></textarea>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="eventDescription">Description</label>
+                      <textarea
+                        id="eventDescription"
+                        placeholder="Additional details about this special day..."
+                      ></textarea>
+                    </div>
+
+                    <button type="submit" class="btn">
+                      <i class="fas fa-calendar-check"></i> Add Special Day
+                    </button>
+                  </form>
+                </div>
+
+                <!-- Upcoming Special Days Preview -->
+                <div class="content-card">
+                  <h3><i class="fas fa-calendar-alt"></i> Upcoming Events</h3>
+                  <div id="upcomingEvents">
+                    <!-- Dynamic upcoming events will be displayed here -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- Special Days List -->
+              <div class="content-card">
+                <h3><i class="fas fa-calendar"></i> All Special Days</h3>
+                <div class="table-container">
+                  <table class="data-table" id="specialDaysTable">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Event</th>
+                        <th>Category</th>
+                        <th>Quote</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="specialDaysTableBody">
+                      <!-- Dynamic content -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Report Content -->
+          
+          <!-- Report Content with Tabs -->
+          <div class="content-section" id="report-content">
+             <div class="page-header">
+              <h2><i class="fas fa-calendar-check"></i> Reports</h2>
+            </div>
+            <!-- Tab Navigation -->
+            <div class="tabs-container">
+              <button class="tab-btn active" onclick="switchReportTab('daily-report')">
+                <i class="fas fa-file-alt"></i> Daily Report Table
+              </button>
+              <button class="tab-btn" onclick="switchReportTab('leave-report')">
+                <i class="fas fa-calendar-times"></i> Leave Report
+              </button>
+              <button class="tab-btn" onclick="switchReportTab('permission-report')">
+                <i class="fas fa-user-clock"></i> Permission Report
+              </button>
+            </div>
+
+            <!-- Daily Report Tab -->
+            <div id="daily-report" class="tab-content active">
+              <div class="content-card">
+                <h3>Daily Reports</h3>
+
+                <div class="filter-section">
+                  <div class="filter-group">
+                    <label for="dailyReportDate">Select Date:</label>
+                    <input
+                      type="date"
+                      id="dailyReportDate"
+                      onchange="filterDailyReportByDate()"
+                    />
+                    <button class="filter-btn" onclick="clearDailyReportFilter()">
+                      Clear
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Daily Reports Table -->
+                <div class="table-container">
+                  <table class="reports-table" id="dailyReportsTable">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Emp_Id</th>
+                        <th>Emp_name</th>
+                        <th>Section</th>
+                        <th>Hours</th>
+                        <th>Project_name</th>
+                        <th>Work</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>2025-08-01</td>
+                        <td>FSTIN0925</td>
+                        <td>Priya K</td>
+                        <td>Full Day</td>
+                        <td>6:18</td>
+                        <td>3D website and FlipBook</td>
+                        <td>Created a 3D website in React</td>
+                      </tr>
+                      <tr>
+                        <td>2025-08-01</td>
+                        <td>FST00625</td>
+                        <td>Murugan M</td>
+                        <td>Full Day</td>
+                        <td>6:18</td>
+                        <td>3D website and FlipBook</td>
+                        <td>Created a 3D website in React</td>
+                      </tr>
+                      <tr>
+                        <td>2025-08-01</td>
+                        <td>FSTIN0925</td>
+                        <td>Shafi</td>
+                        <td>Full Day</td>
+                        <td>6:18</td>
+                        <td>3D website and FlipBook</td>
+                        <td>Created a 3D website in React</td>
+                      </tr>
+                      <tr>
+                        <td>2025-08-01</td>
+                        <td>FSTIN0925</td>
+                        <td>Sameer</td>
+                        <td>Full Day</td>
+                        <td>6:18</td>
+                        <td>3D website and FlipBook</td>
+                        <td>Created a 3D website in React</td>
+                      </tr>
+                      <tr>
+                        <td>2025-08-01</td>
+                        <td>FSTIN0925</td>
+                        <td>Priya K</td>
+                        <td>Full Day</td>
+                        <td>6:18</td>
+                        <td>3D website and FlipBook</td>
+                        <td>Created a 3D website in React</td>
+                      </tr>
+                      <tr>
+                        <td>2025-08-01</td>
+                        <td>FSTIN0825</td>
+                        <td>Pradeepa S</td>
+                        <td>Full Day</td>
+                        <td>6:19</td>
+                        <td>AR food website</td>
+                        <td>Completed header adjustments</td>
+                      </tr>
+                      <tr>
+                        <td>2025-08-01</td>
+                        <td>FST01223</td>
+                        <td>Sham R</td>
+                        <td>Full Day</td>
+                        <td>8:04</td>
+                        <td>OODA BOND</td>
+                        <td>Website correction</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Leave Report Tab -->
+            <div id="leave-report" class="tab-content">
+              <div class="content-card">
+                <h3>Leave Reports</h3>
+
+                <div class="filter-section">
+                  <div class="filter-group">
+                    <label for="leaveReportDate">Select Month:</label>
+                    <input
+                      type="month"
+                      id="leaveReportDate"
+                      onchange="filterLeaveReportByMonth()"
+                    />
+                    <label for="leaveReportStatus">Status:</label>
+                    <select id="leaveReportStatus" onchange="filterLeaveReportByStatus()">
+                      <option value="">All Status</option>
+                      <option value="approved">Approved</option>
+                      <option value="pending">Pending</option>
+                      <option value="rejected">Rejected</option>
+                    </select>
+                    <button class="filter-btn" onclick="clearLeaveReportFilter()">
+                      Clear
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Leave Reports Table -->
+                <div class="table-container">
+                  <table class="reports-table" id="leaveReportsTable">
+                    <thead>
+                      <tr>
+                        <th>Employee ID</th>
+                        <th>Employee Name</th>
+                        <th>Leave Type</th>
+                        <th>From Date</th>
+                        <th>To Date</th>
+                        <th>Days</th>
+                        <th>Reason</th>
+                        <th>Applied Date</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>EMP001</td>
+                        <td>John Doe</td>
+                        <td>Sick Leave</td>
+                        <td>2025-09-10</td>
+                        <td>2025-09-12</td>
+                        <td>3</td>
+                        <td>Medical appointment</td>
+                        <td>2025-09-08</td>
+                        <td><span class="status-badge status-pending">Pending</span></td>
+                      </tr>
+                      <tr>
+                        <td>EMP002</td>
+                        <td>Jane Smith</td>
+                        <td>Annual Leave</td>
+                        <td>2025-09-15</td>
+                        <td>2025-09-20</td>
+                        <td>6</td>
+                        <td>Family vacation</td>
+                        <td>2025-09-01</td>
+                        <td><span class="status-badge status-progress">Approved</span></td>
+                      </tr>
+                      <tr>
+                        <td>EMP003</td>
+                        <td>Mike Johnson</td>
+                        <td>Emergency Leave</td>
+                        <td>2025-09-05</td>
+                        <td>2025-09-05</td>
+                        <td>1</td>
+                        <td>Family emergency</td>
+                        <td>2025-09-05</td>
+                        <td><span class="status-badge status-progress">Approved</span></td>
+                      </tr>
+                      <tr>
+                        <td>FST00625</td>
+                        <td>Murugan M</td>
+                        <td>Sick Leave</td>
+                        <td>2025-09-02</td>
+                        <td>2025-09-03</td>
+                        <td>2</td>
+                        <td>Fever and cold</td>
+                        <td>2025-09-01</td>
+                        <td><span class="status-badge status-progress">Approved</span></td>
+                      </tr>
+                      <tr>
+                        <td>FSTIN0925</td>
+                        <td>Priya K</td>
+                        <td>Personal Leave</td>
+                        <td>2025-08-28</td>
+                        <td>2025-08-30</td>
+                        <td>3</td>
+                        <td>Personal work</td>
+                        <td>2025-08-25</td>
+                        <td><span class="status-badge status-completed">Rejected</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Permission Report Tab -->
+            <div id="permission-report" class="tab-content">
+              <div class="content-card">
+                <h3>Permission Reports</h3>
+
+                <div class="filter-section">
+                  <div class="filter-group">
+                    <label for="permissionReportDate">Select Date:</label>
+                    <input
+                      type="date"
+                      id="permissionReportDate"
+                      onchange="filterPermissionReportByDate()"
+                    />
+                    <label for="permissionReportStatus">Status:</label>
+                    <select id="permissionReportStatus" onchange="filterPermissionReportByStatus()">
+                      <option value="">All Status</option>
+                      <option value="approved">Approved</option>
+                      <option value="pending">Pending</option>
+                      <option value="rejected">Rejected</option>
+                    </select>
+                    <button class="filter-btn" onclick="clearPermissionReportFilter()">
+                      Clear
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Permission Reports Table -->
+                <div class="table-container">
+                  <table class="reports-table" id="permissionReportsTable">
+                    <thead>
+                      <tr>
+                        <th>Employee ID</th>
+                        <th>Employee Name</th>
+                        <th>Date</th>
+                        <th>Permission Type</th>
+                        <th>From Time</th>
+                        <th>To Time</th>
+                        <th>Duration</th>
+                        <th>Reason</th>
+                        <th>Applied Date</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>EMP001</td>
+                        <td>John Doe</td>
+                        <td>2025-09-10</td>
+                        <td>Late Arrival</td>
+                        <td>09:00</td>
+                        <td>09:45</td>
+                        <td>45 min</td>
+                        <td>Traffic jam</td>
+                        <td>2025-09-10</td>
+                        <td><span class="status-badge status-pending">Pending</span></td>
+                      </tr>
+                      <tr>
+                        <td>EMP003</td>
+                        <td>Mike Johnson</td>
+                        <td>2025-09-09</td>
+                        <td>Early Departure</td>
+                        <td>16:00</td>
+                        <td>17:00</td>
+                        <td>1 hour</td>
+                        <td>Doctor appointment</td>
+                        <td>2025-09-09</td>
+                        <td><span class="status-badge status-progress">Approved</span></td>
+                      </tr>
+                      <tr>
+                        <td>FSTIN0925</td>
+                        <td>Priya K</td>
+                        <td>2025-09-08</td>
+                        <td>Extended Break</td>
+                        <td>12:00</td>
+                        <td>13:30</td>
+                        <td>1.5 hours</td>
+                        <td>Bank work</td>
+                        <td>2025-09-08</td>
+                        <td><span class="status-badge status-progress">Approved</span></td>
+                      </tr>
+                      <tr>
+                        <td>FST00625</td>
+                        <td>Murugan M</td>
+                        <td>2025-09-07</td>
+                        <td>Personal Work</td>
+                        <td>14:00</td>
+                        <td>15:00</td>
+                        <td>1 hour</td>
+                        <td>Vehicle service</td>
+                        <td>2025-09-07</td>
+                        <td><span class="status-badge status-progress">Approved</span></td>
+                      </tr>
+                      <tr>
+                        <td>FSTIN0825</td>
+                        <td>Pradeepa S</td>
+                        <td>2025-09-06</td>
+                        <td>Late Arrival</td>
+                        <td>09:00</td>
+                        <td>10:00</td>
+                        <td>1 hour</td>
+                        <td>Family function</td>
+                        <td>2025-09-06</td>
+                        <td><span class="status-badge status-completed">Rejected</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+
+
+    <!-- Modal HTML Structure -->
+    <div id="punchModal" class="modal">
+      <!-- Blur overlay -->
+      <div class="modal-overlay"></div>
+
+      <!-- Modal content -->
+      <div class="modal-content">
+        <!-- Close button -->
+        <span class="close">&times;</span>
+
+        <!-- Modal header -->
+        <div class="modal-header">
+          <h3>Record Attendance</h3>
+          <div
+            id="modalClock"
+            style="font-family: monospace; font-size: 1.1rem; color: #666"
+          >
+            00:00:00
+          </div>
+        </div>
+
+        <!-- Modal body -->
+        <div class="modal-body">
+          <form id="attendanceForm" class="modal-form">
+            <!-- Employee ID -->
+            <div class="form-group">
+              <label for="empId">Employee ID:</label>
+              <input type="text" id="empId" value="EMP001" readonly />
+            </div>
+
+            <!-- Employee Name -->
+            <div class="form-group">
+              <label for="empName">Employee Name:</label>
+              <input type="text" id="empName" value="John Doe" readonly />
+            </div>
+
+            <!-- Date -->
+            <div class="form-group">
+              <label for="attendanceDate">Date:</label>
+              <input type="date" id="attendanceDate" readonly />
+            </div>
+
+            <!-- Current Time -->
+            <div class="form-group">
+              <label for="attendanceTime">Current Time:</label>
+              <input type="text" id="attendanceTime" readonly />
+            </div>
+
+            <!-- Login Time -->
+            <div class="form-group">
+              <label for="loginTime">Login Time:</label>
+              <input type="text" id="loginTime" readonly />
+            </div>
+
+            <!-- Action (In/Out) -->
+            <div class="form-group">
+              <label>Action:</label>
+              <div class="radio-group">
+                <div class="radio-item">
+                  <input
+                    type="radio"
+                    id="radioIn"
+                    name="action"
+                    value="in"
+                    checked
+                  />
+                  <label for="radioIn">In</label>
+                </div>
+                <div class="radio-item">
+                  <input type="radio" id="radioOut" name="action" value="out" />
+                  <label for="radioOut">Out</label>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Modal footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="hideModal()">
+            Cancel
+          </button>
+          <button type="button" id="submitBtn" class="btn btn-primary">
+            Submit Attendance
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Modal -->
+<div id="profileModal" class="modal">
+  <div class="modal-overlay"></div>
+  <div class="modal-content profile-modal-content">
+    <span class="close" onclick="hideProfileModal()">&times;</span>
+    
+    <div class="modal-header">
+      <div class="profile-logo-section">
+        <div class="profile-logo-container">
+          <img src="img/Fisto logo new.png" alt="FISTO Logo" class="profile-logo">
+        </div>
+        
+     <!-- Profile Image Update Section -->
+        <div class="profile-image-section">
+          <div class="current-profile-img">
+            <img src="img/Profileimg.png" alt="Profile Picture" id="currentProfileImg" class="profile-img-display">
+            
+            <!-- Text below the image -->
+            <p class="upload-label">Upload Profile</p>
+            
+            <!-- Overlay for upload -->
+            <div class="img-upload-overlay">
+              <label for="profileImageInput" class="img-upload-btn">
+                <i class="fas fa-camera"></i>
+                Update Photo
+              </label>
+              <input type="file" id="profileImageInput" accept="image/*" style="display: none;" onchange="handleProfileImageChange(event)">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-body profile-modal-body">
+      <h3 class="profile-title">My Profile :</h3>
+      
+      <div class="profile-fields-container">
+        <div class="profile-field">
+          <label>Employee ID :</label>
+          <div class="profile-field-value" id="profileEmpId">EMP001</div>
+        </div>
+        
+        <div class="profile-field">
+          <label>Employee Name :</label>
+          <div class="profile-field-value" id="profileEmpName">John Doe</div>
+        </div>
+        
+        <div class="profile-field">
+          <label>Designation :</label>
+          <div class="profile-field-value" id="profileDesignation">Project Manager</div>
+        </div>
+        
+        <div class="profile-field">
+          <label>Mail ID :</label>
+          <div class="profile-field-value" id="profileEmail">john.doe@fisto.com</div>
+        </div>
+        
+        <div class="profile-field">
+          <label>Date Of Join :</label>
+          <div class="profile-field-value" id="profileJoinDate">15/01/2023</div>
+        </div>
+        
+        <div class="profile-field">
+          <label>Gender :</label>
+          <div class="profile-field-value" id="profileGender">Male</div>
+        </div>
+        
+        <div class="profile-field">
+          <label>Date of Birth :</label>
+          <div class="profile-field-value" id="profileDOB">10/05/1990</div>
+        </div>
+        
+        <div class="profile-field">
+          <label>Phone No :</label>
+          <div class="profile-field-value" id="profilePhone">+91 9876543210</div>
+        </div>
+        
+        <div class="profile-field full-width">
+          <label>Address :</label>
+          <div class="profile-field-value" id="profileAddress">123 Main Street, City Name, State - 600001</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+
+</script>
+
+
+
+    <!-- Load dependencies first (Chart.js, etc.) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+     <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+
+    <!-- Load configuration and utilities first -->
+    <script src="config.js"></script>
+    <script src="utilities.js"></script>
+
+    <!-- Load specific modules -->
+    <script src="dashboard.js"></script>
+    <script src="profile.js"></script>
+    <script src="client-registration.js"></script>
+    <script src="project.js"></script>
+    <script src="project-allocation.js"></script>
+    <script src="task-allocation.js"></script>
+    <script src="specialDayManagement.js"></script>
+    <script src="request.js"></script>
+    <script src="attendanceManagement.js"></script>
+      <script src="report.js"></script>
+    <script src="reportsDaily.js"></script>
+
+    <!-- Load main SPA controller last -->
+    <script src="spaManager.js"></script>
+  </body>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+      updateDateTime();
+      setInterval(updateDateTime, 1000); // refresh IST clock every second
+  });
+</script>
+</html>

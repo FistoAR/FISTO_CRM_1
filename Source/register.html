@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register</title>
+  <link rel="stylesheet" href="register.css" />
+</head>
+<body>
+  <div class="wrapper">
+    <!-- Left Panel -->
+    <div class="left-panel">
+      <div class="overlay"></div>
+      <div class="welcome">
+        <!-- Logo -->
+        <img src="FistoLogo.png" alt="Logo" class="logo" width="120" height="50" />
+        <h2>Welcome!</h2>
+        <p>Registations are one step away from logging in.</p>
+        <a href="login.html" class="action-btn">Login</a>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right-panel">
+      <div class="top-toggle"></div>
+      
+      <!-- Static H2 Header -->
+      <h2 class="form-heading">Employee Registration</h2>
+      
+      <!-- Scrollable Form Container -->
+      <div class="form-container">
+        <form>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="employee-id">Employee Id *</label>
+              <input type="text" id="employee-id" class="uppercase-input" placeholder="Employee Id" minlength="2" maxlength="10" required />
+            </div>
+            <div class="form-group">
+              <label for="employee-name">Employee Name *</label>
+              <input type="text" id="employee-name" class="uppercase-input" placeholder="Employee Name" minlength="2" maxlength="15" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="designation">Designation *</label>
+              <select id="designation" name="designation" required>
+                <option value="" disabled selected>Select your designation</option>
+                <option value="md">Managing Director</option>
+                <option value="sbu">Strategic Business Unit</option>
+                <option value="head">Project Head</option>
+                <option value="head">Team Head</option>
+                <option value="ui/ux-dev">UI/UX Developer</option>
+                <option value="inten">UI/UX Intern</option>
+                <option value="unity-dev">AR/VR Unity Developer</option>
+                <option value="Software-dev">Software Developer</option>
+                <option value="junior-dev">Junior Developer</option>
+                <option value="intern">Developer Intern</option>
+                <option value="admin">Admin</option>
+                <option value="hr">Human Resources</option>
+                <option value="marketing">Marketing</option>
+                <option value="unity">Marketing Associate</option>
+                <option value="3d">3D Artist</option>
+                <option value="3d-intern">3D Artist Intern</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="joinDate">Date of Join *</label>
+              <input type="date" id="joinDate" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="dob">Date of Birth *</label>
+              <input type="date" id="dob" name="dob" required />
+            </div>
+
+            <div class="form-group">
+              <label>Gender *</label>
+              <div class="radio-group" id="gender">
+                <label><input type="radio" name="gender" value="male" required /> Male</label>
+                <label><input type="radio" name="gender" value="female" /> Female</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email">Email Address *</label>
+              <input type="email" id="email" placeholder="Email Address" required />
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone Number *</label>
+              <input type="tel" id="phone" name="phone" maxlength="10" pattern="[0-9]{10}" placeholder="e.g., 9876543210" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label for="address">Address *</label>
+              <textarea id="address" name="address" placeholder="Address" rows="4" required></textarea>
+            </div>
+          </div>
+
+          <!-- Photo Upload Section - Updated with image name display -->
+          <div class="photo-upload-container">
+            <div class="form-group">
+              <label>Photo Upload *</label>
+            </div>
+            <div class="photo-upload-wrapper">
+              <div class="upload-button-section">
+                <label for="photoInput" class="upload-btn">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                  </svg>
+                  Choose File
+                </label>
+                <input type="file" id="photoInput" name="photo" accept=".jpg, .jpeg, .png" class="hidden-file-input" required />
+              </div>
+              
+              <div id="file-info-display" class="file-info-display" style="display: none;">
+                <div id="image-preview-section" class="image-preview-section" style="display: none;">
+                  <!-- Updated preview title section to include image name -->
+                  <div class="preview-header">
+                    <h4 class="preview-title">Preview:</h4>
+                    <span id="preview-image-name" class="preview-image-name"></span>
+                  </div>
+                  <div class="preview-container">
+                    <img id="preview-image" src="" alt="Preview" class="preview-image">
+                    <div class="preview-info">
+            
+                      <button type="button" id="remove-preview-btn" class="remove-preview-btn" title="Remove image">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p id="file-error" style="color: red; font-size: 12px; margin-top: 5px;"></p>
+            </div>
+
+            <!-- File Info Display -->
+            <div class="file-details">
+              <button type="button" id="remove-file-btn" class="remove-file-btn">
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <br>
+
+         <div class="form-row">
+          <div class="form-group">
+            <label for="password">Password *</label>
+            <div class="password-input-container">
+              <input type="password" id="password" placeholder="Password" required minlength="8" maxlength="15" />
+              <button type="button" class="password-toggle" id="toggle-password">
+                <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg class="eye-off-icon" style="display: none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="confirm-password">Confirm Password *</label>
+            <div class="password-input-container">
+              <input type="password" id="confirm-password" placeholder="Confirm Password" required minlength="8" maxlength="15" />
+              <button type="button" class="password-toggle" id="toggle-confirm-password">
+                <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg class="eye-off-icon" style="display: none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <br>
+          <button type="submit" class="btn">Register</button>
+        </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <script src="register.js"></script>
+</body>
+</html>

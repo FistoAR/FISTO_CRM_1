@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <link rel="icon" type="image/png" href="/img/favicon-32x32.png">
+    <title>Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f8f9fa;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Container Layout */
+.container {
+    display: flex;
+    min-height: 100vh;
+    background: #ffffff;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    width: 280px;
+    background: linear-gradient(180deg, #1a1a1a 0%, #2d2d2d 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 100;
+}
+
+.company-brand {
+    padding: 1.5rem 1rem;
+    border-bottom: 1px solid #333;
+}
+
+.brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #4ecdc4;
+}
+
+.welcome-message h2 {
+    font-size: 1.2rem;
+    color: #4ecdc4;
+    margin-bottom: 0.25rem;
+}
+
+.welcome-message p {
+    font-size: 0.85rem;
+    color: #ccc;
+    margin-bottom: 0.5rem;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.user-info small {
+    color: #999;
+    font-size: 0.75rem;
+}
+
+/* Navigation Menu */
+.nav-menu {
+    flex: 1;
+    padding: 1rem 0;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+    color: #ccc;
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-left-color: #4ecdc4;
+}
+
+.nav-item.active {
+    background: rgba(78, 205, 196, 0.1);
+    color: #4ecdc4;
+    border-left-color: #4ecdc4;
+}
+
+.nav-item i {
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+}
+
+.nav-item span {
+    font-weight: 500;
+}
+
+/* Logout Section */
+.logout-section {
+    padding: 1rem;
+    border-top: 1px solid #333;
+}
+
+.logout-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #444;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: #666;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    margin-left: 280px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Header */
+.header {
+    background: white;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.header-left h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 0.25rem;
+}
+
+.breadcrumb {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.search-btn, .notification-btn, .menu-btn {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.search-btn:hover, .notification-btn:hover, .menu-btn:hover {
+    background: #f8f9fa;
+    color: #333;
+}
+
+/* Header Attendance Button */
+.header-attendance-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.header-attendance-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.header-attendance-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.header-attendance-btn:hover::before {
+    left: 100%;
+}
+
+.header-attendance-btn.logged-in {
+    background: linear-gradient(135deg, #ff7675 0%, #d63031 100%);
+}
+
+.header-attendance-btn.logged-out {
+    background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+}
+
+.attendance-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 0.25rem;
+    animation: pulse 2s infinite;
+}
+
+.attendance-status-dot.logged-in {
+    background: #00ff88;
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+}
+
+.attendance-status-dot.logged-out {
+    background: #ff6b6b;
+    box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+}
+
+@keyframes pulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.1); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.notification-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #ff4757;
+    color: white;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 10px;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Dashboard Content */
+.dashboard-content {
+    flex: 1;
+    padding: 2rem;
+    background: #f8f9fa;
+}
+
+.content-section {
+    display: none;
+}
+
+.content-section.active {
+    display: block;
+}
+
+.section-header {
+    margin-bottom: 2rem;
+}
+
+.section-header h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 0.5rem;
+}
+
+.section-header p {
+    color: #666;
+    font-size: 1rem;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-left: 4px solid #4ecdc4;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.stat-card h3 {
+    font-size: 0.9rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+}
+
+.stat-card .amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 0.5rem;
+}
+
+.revenue-card {
+    border-left-color: #00b894;
+}
+
+.revenue-card .amount {
+    color: #00b894;
+}
+
+.trend {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #00b894;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Quick Access Modal */
+.quick-attendance-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    z-index: 1001;
+    min-width: 350px;
+    text-align: center;
+    display: none;
+}
+
+.quick-attendance-modal.active {
+    display: block;
+    animation: modalSlideIn 0.3s ease;
+}
+
+.quick-attendance-modal h3 {
+    margin-bottom: 1rem;
+    color: #333;
+    font-size: 1.5rem;
+}
+
+.quick-attendance-modal .current-time {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 1rem 0;
+    padding: 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+}
+
+.quick-attendance-modal .status-display {
+    margin: 1rem 0;
+    font-weight: 500;
+}
+
+.quick-attendance-modal .action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.quick-attendance-modal .btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.quick-attendance-modal .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.quick-attendance-modal .btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.quick-attendance-modal .btn:hover {
+    transform: translateY(-1px);
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+    .sidebar {
+        width: 250px;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .sidebar.active {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+    
+    .header-actions {
+        gap: 0.5rem;
+    }
+    
+    .header-attendance-btn {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        padding: 1rem;
+    }
+    
+    .header-actions {
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+    
+    .header-attendance-btn {
+        order: -1;
+        flex-basis: 100%;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .quick-attendance-modal {
+        min-width: 90%;
+        margin: 1rem;
+    }
+}
+
+/* Utility Classes */
+.fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Notification Styles */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    z-index: 10001;
+    min-width: 300px;
+    max-width: 500px;
+    animation: slideInRight 0.3s ease;
+}
+
+.notification-success {
+    border-left: 4px solid #00b894;
+}
+
+.notification-error {
+    border-left: 4px solid #d63031;
+}
+
+.notification-info {
+    border-left: 4px solid #0984e3;
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="company-brand">
+                <div class="brand-logo">
+                    <div class="logo" style="background: linear-gradient(45deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">F</div>
+                    <div class="welcome-message">
+                        <h2>Welcome!</h2>
+                        <p id="userWelcome">Your dashboard is ready to explore.</p>
+                        <div class="user-info">
+                            <small id="userRole">Role: Software Engineer</small>
+                            <small id="userId">ID: FST00725</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="nav-menu" id="sidebarMenu">
+                <div class="nav-item active" onclick="showSection('dashboard', this)">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item" onclick="showSection('analysis', this)">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Analysis</span>
+                </div>
+                <div class="nav-item" onclick="showSection('projects', this)">
+                    <i class="fas fa-project-diagram"></i>
+                    <span>Projects</span>
+                </div>
+                <div class="nav-item" onclick="showSection('employee', this)">
+                    <i class="fas fa-users"></i>
+                    <span>Employees</span>
+                </div>
+                <div class="nav-item" onclick="showSection('attendance', this)">
+                    <i class="fas fa-clock"></i>
+                    <span>Attendance</span>
+                </div>
+            </nav>
+
+            <!-- Logout Button -->
+            <div class="logout-section">
+                <button class="logout-btn" onclick="handleLogout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <h1 id="pageTitle">Dashboard</h1>
+                    <div class="breadcrumb">
+                        <span id="currentSection">Home</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <!-- Quick Attendance Button -->
+                    <button class="header-attendance-btn logged-out" onclick="openQuickAttendance()" id="headerAttendanceBtn">
+                        <div class="attendance-status-dot logged-out"></div>
+                        <i class="fas fa-clock"></i>
+                        <span id="attendanceButtonText">Punch In</span>
+                    </button>
+                    
+                    <button class="search-btn" onclick="handleSearch()" title="Search">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="notification-btn" title="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </button>
+                    <button class="menu-btn" onclick="toggleMobileMenu()" title="Toggle Menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dynamic Content Area -->
+            <div class="dashboard-content" id="mainContent">
+                
+                <!-- Dashboard Overview (Default) -->
+                <div class="content-section active" id="dashboard-content">
+                    <div class="section-header">
+                        <h2>Dashboard Overview</h2>
+                        <p>Get insights into your business performance</p>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card revenue-card">
+                            <h3>Total Revenue</h3>
+                            <p class="amount">$125,430</p>
+                            <div class="trend">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+12.5% from last month</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <h3>Active Projects</h3>
+                            <p class="amount" style="font-size: 2rem; color: #2563eb; font-weight: bold;">24</p>
+                            <p style="color: #666;">Currently in progress</p>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <h3>Team Members</h3>
+                            <p class="amount" style="font-size: 2rem; color: #10b981; font-weight: bold;">156</p>
+                            <p style="color: #666;">Active employees</p>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <h3>Completion Rate</h3>
+                            <p class="amount" style="font-size: 2rem; color: #f59e0b; font-weight: bold;">87%</p>
+                            <p style="color: #666;">Project success rate</p>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-top: 2rem;">
+                        <h3 style="margin-bottom: 1rem;">Quick Actions</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <button onclick="showSection('attendance', null)" style="padding: 1rem; border: none; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 8px; cursor: pointer; transition: transform 0.3s ease;">
+                                <i class="fas fa-clock" style="font-size: 1.5rem; margin-bottom: 0.5rem; display: block;"></i>
+                                <div style="font-weight: 500;">View Attendance</div>
+                            </button>
+                            <button onclick="showSection('projects', null)" style="padding: 1rem; border: none; background: linear-gradient(135deg, #f093fb, #f5576c); color: white; border-radius: 8px; cursor: pointer; transition: transform 0.3s ease;">
+                                <i class="fas fa-project-diagram" style="font-size: 1.5rem; margin-bottom: 0.5rem; display: block;"></i>
+                                <div style="font-weight: 500;">View Projects</div>
+                            </button>
+                            <button onclick="showSection('employee', null)" style="padding: 1rem; border: none; background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; border-radius: 8px; cursor: pointer; transition: transform 0.3s ease;">
+                                <i class="fas fa-users" style="font-size: 1.5rem; margin-bottom: 0.5rem; display: block;"></i>
+                                <div style="font-weight: 500;">View Team</div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Other sections simplified for demo -->
+                <div class="content-section" id="analysis-content">
+                    <div class="section-header">
+                        <h2>Business Analysis</h2>
+                        <p>Comprehensive insights and analytics</p>
+                    </div>
+                    <div style="background: white; padding: 2rem; border-radius: 12px; text-align: center; color: #666;">
+                        Analysis content would go here...
+                    </div>
+                </div>
+
+                <div class="content-section" id="projects-content">
+                    <div class="section-header">
+                        <h2>Projects Management</h2>
+                        <p>Track and manage all your projects</p>
+                    </div>
+                    <div style="background: white; padding: 2rem; border-radius: 12px; text-align: center; color: #666;">
+                        Projects content would go here...
+                    </div>
+                </div>
+
+                <div class="content-section" id="employee-content">
+                    <div class="section-header">
+                        <h2>Employee Management</h2>
+                        <p>Manage your team and track performance</p>
+                    </div>
+                    <div style="background: white; padding: 2rem; border-radius: 12px; text-align: center; color: #666;">
+                        Employee content would go here...
+                    </div>
+                </div>
+
+                <!-- Attendance Content -->
+                <div class="content-section" id="attendance-content">
+                    <div class="section-header">
+                        <h2><i class="fas fa-clock"></i> Attendance System</h2>
+                        <p>Track your daily attendance</p>
+                    </div>
+
+                    <div style="background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); text-align: center; max-width: 500px; margin: 0 auto;">
+                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin: 1rem 0; border-left: 4px solid #4ecdc4; text-align: left;">
+                            <p style="margin: 0.25rem 0; color: #666; font-size: 0.9rem;"><strong>Employee ID:</strong> FST00725</p>
+                            <p style="margin: 0.25rem 0; color: #666; font-size: 0.9rem;"><strong>Name:</strong> Harish N</p>
+                            <p style="margin: 0.25rem 0; color: #666; font-size: 0.9rem;"><strong>Department:</strong> AR/VR Developer</p>
+                        </div>
+
+                        <div id="currentTimeDisplay" style="font-size: 1.2rem; font-weight: bold; color: #333; margin: 1.5rem 0; padding: 1rem; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 10px; color: white; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);">
+                            Loading...
+                        </div>
+
+                        <div id="attendanceStatusBadge" style="display: inline-block; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold; margin: 1rem 0; font-size: 0.9rem; background: #ffe6e6; color: #d63031;">
+                            Logged Out
+                        </div>
+
+                        <div>
+                            <button onclick="toggleAttendance()" style="padding: 1rem 2rem; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; background: linear-gradient(45deg, #667eea, #764ba2); color: white; margin: 1.5rem 0; width: 100%;">
+                                📋 Mark Attendance
+                            </button>
+                        </div>
+
+                        <div style="background: #f8f9fa; border-radius: 8px; padding: 1rem; margin-top: 1.5rem; text-align: left;">
+                            <h3 style="color: #333; margin-bottom: 0.5rem; font-size: 1rem;">Recent Activity</h3>
+                            <div id="attendanceActivityList">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #e0e0e0; font-size: 0.9rem;">
+                                    <span style="font-weight: 500; color: #d63031;">Punch Out</span>
+                                    <span>Yesterday - 06:30 PM</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; font-size: 0.9rem;">
+                                    <span style="font-weight: 500; color: #00b894;">Punch In</span>
+                                    <span>Yesterday - 09:15 AM</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Modal -->
+    <div class="modal-overlay" id="attendanceModalOverlay">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #ffc107 0%, #ff8f00 100%); color: #333; border-radius: 12px 12px 0 0;">
+                <h3 style="margin: 0; font-weight: 600;">Mark Attendance</h3>
+                <button class="modal-close" onclick="closeAttendanceModal()" style="color: #333;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="attendance-section">
+                    <h3 class="section-title" style="color: #007bff;">Attendance</h3>
+
+                    <div class="form-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                        <div class="form-group">
+                            <label for="modalEmpId">Emp ID</label>
+                            <input type="text" id="modalEmpId" value="FST00725" readonly class="form-control" style="background: #f8f9fa;">
+                        </div>
+                        <div class="form-group">
+                            <label for="modalEmpName">Emp Name</label>
+                            <input type="text" id="modalEmpName" value="Harish N" readonly class="form-control" style="background: #f8f9fa;">
+                        </div>
+                        <div class="form-group">
+                            <label for="modalAttendanceDate">Date</label>
+                            <input type="date" id="modalAttendanceDate" readonly class="form-control" style="background: #f8f9fa;">
+                        </div>
+                        <div class="form-group">
+                            <label for="modalCurrentTime">Current Time</label>
+                            <input type="time" id="modalCurrentTime" readonly class="form-control" style="background: #f8f9fa;">
+                        </div>
+                        <div class="form-group">
+                            <label for="modalLoginTime">Login Time</label>
+                            <input type="time" id="modalLoginTime" readonly class="form-control" style="background: #f8f9fa;">
+                        </div>
+                        <div class="form-group">
+                            <label>Action</label>
+                            <div class="radio-group" style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                                <div class="radio-option">
+                                    <input type="radio" id="modalRadioIn" name="modalAttendanceAction" value="in">
+                                    <label for="modalRadioIn" style="margin: 0; font-weight: normal; cursor: pointer;">
+                                        <span style="display: inline-block; width: 18px; height: 18px; border: 2px solid #ffc107; border-radius: 50%; margin-right: 0.5rem; position: relative; vertical-align: middle;">
+                                            <span style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 8px; height: 8px; background: #ffc107; border-radius: 50%;"></span>
+                                        </span>
+                                        In
+                                    </label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="modalRadioOut" name="modalAttendanceAction" value="out">
+                                    <label for="modalRadioOut" style="margin: 0; font-weight: normal; cursor: pointer;">
+                                        <span style="display: inline-block; width: 18px; height: 18px; border: 2px solid #6c757d; border-radius: 50%; margin-right: 0.5rem; position: relative; vertical-align: middle;">
+                                            <span style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 8px; height: 8px; background: #6c757d; border-radius: 50%;"></span>
+                                        </span>
+                                        Out
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                        <button type="button" class="btn btn-secondary" onclick="closeAttendanceModal()">Cancel</button>
+                        <button type="button" class="btn" onclick="submitAttendanceFromModal()" style="background: #007bff; color: white;">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentSection = 'dashboard';
+        let isLoggedIn = false;
+        let loginTime = null;
+        let attendanceActivities = [
+            { type: 'out', time: 'Yesterday - 06:30 PM', device: 'Desktop' },
+            { type: 'in', time: 'Yesterday - 09:15 AM', device: 'Mobile' }
+        ];
+
+        // Utility function to safely get element
+        function safeGetElement(id) {
+            const element = document.getElementById(id);
+            if (!element) {
+                console.warn(`Element with id '${id}' not found`);
+            }
+            return element;
+        }
+
+        // Navigation function
+        function showSection(section, eventTarget = null) {
+            try {
+                // Update active nav item
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                if (eventTarget) {
+                    eventTarget.classList.add('active');
+                }
+
+                // Hide all content sections
+                document.querySelectorAll('.content-section').forEach(contentSection => {
+                    contentSection.classList.remove('active');
+                });
+
+                // Show selected section
+                const targetSection = safeGetElement(section + '-content');
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                    targetSection.classList.add('fade-in');
+                    currentSection = section;
+                    
+                    // Update page title and breadcrumb
+                    updatePageHeader(section);
+                    
+                    // Initialize section-specific content
+                    if (section === 'attendance') {
+                        initializeAttendance();
+                    }
+                }
+            } catch (error) {
+                console.error('Error in showSection:', error);
+                showNotification('Error loading section', 'error');
+            }
+        }
+
+        function updatePageHeader(section) {
+            const titles = {
+                'dashboard': 'Dashboard',
+                'analysis': 'Business Analysis',
+                'projects': 'Projects Management',
+                'employee': 'Employee Management',
+                'attendance': 'Attendance System'
+            };
+
+            const titleElement = safeGetElement('pageTitle');
+            const sectionElement = safeGetElement('currentSection');
+            
+            if (titleElement) titleElement.textContent = titles[section] || 'Dashboard';
+            if (sectionElement) sectionElement.textContent = titles[section] || 'Home';
+        }
+
+        // Quick Attendance Functions - Updated to use detailed modal
+        function openQuickAttendance() {
+            try {
+                const overlay = safeGetElement('attendanceModalOverlay');
+                if (!overlay) return;
+                
+                overlay.classList.add('active');
+                setupAttendanceModal();
+                updateModalFields();
+                
+                // Update time every second while modal is open
+                if (window.modalTimeInterval) {
+                    clearInterval(window.modalTimeInterval);
+                }
+                window.modalTimeInterval = setInterval(updateModalFields, 1000);
+            } catch (error) {
+                console.error('Error opening attendance modal:', error);
+            }
+        }
+
+        function closeAttendanceModal() {
+            try {
+                const overlay = safeGetElement('attendanceModalOverlay');
+                if (overlay) overlay.classList.remove('active');
+                
+                // Clear the radio buttons
+                const radioButtons = document.querySelectorAll('input[name="modalAttendanceAction"]');
+                radioButtons.forEach(radio => radio.checked = false);
+                
+                if (window.modalTimeInterval) {
+                    clearInterval(window.modalTimeInterval);
+                    window.modalTimeInterval = null;
+                }
+            } catch (error) {
+                console.error('Error closing attendance modal:', error);
+            }
+        }
+
+        function setupAttendanceModal() {
+            try {
+                // Set up radio button styling
+                const radioButtons = document.querySelectorAll('input[name="modalAttendanceAction"]');
+                radioButtons.forEach(radio => {
+                    radio.style.display = 'none';
+                    
+                    radio.addEventListener('change', function() {
+                        // Update visual indicators
+                        const allLabels = document.querySelectorAll('input[name="modalAttendanceAction"] + label span span');
+                        allLabels.forEach(indicator => indicator.style.display = 'none');
+                        
+                        if (this.checked) {
+                            const indicator = this.nextElementSibling.querySelector('span span');
+                            if (indicator) indicator.style.display = 'block';
+                        }
+                    });
+                });
+
+                // Pre-select appropriate action based on current status
+                const inRadio = safeGetElement('modalRadioIn');
+                const outRadio = safeGetElement('modalRadioOut');
+                
+                if (!isLoggedIn && inRadio) {
+                    inRadio.checked = true;
+                    inRadio.dispatchEvent(new Event('change'));
+                } else if (isLoggedIn && outRadio) {
+                    outRadio.checked = true;
+                    outRadio.dispatchEvent(new Event('change'));
+                }
+            } catch (error) {
+                console.error('Error setting up attendance modal:', error);
+            }
+        }
+
+        function updateModalFields() {
+            try {
+                const now = new Date();
+                
+                // Update current time
+                const timeString = now.toLocaleTimeString('en-US', {
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                // Update date
+                const dateString = now.toISOString().split('T')[0];
+                
+                // Update form fields
+                const currentTimeField = safeGetElement('modalCurrentTime');
+                const dateField = safeGetElement('modalAttendanceDate');
+                const loginTimeField = safeGetElement('modalLoginTime');
+                
+                if (currentTimeField) currentTimeField.value = timeString;
+                if (dateField) dateField.value = dateString;
+                if (loginTimeField) {
+                    loginTimeField.value = loginTime ? convertTo24Hour(loginTime) : '';
+                }
+                
+            } catch (error) {
+                console.error('Error updating modal fields:', error);
+            }
+        }
+
+        function convertTo24Hour(time12h) {
+            try {
+                const [time, modifier] = time12h.split(' ');
+                let [hours, minutes] = time.split(':');
+                
+                if (hours === '12') {
+                    hours = '00';
+                }
+                
+                if (modifier === 'PM' || modifier === 'pm') {
+                    hours = parseInt(hours, 10) + 12;
+                }
+                
+                return `${hours.toString().padStart(2, '0')}:${minutes}`;
+            } catch (error) {
+                console.error('Error converting time:', error);
+                return '';
+            }
+        }
+
+        function submitAttendanceFromModal() {
+            try {
+                const selectedAction = document.querySelector('input[name="modalAttendanceAction"]:checked');
+                
+                if (!selectedAction) {
+                    showNotification('Please select an action (In or Out)', 'error');
+                    return;
+                }
+                
+                const action = selectedAction.value;
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('en-US', { hour12: true });
+                const dateString = now.toLocaleDateString('en-US');
+                
+                if (action === 'in') {
+                    if (isLoggedIn) {
+                        showNotification('You are already logged in', 'error');
+                        return;
+                    }
+                    
+                    // Punch In
+                    isLoggedIn = true;
+                    loginTime = timeString;
+                    
+                    attendanceActivities.unshift({
+                        type: 'in',
+                        time: `${dateString} - ${timeString}`,
+                        device: 'Desktop'
+                    });
+                    
+                    showNotification('Successfully punched in!', 'success');
+                    
+                } else if (action === 'out') {
+                    if (!isLoggedIn) {
+                        showNotification('You need to punch in first', 'error');
+                        return;
+                    }
+                    
+                    // Punch Out
+                    isLoggedIn = false;
+                    loginTime = null;
+                    
+                    attendanceActivities.unshift({
+                        type: 'out',
+                        time: `${dateString} - ${timeString}`,
+                        device: 'Desktop'
+                    });
+                    
+                    showNotification('Successfully punched out!', 'success');
+                }
+                
+                updateHeaderAttendanceButton();
+                updateAttendanceStatus();
+                renderRecentActivity();
+                
+                // Close modal after successful submission
+                setTimeout(() => {
+                    closeAttendanceModal();
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error submitting attendance:', error);
+                showNotification('Error updating attendance', 'error');
+            }
+        }
+
+        function updateHeaderAttendanceButton() {
+            try {
+                const button = safeGetElement('headerAttendanceBtn');
+                const buttonText = safeGetElement('attendanceButtonText');
+                const dot = button?.querySelector('.attendance-status-dot');
+                
+                if (button && buttonText && dot) {
+                    if (isLoggedIn) {
+                        button.className = 'header-attendance-btn logged-in';
+                        buttonText.textContent = 'Punch Out';
+                        dot.className = 'attendance-status-dot logged-in';
+                    } else {
+                        button.className = 'header-attendance-btn logged-out';
+                        buttonText.textContent = 'Punch In';
+                        dot.className = 'attendance-status-dot logged-out';
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating header attendance button:', error);
+            }
+        }
+
+        // Attendance Functions
+        function initializeAttendance() {
+            try {
+                updateCurrentTime();
+                updateAttendanceStatus();
+                renderRecentActivity();
+                
+                // Update time every second
+                if (window.attendanceTimeInterval) {
+                    clearInterval(window.attendanceTimeInterval);
+                }
+                window.attendanceTimeInterval = setInterval(updateCurrentTime, 1000);
+            } catch (error) {
+                console.error('Error initializing attendance:', error);
+            }
+        }
+
+        function updateCurrentTime() {
+            try {
+                const timeElement = safeGetElement('currentTimeDisplay');
+                if (timeElement) {
+                    const now = new Date();
+                    const timeString = now.toLocaleTimeString('en-US', {
+                        hour12: true,
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                    const dateString = now.toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    
+                    timeElement.innerHTML = `
+                        <div>${timeString}</div>
+                        <div style="font-size: 0.9rem; opacity: 0.8;">${dateString}</div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error updating current time:', error);
+            }
+        }
+
+        function updateAttendanceStatus() {
+            try {
+                const statusElement = safeGetElement('attendanceStatusBadge');
+                
+                if (statusElement) {
+                    if (isLoggedIn) {
+                        statusElement.textContent = `Logged In${loginTime ? ` - ${loginTime}` : ''}`;
+                        statusElement.style.background = '#e6f7e6';
+                        statusElement.style.color = '#00b894';
+                    } else {
+                        statusElement.textContent = 'Logged Out';
+                        statusElement.style.background = '#ffe6e6';
+                        statusElement.style.color = '#d63031';
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating attendance status:', error);
+            }
+        }
+
+        function toggleAttendance() {
+            try {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('en-US', { hour12: true });
+                const dateString = now.toLocaleDateString('en-US');
+                
+                if (isLoggedIn) {
+                    // Punch Out
+                    isLoggedIn = false;
+                    loginTime = null;
+                    
+                    attendanceActivities.unshift({
+                        type: 'out',
+                        time: `${dateString} - ${timeString}`,
+                        device: 'Desktop'
+                    });
+                    
+                    showNotification('Successfully punched out!', 'success');
+                } else {
+                    // Punch In
+                    isLoggedIn = true;
+                    loginTime = timeString;
+                    
+                    attendanceActivities.unshift({
+                        type: 'in',
+                        time: `${dateString} - ${timeString}`,
+                        device: 'Desktop'
+                    });
+                    
+                    showNotification('Successfully punched in!', 'success');
+                }
+                
+                updateHeaderAttendanceButton();
+                updateAttendanceStatus();
+                renderRecentActivity();
+            } catch (error) {
+                console.error('Error toggling attendance:', error);
+                showNotification('Error updating attendance', 'error');
+            }
+        }
+
+        function renderRecentActivity() {
+            try {
+                const container = safeGetElement('attendanceActivityList');
+                if (!container) return;
+                
+                const recentActivities = attendanceActivities.slice(0, 5);
+                
+                container.innerHTML = recentActivities.map(activity => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #e0e0e0; font-size: 0.9rem;">
+                        <div>
+                            <span style="font-weight: 500; color: ${activity.type === 'in' ? '#00b894' : '#d63031'};">
+                                ${activity.type === 'in' ? 'Punch In' : 'Punch Out'}
+                            </span>
+                            <div style="font-size: 0.8rem; color: #999;">${activity.device}</div>
+                        </div>
+                        <div style="text-align: right; font-size: 0.85rem; color: #666;">
+                            ${activity.time}
+                        </div>
+                    </div>
+                `).join('');
+                
+                // Remove border from last item
+                const lastItem = container.lastElementChild;
+                if (lastItem) {
+                    lastItem.style.borderBottom = 'none';
+                }
+            } catch (error) {
+                console.error('Error rendering recent activity:', error);
+            }
+        }
+
+        // Utility Functions
+        function showNotification(message, type = 'info') {
+            try {
+                // Remove existing notifications
+                document.querySelectorAll('.notification').forEach(n => n.remove());
+                
+                // Create notification element
+                const notification = document.createElement('div');
+                notification.className = `notification notification-${type}`;
+                notification.innerHTML = `
+                    <div class="notification-content">
+                        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+                        <span>${message}</span>
+                    </div>
+                    <button class="notification-close" onclick="this.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                // Add to page
+                document.body.appendChild(notification);
+                
+                // Auto remove after 5 seconds
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.style.animation = 'slideInRight 0.3s ease reverse';
+                        setTimeout(() => {
+                            if (notification.parentElement) {
+                                notification.remove();
+                            }
+                        }, 300);
+                    }
+                }, 5000);
+            } catch (error) {
+                console.error('Error showing notification:', error);
+                alert(message);
+            }
+        }
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            try {
+                const sidebar = document.querySelector('.sidebar');
+                if (sidebar) {
+                    sidebar.classList.toggle('active');
+                }
+            } catch (error) {
+                console.error('Error toggling mobile menu:', error);
+            }
+        }
+
+        // Search functionality
+        function handleSearch() {
+            try {
+                const searchTerm = prompt('Enter search term:');
+                if (searchTerm && searchTerm.trim()) {
+                    showNotification(`Searching for: ${searchTerm}`, 'info');
+                }
+            } catch (error) {
+                console.error('Error handling search:', error);
+            }
+        }
+
+        // Logout functionality
+        function handleLogout() {
+            try {
+                if (confirm('Are you sure you want to logout?')) {
+                    showNotification('Logging out...', 'info');
+                    // Clear intervals
+                    if (window.attendanceTimeInterval) {
+                        clearInterval(window.attendanceTimeInterval);
+                    }
+                    if (window.modalTimeInterval) {
+                        clearInterval(window.modalTimeInterval);
+                    }
+                    // Simulate logout delay
+                    setTimeout(() => {
+                        showNotification('Logged out successfully', 'success');
+                        // Reset state
+                        isLoggedIn = false;
+                        loginTime = null;
+                        updateHeaderAttendanceButton();
+                    }, 1500);
+                }
+            } catch (error) {
+                console.error('Error handling logout:', error);
+            }
+        }
+
+        // Initialize application
+        function initializeApp() {
+            try {
+                updatePageHeader('dashboard');
+                updateHeaderAttendanceButton();
+                
+                // Close modal when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('modal-overlay')) {
+                        closeAttendanceModal();
+                    }
+                });
+                
+                // Keyboard shortcuts
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        closeAttendanceModal();
+                    }
+                });
+                
+                showNotification('Dashboard loaded successfully!', 'success');
+            } catch (error) {
+                console.error('Error initializing app:', error);
+                alert('Error initializing application. Please refresh the page.');
+            }
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        // Clean up intervals when page unloads
+        window.addEventListener('beforeunload', function() {
+            if (window.attendanceTimeInterval) {
+                clearInterval(window.attendanceTimeInterval);
+            }
+            if (window.modalTimeInterval) {
+                clearInterval(window.modalTimeInterval);
+            }
+        });
+    </script>
+</body>
+</html>

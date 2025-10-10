@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Special Day Management</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="specialdaypage.css">
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <h1><i class="fas fa-star"></i> Special Day Management</h1>
+            <p>Manage motivation quotes and special occasions</p>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="tabs-container">
+            <button class="tab-btn active" onclick="switchTab('quotes')">
+                <i class="fas fa-quote-right"></i> Motivation Quotes
+            </button>
+            <button class="tab-btn" onclick="switchTab('specialdays')">
+                <i class="fas fa-calendar-star"></i> Special Days
+            </button>
+        </div>
+
+        <!-- Motivation Quotes Tab -->
+        <div id="quotes-tab" class="tab-content active">
+            <div class="grid-2">
+                <!-- Add Quote Form -->
+                <div class="content-card">
+                    <h3><i class="fas fa-plus-circle"></i> Add Motivation Quote</h3>
+                    <form id="quoteForm">
+                        <div class="form-group">
+                            <label for="quoteDate">Date *</label>
+                            <input type="date" id="quoteDate" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="quoteText">Quote *</label>
+                            <textarea id="quoteText" placeholder="Enter an inspiring quote..." required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="quoteAuthor">Author (Optional)</label>
+                            <input type="text" id="quoteAuthor" placeholder="Quote author or source">
+                        </div>
+                        
+                        <button type="submit" class="btn">
+                            <i class="fas fa-save"></i> Add Quote
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Random Quote Display -->
+                <div class="content-card">
+                    <h3><i class="fas fa-lightbulb"></i> Quote of the Day</h3>
+                    <div id="randomQuote" class="quote-display">
+                        <p>"Success is not final, failure is not fatal: it is the courage to continue that counts."</p>
+                        <div class="quote-author">- Winston Churchill</div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="showRandomQuote()">
+                        <i class="fas fa-refresh"></i> Get New Quote
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quotes List -->
+            <div class="content-card">
+                <h3><i class="fas fa-list"></i> Saved Quotes</h3>
+                <div class="table-container">
+                    <table class="data-table" id="quotesTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Quote</th>
+                                <th>Author</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="quotesTableBody">
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Special Days Tab -->
+        <div id="specialdays-tab" class="tab-content">
+            <div class="grid-2">
+                <!-- Add Special Day Form -->
+                <div class="content-card">
+                    <h3><i class="fas fa-calendar-plus"></i> Add Special Day</h3>
+                    <form id="specialDayForm">
+                        <div class="form-group">
+                            <label for="eventDate">Date *</label>
+                            <input type="date" id="eventDate" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="eventName">Event Name *</label>
+                            <input type="text" id="eventName" placeholder="Enter event name..." required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="eventCategory">Category *</label>
+                            <select id="eventCategory" required>
+                                <option value="">Select Category</option>
+                                <option value="Birthday">Birthday</option>
+                                <option value="Holiday">Holiday</option>
+                                <option value="Announcement">Announcement</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="eventQuote">Associated Quote (Optional)</label>
+                            <textarea id="eventQuote" placeholder="Add a special quote for this day..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="eventDescription">Description</label>
+                            <textarea id="eventDescription" placeholder="Additional details about this special day..."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn">
+                            <i class="fas fa-calendar-check"></i> Add Special Day
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Upcoming Special Days Preview -->
+                <div class="content-card">
+                    <h3><i class="fas fa-calendar-alt"></i> Upcoming Events</h3>
+                    <div id="upcomingEvents">
+                        <!-- Dynamic upcoming events will be displayed here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Special Days List -->
+            <div class="content-card">
+                <h3><i class="fas fa-calendar"></i> All Special Days</h3>
+                <div class="table-container">
+                    <table class="data-table" id="specialDaysTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Event</th>
+                                <th>Category</th>
+                                <th>Quote</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="specialDaysTableBody">
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Edit Item</h3>
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="modalContent" class="modal-body">
+                <!-- Dynamic content for editing -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button id="saveEditBtn" class="btn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="specialdaypage.js"></script>
+</body>
+</html>

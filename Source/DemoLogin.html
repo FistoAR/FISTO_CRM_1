@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIST-O Punch In/Out System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            margin: 0 auto;
+            position: relative;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .container .logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 1.5rem auto;
+            display: block;
+            object-fit: fill;
+            border: 3px solid rgba(78, 205, 196, 0.3);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .container .logo:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+            border-color: rgba(78, 205, 196, 0.6);
+        }
+
+        .container h1 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: none;
+        }
+
+        .employee-info {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #4ecdc4;
+        }
+
+        .employee-info p {
+            margin: 0.25rem 0;
+            color: #666;
+        }
+
+        .current-time {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 10px;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        .status.logged-out {
+            background: #ffe6e6;
+            color: #d63031;
+        }
+
+        .status.logged-in {
+            background: #e6f7e6;
+            color: #00b894;
+        }
+
+        .attendance-btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            margin: 1.5rem 0;
+            width: 100%;
+        }
+
+        .attendance-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 2% auto;
+            padding: 0;
+            border-radius: 8px;
+            width: 98%;
+            max-width: 900px;
+            position: relative;
+            animation: modalSlideIn 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-height: 95vh;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                border-radius: 0;
+                max-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            background: #ffc107;
+            color: #333;
+            padding: 1rem;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: bold;
+            word-break: break-all;
+        }
+
+        @media (max-width: 768px) {
+            .modal-header {
+                padding: 0.8rem;
+                border-radius: 0;
+            }
+            .modal-header h2 {
+                font-size: 0.9rem;
+            }
+        }
+
+        .close {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            transition: color 0.3s;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .modal-body {
+            padding: 1rem;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 768px) {
+            .modal-body {
+                padding: 0.8rem;
+            }
+        }
+
+        .attendance-section {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 1px solid #dee2e6;
+        }
+
+        @media (max-width: 768px) {
+            .attendance-section {
+                padding: 0.8rem;
+                margin-bottom: 0.8rem;
+            }
+        }
+
+        .section-title {
+            color: #007bff;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+                margin-bottom: 0.8rem;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 0.7rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace; /* For better time display */
+        }
+
+        @media (max-width: 768px) {
+            .form-group input,
+            .form-group select {
+                padding: 0.8rem;
+                font-size: 1rem;
+                min-height: 44px;
+            }
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .form-group input[readonly] {
+            background-color: #e9ecef;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 480px) {
+            .radio-group {
+                gap: 1rem;
+            }
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .radio-option input[type="radio"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .radio-option input[type="radio"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .radio-option label {
+            margin: 0;
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        .radio-option label.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .submit-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            float: right;
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .submit-btn {
+                width: 100%;
+                float: none;
+                padding: 1rem;
+                font-size: 1.1rem;
+                margin-top: 1rem;
+            }
+        }
+
+        .submit-btn:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+
+        .recent-activity {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            text-align: left;
+        }
+
+        .recent-activity h3 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .activity-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.9rem;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-left {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .activity-type {
+            font-weight: bold;
+        }
+
+        .activity-device {
+            font-size: 0.8rem;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .device-icon {
+            font-size: 0.9rem;
+        }
+
+        .activity-time {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .punch-in-activity {
+            color: #00b894;
+        }
+
+        .punch-out-activity {
+            color: #d63031;
+        }
+
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <img src="Fisto logo new.png" alt="Logo" class="logo" />
+        <h1>Employee Attendance</h1>
+
+        <div class="employee-info">
+            <p><strong>Employee ID:</strong> FST00725</p>
+            <p><strong>Name:</strong> Harish N</p>
+            <p><strong>Department:</strong> AR/VR Developer</p>
+        </div>
+
+        <div class="current-time" id="currentTime"></div>
+
+        <div class="status" id="statusBadge">Logged Out</div>
+
+        <button class="attendance-btn" id="attendanceBtn">
+            📋 Mark Attendance
+        </button>
+
+        <div class="recent-activity">
+            <h3>Recent Activity</h3>
+            <div id="activityList">
+                <div class="activity-item">
+                    <span class="activity-type punch-out-activity">Punch Out</span>
+                    <span>Yesterday - 06:30 PM</span>
+                </div>
+                <div class="activity-item">
+                    <span class="activity-type punch-in-activity">Punch In</span>
+                    <span>Yesterday - 09:15 AM</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="punchModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Mark Attendance</h2>
+                <button class="close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Attendance Section -->
+                <div class="attendance-section">
+                    <h3 class="section-title">Attendance</h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="empId">Emp ID</label>
+                            <input type="text" id="empId" value="FST00725" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="empName">Emp Name</label>
+                            <input type="text" id="empName" value="Harish N" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="attendanceDate">Date</label>
+                            <input type="date" id="attendanceDate" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="attendanceTime">Current Time</label>
+                            <input type="time" id="attendanceTime" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginTime">Login Time</label>
+                            <input type="time" id="loginTime" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Action</label>
+                            <div class="radio-group">
+                                <div class="radio-option">
+                                    <input type="radio" id="radioIn" name="action" value="in">
+                                    <label for="radioIn">In</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="radioOut" name="action" value="out">
+                                    <label for="radioOut">Out</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="submit-btn" id="submitBtn">Submit</button>
+                    <div style="clear: both;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isLoggedIn = false;
+        let activities = [
+            { type: 'out', time: 'Yesterday - 06:30 PM', device: 'Desktop' },
+            { type: 'in', time: 'Yesterday - 09:15 AM', device: 'Mobile' }
+        ];
+
+        // Device detection function
+        function detectDevice() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/.test(userAgent);
+            const isTablet = /ipad|tablet|playbook|silk/.test(userAgent);
+
+            if (isMobile && !isTablet) {
+                return 'Mobile';
+            } else if (isTablet) {
+                return 'Tablet';
+            } else {
+                return 'Desktop';
+            }
+        }
+
+        // Get device icon
+        function getDeviceIcon(device) {
+            switch(device) {
+                case 'Mobile': return '📱';
+                case 'Tablet': return '💻';
+                case 'Desktop':
+                default: return '🖥️';
+            }
+        }
+
+        // Elements
+        const modal = document.getElementById('punchModal');
+        const attendanceBtn = document.getElementById('attendanceBtn');
+        const closeBtn = document.querySelector('.close');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusBadge = document.getElementById('statusBadge');
+        const currentTimeElement = document.getElementById('currentTime');
+        const activityList = document.getElementById('activityList');
+
+        // Modal form elements
+        const empIdInput = document.getElementById('empId');
+        const empNameInput = document.getElementById('empName');
+        const attendanceDateInput = document.getElementById('attendanceDate');
+        const attendanceTimeInput = document.getElementById('attendanceTime');
+        const loginTimeInput = document.getElementById('loginTime');
+        const radioIn = document.getElementById('radioIn');
+        const radioOut = document.getElementById('radioOut');
+        const modalClock = document.getElementById('modalClock');
+
+        let modalClockInterval = null;
+        let loginTime = null; // Store login time
+
+        // Update modal clock
+        function updateModalClock() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            modalClock.textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        // Update current time display
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            currentTimeElement.textContent = timeString;
+        }
+
+        // Set current date and time in modal
+        function setCurrentDateTime() {
+            const now = new Date();
+            
+            // Set current date in YYYY-MM-DD format (readonly)
+            const dateStr = now.toISOString().split('T')[0];
+            attendanceDateInput.value = dateStr;
+            
+            // Set current time with seconds (HH:MM:SS format)
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            const timeStr = `${hours}:${minutes}:${seconds}`;
+            attendanceTimeInput.value = timeStr;
+            
+            // Set login time if user is logged in, otherwise show current time
+            if (loginTime) {
+                loginTimeInput.value = loginTime;
+            } else {
+                const loginTimeStr = now.toTimeString().slice(0, 5); // Login time still HH:MM
+                loginTimeInput.value = loginTimeStr;
+            }
+        }
+
+        // Update status and radio button availability
+        function updateStatus() {
+            if (isLoggedIn) {
+                statusBadge.textContent = 'Logged In';
+                statusBadge.className = 'status logged-in';
+            } else {
+                statusBadge.textContent = 'Logged Out';
+                statusBadge.className = 'status logged-out';
+            }
+        }
+
+        // Update radio button states
+        function updateRadioStates() {
+            if (isLoggedIn) {
+                // User is logged in - only allow "Out"
+                radioIn.disabled = true;
+                radioIn.checked = false;
+                radioOut.disabled = false;
+                radioOut.checked = true;
+                document.querySelector('label[for="radioIn"]').classList.add('disabled');
+                document.querySelector('label[for="radioOut"]').classList.remove('disabled');
+            } else {
+                // User is logged out - only allow "In"
+                radioIn.disabled = false;
+                radioIn.checked = true;
+                radioOut.disabled = true;
+                radioOut.checked = false;
+                document.querySelector('label[for="radioIn"]').classList.remove('disabled');
+                document.querySelector('label[for="radioOut"]').classList.add('disabled');
+            }
+        }
+
+        // Show modal
+        function showModal() {
+            modal.style.display = 'block';
+            setCurrentDateTime();
+            updateRadioStates();
+            
+            // Start modal updates for time fields
+            modalClockInterval = setInterval(() => {
+                // Update the current time field with seconds
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const seconds = now.getSeconds().toString().padStart(2, '0');
+                const timeStr = `${hours}:${minutes}:${seconds}`;
+                attendanceTimeInput.value = timeStr;
+                
+                // Update login time field if not logged in (HH:MM format)
+                if (!isLoggedIn) {
+                    const loginTimeStr = now.toTimeString().slice(0, 5);
+                    loginTimeInput.value = loginTimeStr;
+                }
+            }, 1000);
+        }
+
+        // Hide modal
+        function hideModal() {
+            modal.style.display = 'none';
+            
+            // Stop modal updates
+            if (modalClockInterval) {
+                clearInterval(modalClockInterval);
+                modalClockInterval = null;
+            }
+        }
+
+        // Add activity to list
+        function addActivity(type) {
+            const now = new Date();
+            const timeString = now.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            const currentDevice = detectDevice();
+
+            activities.unshift({
+                type: type,
+                time: `Today - ${timeString}`,
+                device: currentDevice
+            });
+
+            // Keep only last 5 activities
+            if (activities.length > 5) {
+                activities = activities.slice(0, 5);
+            }
+
+            updateActivityList();
+        }
+
+        // Update activity list
+        function updateActivityList() {
+            activityList.innerHTML = '';
+            activities.forEach(activity => {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'activity-item';
+
+                const typeClass = activity.type === 'in' ? 'punch-in-activity' : 'punch-out-activity';
+                const typeText = activity.type === 'in' ? 'Punch In' : 'Punch Out';
+                const deviceIcon = getDeviceIcon(activity.device);
+
+                activityItem.innerHTML = `
+                    <div class="activity-left">
+                        <span class="activity-type ${typeClass}">${typeText}</span>
+                        <span class="activity-device">
+                            <span class="device-icon">${deviceIcon}</span>
+                            ${activity.device}
+                        </span>
+                    </div>
+                    <span class="activity-time">${activity.time}</span>
+                `;
+                activityList.appendChild(activityItem);
+            });
+        }
+
+        // Event listeners
+        attendanceBtn.addEventListener('click', showModal);
+        closeBtn.addEventListener('click', hideModal);
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                hideModal();
+            }
+        });
+
+        // Handle form submission
+        submitBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+
+            const selectedAction = document.querySelector('input[name="action"]:checked');
+            if (!selectedAction) {
+                alert('Please select In or Out');
+                return;
+            }
+
+            const type = selectedAction.value;
+            const date = attendanceDateInput.value;
+            const time = attendanceTimeInput.value;
+
+            // if (!date || !time) {
+            //     alert('Please fill in all required fields');
+            //     return;
+            // }
+
+            // Update status
+            if (type === 'in') {
+                isLoggedIn = true;
+                // Store login time when user punches in
+                const now = new Date();
+                loginTime = now.toTimeString().slice(0, 5);
+            } else {
+                isLoggedIn = false;
+                // Clear login time when user punches out
+                loginTime = null;
+            }
+            updateStatus();
+
+            // Add to activity
+            addActivity(type);
+
+            // Show success and close modal
+            alert(`Successfully punched ${type.toUpperCase()}! Your attendance has been recorded.`);
+            hideModal();
+        });
+
+        // Initialize
+        updateTime();
+        setInterval(updateTime, 1000);
+        updateStatus();
+        updateActivityList();
+    </script>
+</body>
+</html>

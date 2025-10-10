@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Employee Registration Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="demoregister.css" />
+    <link rel="stylesheet" href="dashboard.css" />
+
+  </head>
+  <body>
+   <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="company-brand">
+                <div class="brand-logo">
+                    <img src="img/fistoLogo.png" alt="Logo" class="logo" />
+                    <div class="welcome-message">
+                        <h2>Welcome!</h2>
+                        <p id="userWelcome">Your dashboard is ready to explore.</p>
+                        <div class="user-info">
+                            <small id="userRole">Role: Loading...</small>
+                            <small id="userId">ID: Loading...</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="nav-menu" id="sidebarMenu">
+                <!-- Dynamic menu items will be injected here by JavaScript -->
+            </nav>
+
+            <!-- Logout Button -->
+            <div class="logout-section">
+                <button class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </div>
+    
+      <!-- Main Content -->
+      <div class="main-content">
+        <header class="header">
+          <h1>Employee Registration</h1>
+         
+          </div>
+        </header>
+
+        <div class="form-container">
+          <form id="registerForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="employee-id">Employee ID *</label>
+                <input
+                  type="text"
+                  id="employee-id"
+                  required
+                  placeholder="Enter employee ID"
+                />
+              </div>
+              <div class="form-group">
+                <label for="employee-name">Employee Name *</label>
+                <input
+                  type="text"
+                  id="employee-name"
+                  required
+                  placeholder="Enter full name"
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="designation">Designation *</label>
+                <select id="designation" required>
+                  <option value="" disabled selected>Select designation</option>
+                  <option value="md">Managing Director</option>
+                  <option value="hr">HR Manager</option>
+                  <option value="dev">Developer</option>
+                  <option value="designer">Designer</option>
+                  <option value="analyst">Business Analyst</option>
+                  <option value="intern">Intern</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="join-date">Join Date *</label>
+                <input type="date" id="join-date" required />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="dob">Date of Birth *</label>
+                <input type="date" id="dob" required />
+              </div>
+              <div class="form-group">
+                <label>Gender *</label>
+                <div class="radio-group">
+                  <label
+                    ><input type="radio" name="gender" value="male" required />
+                    Male</label
+                  >
+                  <label
+                    ><input type="radio" name="gender" value="female" />
+                    Female</label
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="email">Email Address *</label>
+                <input
+                  type="email"
+                  id="email"
+                  required
+                  placeholder="employee@company.com"
+                />
+              </div>
+              <div class="form-group">
+                <label for="phone">Phone Number *</label>
+                <input
+                  type="tel"
+                  id="phone"
+                  pattern="[0-9]{10}"
+                  required
+                  placeholder="1234567890"
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="address">Address *</label>
+                <textarea
+                  id="address"
+                  rows="3"
+                  required
+                  placeholder="Enter complete address"
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <div id="file-info-display" class="file-info-display"></div>
+                <label for="photoInput">Upload Photo *</label>
+                <div class="photo-upload-wrapper">
+                  <!-- Hidden File Input -->
+                  <input type="file" id="photoInput" style="display: none" />
+
+                  <!-- Styled label instead of button -->
+                  <!-- Custom button -->
+                  <label for="photoInput" class="upload-btn">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                      <polyline
+                        points="7,10 12,5 17,10"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                      <line
+                        x1="12"
+                        y1="5"
+                        x2="12"
+                        y2="15"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      />
+                    </svg>
+                    Choose File
+                  </label>
+
+                  <!-- Image Preview Section -->
+                  <div id="image-preview-section" class="image-preview-section">
+                    <div class="preview-header">
+                      <span class="preview-title">Preview:</span>
+                      <span
+                        id="preview-image-name"
+                        class="preview-image-name"
+                      ></span>
+                    </div>
+                    <div class="preview-container">
+                      <img
+                        id="preview-image"
+                        class="preview-image"
+                        alt="Preview"
+                      />
+                      <button
+                        type="button"
+                        id="remove-preview-btn"
+                        class="remove-preview-btn"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- File Error Display -->
+                  <div id="file-error"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="password">Password *</label>
+                <div class="password-input-container">
+                  <input
+                    type="password"
+                    id="password"
+                    required
+                    placeholder="Enter password"
+                  />
+                  <button
+                    type="button"
+                    class="password-toggle"
+                    onclick="togglePassword('password')"
+                  >
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="confirm-password">Confirm Password *</label>
+                <div class="password-input-container">
+                  <input
+                    type="password"
+                    id="confirm-password"
+                    required
+                    placeholder="Confirm password"
+                  />
+                  <button
+                    type="button"
+                    class="password-toggle"
+                    onclick="togglePassword('confirm-password')"
+                  >
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="btn">Register Employee</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="demoregister.js"></script>
+    <script src="dashboard.js"></script>
+  </body>
+</html>

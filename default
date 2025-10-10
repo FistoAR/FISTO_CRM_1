@@ -1,0 +1,572 @@
+class ImprovedEmployeeManager {
+    constructor() {
+        this.employees = [];
+        this.filteredEmployees = [];
+        this.searchTerm = '';
+        this.jobRoleFilter = '';
+        this.workingStatusFilter = '';
+        
+        // API endpoints
+        this.baseURL = 'https://www.fist-o.com/web_crm/';
+        this.endpoints = {
+            fetch: this.baseURL + 'fetch_employees.php',
+            delete: this.baseURL + 'delete_employee.php',
+            register: this.baseURL + 'registration.php'
+        };
+        
+        // Retry configuration
+        this.maxRetries = 3;
+        this.retryDelay = 1000;
+        
+        this.initializeEventListeners();
+        this.loadEmployees();
+        
+        // Auto-refresh every 60 seconds (reduced frequency to avoid CORS issues)
+        setInterval(() => this.loadEmployees(false), 60000);
+    }
+
+    initializeEventListeners() {
+        // Search functionality with debouncing
+        const searchInput = document.getElementById('searchInput') || document.querySelector('input[type="search"]');
+        if (searchInput) {
+            let searchTimeout;
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    this.searchTerm = e.target.value;
+                    this.applyFilters();
+                }, 500); // Increased debounce delay
+            });
+        }
+
+        // Filter functionality
+        const jobRoleFilter = document.getElementById('jobRoleFilter');
+        if (jobRoleFilter) {
+            jobRoleFilter.addEventListener('change', (e) => {
+                this.jobRoleFilter = e.target.value;
+                this.applyFilters();
+            });
+        }
+
+        const workingStatusFilter = document.getElementById('workingStatusFilter');
+        if (workingStatusFilter) {
+            workingStatusFilter.addEventListener('change', (e) => {
+                this.workingStatusFilter = e.target.value;
+                this.applyFilters();
+            });
+        }
+    }
+
+    // Improved fetch with retry mechanism
+    async fetchWithRetry(url, options = {}, retries = 0) {
+        try {
+            console.log(`Attempting to fetch from: ${url} (attempt ${retries + 1})`);
+            
+            // Simplified fetch options to avoid CORS issues
+            const fetchOptions = {
+                method: 'GET',
+                mode: 'cors', // Explicitly set CORS mode
+                credentials: 'omit', // Don't send credentials
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                ...options
+            };
+
+            const response = await fetch(url, fetchOptions);
+            
+            console.log('Response status:', response.status);
+            console.log('Response headers:', [...response.headers.entries()]);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            return response;
+            
+        } catch (error) {
+            console.error(`Fetch attempt ${retries + 1} failed:`, error);
+            
+            if (retries < this.maxRetries) {
+                console.log(`Retrying in ${this.retryDelay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, this.retryDelay));
+                return this.fetchWithRetry(url, options, retries + 1);
+            }
+            
+            throw error;
+        }
+    }
+
+    async loadEmployees(showLoading = true) {
+        const tbody = document.getElementById('employeeTableBody');
+        
+        if (showLoading && tbody) {
+            this.showLoading();
+        }
+
+        try {
+            console.log('Loading employees from database...');
+            
+            const response = await this.fetchWithRetry(this.endpoints.fetch);
+            const text = await response.text();
+            
+            console.log('Raw response (first 200 chars):', text.substring(0, 200));
+
+            let result;
+            try {
+                result = JSON.parse(text);
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                console.error('Full response text:', text);
+                
+                // Check if response looks like an error page
+                if (text.includes('<html>') || text.includes('<body>') || text.includes('<!DOCTYPE')) {
+                    throw new Error('Server returned HTML instead of JSON. This might be a server error or redirect.');
+                } else {
+                    throw new Error('Invalid JSON response from server');
+                }
+            }
+            
+            if (result.status === 'success') {
+                this.employees = result.data || [];
+                this.applyFilters();
+                
+                console.log(`Successfully loaded ${this.employees.length} employees`);
+                
+                if (showLoading) {
+                    this.showToast('Success', `Loaded ${this.employees.length} employees`, 'success');
+                }
+                
+                this.updateStats();
+                
+            } else {
+                throw new Error(result.message || 'Failed to load employees');
+            }
+
+        } catch (error) {
+            console.error('Error loading employees:', error);
+            
+            let errorMessage = 'Unknown error occurred';
+            
+            if (error.message.includes('CORS')) {
+                errorMessage = 'CORS policy error. The server needs to allow cross-origin requests.';
+            } else if (error.message.includes('Failed to fetch')) {
+                errorMessage = 'Network error. Please check your internet connection and try again.';
+            } else if (error.message.includes('HTML instead of JSON')) {
+                errorMessage = 'Server configuration error. The PHP script might not be accessible.';
+            } else {
+                errorMessage = error.message;
+            }
+            
+            this.showError(errorMessage);
+            
+            if (showLoading) {
+                this.showToast('Error', 'Failed to load employees', 'error');
+            }
+        }
+    }
+
+    applyFilters() {
+        this.filteredEmployees = this.employees.filter(employee => {
+            const matchesSearch = !this.searchTerm || 
+                (employee.emp_id && employee.emp_id.toLowerCase().includes(this.searchTerm.toLowerCase())) ||
+                (employee.emp_name && employee.emp_name.toLowerCase().includes(this.searchTerm.toLowerCase())) ||
+                (employee.personal_email && employee.personal_email.toLowerCase().includes(this.searchTerm.toLowerCase()));
+
+            const matchesJobRole = !this.jobRoleFilter || employee.job_role === this.jobRoleFilter;
+            const matchesWorkingStatus = !this.workingStatusFilter || employee.working_status === this.workingStatusFilter;
+
+            return matchesSearch && matchesJobRole && matchesWorkingStatus;
+        });
+
+        this.renderTable();
+    }
+
+    renderTable() {
+        const tbody = document.getElementById('employeeTableBody');
+        
+        if (!tbody) {
+            console.warn('Employee table body not found');
+            return;
+        }
+        
+        if (this.filteredEmployees.length === 0) {
+            tbody.innerHTML = `
+                <tr class="empty-state">
+                    <td colspan="8" style="text-align: center; padding: 40px; color: #666;">
+                        <div class="empty-content">
+                            <i class="fas fa-users" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
+                            <p style="font-size: 18px; margin: 0 0 8px 0;">
+                                ${this.employees.length === 0 ? 'No employees found in database' : 'No employees match your search criteria'}
+                            </p>
+                            <small style="color: #999;">
+                                ${this.employees.length === 0 ? 'Click "Add/Edit Employee" to get started' : 'Try adjusting your search or filters'}
+                            </small>
+                        </div>
+                    </td>
+                </tr>`;
+            return;
+        }
+
+        tbody.innerHTML = this.filteredEmployees.map((employee, index) => {
+            const empId = employee.emp_id || 'N/A';
+            const empName = employee.emp_name || 'N/A';
+            const designation = this.getDesignationText(employee.designation);
+            const jobRole = employee.job_role || 'N/A';
+            const workingStatus = employee.working_status || 'N/A';
+            const email = employee.personal_email || 'N/A';
+            const phone = employee.personal_number || 'N/A';
+            
+            return `
+                <tr data-employee-index="${index}" style="transition: all 0.2s ease;" 
+                    onmouseenter="this.style.backgroundColor='#f1f5f9'; this.style.transform='scale(1.01)'"
+                    onmouseleave="this.style.backgroundColor=''; this.style.transform=''">
+                    <td><strong style="color: #4f46e5;">${empId}</strong></td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #4f46e5, #7c3aed); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px;">
+                                ${empName.charAt(0).toUpperCase()}
+                            </div>
+                            <span>${empName}</span>
+                        </div>
+                    </td>
+                    <td><span style="color: #374151;">${designation}</span></td>
+                    <td>
+                        <span class="badge" style="padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; text-transform: capitalize; ${this.getBadgeStyle(jobRole)}">
+                            ${jobRole}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="working-status" style="padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; ${this.getStatusStyle(workingStatus)}">
+                            ${workingStatus}
+                        </span>
+                    </td>
+                    <td style="color: #64748b;">
+                        <a href="mailto:${email}" style="color: inherit; text-decoration: none;">
+                            <i class="fas fa-envelope" style="margin-right: 6px; color: #4f46e5;"></i>
+                            ${email}
+                        </a>
+                    </td>
+                    <td style="color: #64748b;">
+                        <a href="tel:${phone}" style="color: inherit; text-decoration: none;">
+                            <i class="fas fa-phone" style="margin-right: 6px; color: #4f46e5;"></i>
+                            ${phone}
+                        </a>
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 6px;">
+                            <button onclick="window.employeeManager.viewEmployee(${index})" 
+                                    title="View Employee Details"
+                                    style="padding: 6px 10px; border: none; border-radius: 6px; background: #3b82f6; color: white; cursor: pointer; font-size: 12px; transition: all 0.2s ease;"
+                                    onmouseenter="this.style.transform='scale(1.1)'"
+                                    onmouseleave="this.style.transform='scale(1)'">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // Test connection method
+    async testConnection() {
+        try {
+            console.log('Testing connection to:', this.endpoints.fetch);
+            
+            const response = await this.fetchWithRetry(this.endpoints.fetch);
+            const result = await response.json();
+            
+            console.log('Connection test result:', result);
+            this.showToast('Connection Test', 'Successfully connected to database', 'success');
+            
+            return true;
+        } catch (error) {
+            console.error('Connection test failed:', error);
+            this.showToast('Connection Test Failed', error.message, 'error');
+            
+            return false;
+        }
+    }
+
+    getBadgeStyle(jobRole) {
+        const styles = {
+            'onrole': 'background: #dcfce7; color: #166534;',
+            'intern': 'background: #fef3c7; color: #92400e;',
+            'default': 'background: #e5e7eb; color: #374151;'
+        };
+        return styles[jobRole.toLowerCase()] || styles.default;
+    }
+
+    getStatusStyle(status) {
+        const styles = {
+            'active': 'background: #dcfce7; color: #166534;',
+            'inactive': 'background: #fee2e2; color: #991b1b;',
+            'default': 'background: #e5e7eb; color: #374151;'
+        };
+        return styles[status.toLowerCase()] || styles.default;
+    }
+
+    getDesignationText(designation) {
+        const designations = {
+            'CEO': 'Chief Executive Officer',
+            'MD': 'Managing Director',
+            'SBUHead': 'SBU Head',
+            'ProjectHead': 'Project Head',
+            'TeamHead': 'Team Head',
+            'HR': 'Human Resource',
+            'JuniorDeveloper': 'Junior Developer',
+            'Developerintern': 'Developer Intern',
+            'UI/UX designer': 'UI/UX Designer',
+            'uiuxintern': 'UI/UX Intern',
+            '3DArtist': '3D Artist',
+            '3Dintern': '3D Artist Intern',
+            'Admin': 'Admin',
+            'Marketing': 'Marketing',
+            'Marketingassociate': 'Marketing Associate'
+        };
+        return designations[designation] || designation || 'N/A';
+    }
+
+    viewEmployee(index) {
+        const employee = this.filteredEmployees[index];
+        if (!employee) {
+            this.showToast('Error', 'Employee not found', 'error');
+            return;
+        }
+        this.createViewModal(employee);
+    }
+
+    editEmployee(index) {
+        const employee = this.filteredEmployees[index];
+        if (!employee) {
+            this.showToast('Error', 'Employee not found', 'error');
+            return;
+        }
+        this.showToast('Info', `Edit functionality for ${employee.emp_name} would open here`, 'info');
+    }
+
+    async deleteEmployee(index) {
+        const employee = this.filteredEmployees[index];
+        if (!employee) {
+            this.showToast('Error', 'Employee not found', 'error');
+            return;
+        }
+
+        const confirmDelete = confirm(
+            `Are you sure you want to delete employee ${employee.emp_name} (${employee.emp_id})?\n\nThis action cannot be undone!`
+        );
+
+        if (!confirmDelete) return;
+
+        try {
+            this.showToast('Processing', `Deleting ${employee.emp_name}...`, 'info');
+
+            const response = await this.fetchWithRetry(this.endpoints.delete, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `emp_id=${encodeURIComponent(employee.emp_id)}`
+            });
+
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                this.showToast('Success', `${employee.emp_name} deleted successfully`, 'success');
+                await this.loadEmployees(false);
+            } else {
+                throw new Error(result.message || 'Failed to delete employee');
+            }
+
+        } catch (error) {
+            console.error('Error deleting employee:', error);
+            this.showToast('Error', 'Failed to delete employee: ' + error.message, 'error');
+        }
+    }
+
+    createViewModal(employee) {
+        // Create modal implementation here (same as before)
+        this.showToast('Info', `View details for ${employee.emp_name} would open here`, 'info');
+    }
+
+    showLoading() {
+        const tbody = document.getElementById('employeeTableBody');
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 40px; color: #64748b;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 15px; color: #4f46e5;"></i>
+                        <p style="margin: 0; font-size: 16px;">Loading employees from database...</p>
+                        <small style="color: #9ca3af;">This may take a few moments</small>
+                    </td>
+                </tr>`;
+        }
+    }
+
+    showError(message) {
+        const tbody = document.getElementById('employeeTableBody');
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 40px;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 15px; color: #ef4444; opacity: 0.7;"></i>
+                        <p style="margin: 0 0 10px 0; font-size: 18px; color: #ef4444; font-weight: 600;">Failed to Load Employees</p>
+                        <p style="margin: 0 0 20px 0; color: #6b7280; font-size: 14px; max-width: 600px; margin-left: auto; margin-right: auto;">${message}</p>
+                        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                            <button onclick="window.employeeManager.loadEmployees()" 
+                                    style="padding: 10px 20px; background: #4f46e5; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                <i class="fas fa-redo" style="margin-right: 8px;"></i>Try Again
+                            </button>
+                            <button onclick="window.employeeManager.testConnection()" 
+                                    style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                <i class="fas fa-network-wired" style="margin-right: 8px;"></i>Test Connection
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+        }
+    }
+
+    updateStats() {
+        const totalElement = document.getElementById('totalEmployees');
+        const activeElement = document.getElementById('activeEmployees');
+        const internElement = document.getElementById('internEmployees');
+        const lastUpdatedElement = document.getElementById('lastUpdated');
+
+        if (totalElement) {
+            totalElement.textContent = this.employees.length;
+        }
+        
+        if (activeElement) {
+            const activeCount = this.employees.filter(emp => emp.working_status === 'Active').length;
+            activeElement.textContent = activeCount;
+        }
+        
+        if (internElement) {
+            const internCount = this.employees.filter(emp => emp.job_role === 'intern').length;
+            internElement.textContent = internCount;
+        }
+        
+        if (lastUpdatedElement) {
+            lastUpdatedElement.textContent = new Date().toLocaleTimeString();
+        }
+    }
+
+    showToast(title, message, type = 'info') {
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                pointer-events: none;
+            `;
+            document.body.appendChild(container);
+        }
+
+        const toast = document.createElement('div');
+        const colors = {
+            success: { bg: '#10b981', icon: 'check-circle' },
+            error: { bg: '#ef4444', icon: 'exclamation-circle' },
+            warning: { bg: '#f59e0b', icon: 'exclamation-triangle' },
+            info: { bg: '#3b82f6', icon: 'info-circle' }
+        };
+
+        const color = colors[type] || colors.info;
+
+        toast.style.cssText = `
+            background: white;
+            border-left: 4px solid ${color.bg};
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 300px;
+            max-width: 400px;
+            pointer-events: auto;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        `;
+
+        toast.innerHTML = `
+            <div style="display: flex; align-items: start; gap: 12px;">
+                <i class="fas fa-${color.icon}" style="color: ${color.bg}; margin-top: 2px; font-size: 16px;"></i>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; margin-bottom: 4px; color: #1f2937;">${title}</div>
+                    <div style="font-size: 14px; color: #6b7280;">${message}</div>
+                </div>
+                <button onclick="this.parentElement.parentElement.remove()" 
+                        style="background: none; border: none; color: #9ca3af; cursor: pointer; padding: 4px;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.transform = 'translateX(0)';
+        }, 10);
+
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, 5000);
+    }
+
+    // Utility methods
+    async refreshFromDatabase() {
+        await this.loadEmployees(true);
+    }
+
+    getEmployeeById(empId) {
+        return this.employees.find(emp => emp.emp_id === empId);
+    }
+}
+
+// Global functions
+function refreshEmployeeData() {
+    if (typeof window.employeeManager !== 'undefined') {
+        window.employeeManager.refreshFromDatabase();
+    } else {
+        console.warn('Employee manager not initialized');
+    }
+}
+
+function testConnectionToDatabase() {
+    if (typeof window.employeeManager !== 'undefined') {
+        window.employeeManager.testConnection();
+    } else {
+        console.warn('Employee manager not initialized');
+    }
+}
+
+// Initialize when DOM is ready
+let employeeManager;
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Initializing Improved Employee Manager...');
+    
+    employeeManager = new ImprovedEmployeeManager();
+    window.employeeManager = employeeManager;
+    
+    console.log('Employee Manager initialized successfully');
+    console.log('Available methods: loadEmployees(), testConnection(), refreshFromDatabase()');
+});
+
+// Also handle case where script loads after DOM is ready
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    if (!employeeManager) {
+        employeeManager = new ImprovedEmployeeManager();
+        window.employeeManager = employeeManager;
+    }
+}
