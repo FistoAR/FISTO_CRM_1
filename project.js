@@ -386,7 +386,6 @@ function displayProjectsTable(projects) {
       <td>
         <div class="project-name-cell">
           <span class="project-title">${project.companyName || 'N/A'}</span>
-          <small class="project-id">${project.projectId}</small>
         </div>
       </td>
       <td>${project.reportingPerson || 'N/A'}</td>
