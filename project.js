@@ -16,17 +16,14 @@ function initializeProjectDashboard() {
   console.log('🚀 Initializing Project Dashboard...');
   
   loadOnboardedClients()
+    .then(() => loadProjects())
     .then(() => {
-      console.log('✅ Clients loaded, now loading projects...');
-      return loadProjects();
-    })
-    .then(() => {
-      renderProjectsList();
+      displayProjectsTable(projectsData);
       setupEventListeners();
-      console.log('✅ Project Dashboard initialized successfully');
+      console.log('✅ Dashboard initialized');
     })
     .catch(err => {
-      console.error('❌ Error initializing dashboard:', err);
+      console.error('❌ Error:', err);
       showToast('Failed to initialize dashboard', 'error');
     });
 }
@@ -187,16 +184,16 @@ function handleClientSelection() {
   requestAnimationFrame(() => {
     setTimeout(() => {
       // Auto-fill Customer ID (read-only)
-      fillField('projectCustomerId', selectedOption.dataset.customerId || '', true);
+      fillField('projectCustomerId', selectedOption.dataset.customerId || '', false);
       
       // Auto-fill Project Description (editable)
       fillField('projectDescriptionForm', selectedOption.dataset.projectDescription || '', false);
       
       // Auto-fill Contact Details (read-only)
-      fillField('contactPersonForm', selectedOption.dataset.contactPerson || '', true);
-      fillField('contactNumberForm', selectedOption.dataset.phone || '', true);
-      fillField('contactEmailForm', selectedOption.dataset.email || '', true);
-      fillField('contactDesignationForm', selectedOption.dataset.designation || '', true);
+      fillField('contactPersonForm', selectedOption.dataset.contactPerson || '', false);
+      fillField('contactNumberForm', selectedOption.dataset.phone || '', false);
+      fillField('contactEmailForm', selectedOption.dataset.email || '', false);
+      fillField('contactDesignationForm', selectedOption.dataset.designation || '', false);
       
       showToast(`✓ Loaded: ${selectedOption.dataset.projectName}`, 'success');
     }, 150);
@@ -305,11 +302,11 @@ function getParentChain(element) {
 function clearContactFields() {
   const fields = [
     'projectCustomerId',
-    'projectDescription',
-    'contactPerson',
-    'contactNumber',
-    'contactEmail',
-    'contactDesignation'
+    'projectDescriptionForm',
+    'contactPersonForm',
+    'contactNumberForm',
+    'contactEmailForm',
+    'contactDesignationForm'
   ];
   
   fields.forEach(fieldId => {
@@ -330,50 +327,274 @@ function clearContactFields() {
 
 async function loadProjects() {
   try {
-    console.log('📡 Fetching projects...');
-    
-    const response = await fetch('https://www.fist-o.com/web_crm/fetch_projects.php', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
-    });
-
+    const response = await fetch('https://www.fist-o.com/web_crm/fetch_projects.php');
     const result = await response.json();
 
-    if (response.ok && result.status === 'success') {
-      projectsData = result.data.map(proj => ({
-        id: proj.id,
-        name: proj.project_name || proj.project_description?.substring(0, 50) || 'Unnamed Project',
-        client: proj.company_name || proj.customer_name,
-        customerId: proj.customer_id,
-        customerName: proj.customer_name,
-        teamHead: { 
-          name: proj.team_head || 'N/A', 
-          avatar: 'img/Profileimg.png'
-        },
-        startDate: formatDate(proj.start_date),
-        deadline: formatDate(proj.deadline),
-        description: proj.project_description || 'N/A',
-        priority: proj.priority || 'Medium',
-        allocatedTeam: proj.allocated_team || 'N/A',
-        initiatedBy: { 
-          name: proj.initiated_by || 'N/A', 
-          avatar: 'img/Profileimg.png'
-        },
-        employees: proj.employees || [],
-        tasks: proj.tasks || []
-      }));
-      
+    if (result.success && result.data) {
+      projectsData = result.data;
+      displayProjectsTable(projectsData);
       console.log(`✅ Loaded ${projectsData.length} projects`);
-      renderProjectsList();
+      return projectsData;
     } else {
-      console.warn('⚠️ No projects found');
       projectsData = [];
-      renderProjectsList();
+      displayProjectsTable([]);
+      showToast('No projects found', 'info');
+      return [];
     }
   } catch (err) {
     console.error('❌ Error loading projects:', err);
     projectsData = [];
-    renderProjectsList();
+    displayProjectsTable([]);
+    showToast('Failed to load projects', 'error');
+    return [];
+  }
+}
+// ============================
+// DISPLAY PROJECTS IN TABLE
+// ============================
+
+function displayProjectsTable(projects) {
+  const tableBody = document.getElementById('projectsListTableBody');
+  
+  if (!tableBody) {
+    console.error('❌ Table body element not found');
+    return;
+  }
+
+  // Clear existing rows
+  tableBody.innerHTML = '';
+
+  if (projects.length === 0) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="5" style="text-align: center; padding: 20px; color: #666;">
+          <div class="empty-content">
+            <i class="fas fa-project-diagram"></i>
+            <p>No projects found</p>
+            <small>Click "New Project" to get started</small>
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  // Create table rows
+  projects.forEach(project => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>
+        <div class="project-name-cell">
+          <span class="project-title">${project.companyName || 'N/A'}</span>
+          <small class="project-id">${project.projectId}</small>
+        </div>
+      </td>
+      <td>${project.reportingPerson || 'N/A'}</td>
+      <td>${formatDate(project.startDate)}</td>
+      <td>${formatDate(project.completionDate)}</td>
+      <td>
+        <button class="action-btn view-btn" onclick="viewProject('${project.projectId}')" title="View Project">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          View
+        </button>
+        <button class="action-btn delete-btn" onclick="confirmDeleteProject('${project.projectId}', '${escapeHtml(project.companyName)}')" title="Delete Project">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          Delete
+        </button>
+      </td>
+    `;
+    tableBody.appendChild(row);
+  });
+
+  // Update project count
+  const projectCount = document.getElementById('projectCount');
+  if (projectCount) {
+    projectCount.textContent = projects.length;
+  }
+}
+
+// ============================
+// VIEW PROJECT DETAILS (SHOW DETAIL VIEW)
+// ============================
+
+async function viewProject(projectId) {
+  try {
+    showLoadingSpinner();
+    
+    const response = await fetch(`https://www.fist-o.com/web_crm/fetch_projects.php?project_id=${projectId}`);
+    const result = await response.json();
+    
+    hideLoadingSpinner();
+    
+    if (result.success && result.data && result.data.length > 0) {
+      const project = result.data[0];
+      currentProjectId = projectId;
+      showProjectDetailView(project);
+    } else {
+      showToast('Project not found', 'error');
+    }
+  } catch (err) {
+    hideLoadingSpinner();
+    console.error('Error fetching project:', err);
+    showToast('Failed to load project details', 'error');
+  }
+}
+
+
+// ============================
+// SHOW PROJECT DETAIL VIEW
+// ============================
+
+function showProjectDetailView(project) {
+  // Hide list view
+  document.getElementById('projects-list-view').style.display = 'none';
+  
+  // Show detail view
+  document.getElementById('project-detail-view').style.display = 'block';
+  
+  // Update breadcrumb
+  const breadcrumbName = document.getElementById('breadcrumbProjectName');
+  if (breadcrumbName) {
+    breadcrumbName.textContent = project.companyName || 'Project';
+  }
+  
+  // Populate project details
+  populateProjectDetails(project);
+  
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================
+// POPULATE PROJECT DETAILS
+// ============================
+
+function populateProjectDetails(project) {
+  // Project Name and Description
+  const projectNameTitle = document.getElementById('projectNameTitle');
+  if (projectNameTitle) projectNameTitle.textContent = project.companyName || 'N/A';
+  
+  const projectDescription = document.getElementById('projectDescription');
+  if (projectDescription) projectDescription.textContent = project.projectDescription || 'No description available.';
+  
+  // Dates
+  const projectStartDate = document.getElementById('projectStartDate');
+  if (projectStartDate) projectStartDate.textContent = formatDate(project.startDate);
+  
+  const projectDeadlineDate = document.getElementById('projectDeadlineDate');
+  if (projectDeadlineDate) projectDeadlineDate.textContent = formatDate(project.completionDate);
+  
+  // Team information
+  const reportingPerson = document.getElementById('teamHeadName');
+  if (reportingPerson) reportingPerson.textContent = project.reportingPerson || 'N/A';
+  
+  // Stats (default values - can be updated from tasks API)
+  updateProjectStats({
+    assignedEmployees: 0,
+    totalTasks: 0,
+    completedTasks: 0,
+    ongoingTasks: 0,
+    delayedTasks: 0,
+    overdueT: 0
+  });
+  
+  // Load tasks for this project (if you have tasks API)
+  loadProjectTasks(project.projectId);
+}
+// ============================
+// UPDATE PROJECT STATS
+// ============================
+
+function updateProjectStats(stats) {
+  const elements = {
+    assignedEmployeesCount: stats.assignedEmployees || 0,
+    totalTasksCount: stats.totalTasks || 0,
+    completedTasksCount: stats.completedTasks || 0,
+    ongoingTasksCount: stats.ongoingTasks || 0,
+    delayedTasksCount: stats.delayedTasks || 0,
+    overdueTasksCount: stats.overdueTasks || 0
+  };
+  
+  Object.keys(elements).forEach(id => {
+    const element = document.getElementById(id);
+    if (element) element.textContent = elements[id];
+  });
+}
+
+
+// ============================
+// LOAD PROJECT TASKS
+// ============================
+
+async function loadProjectTasks(projectId) {
+  const tableBody = document.getElementById('projectTasksTableBody');
+  
+  if (!tableBody) return;
+  
+  // Show empty state for now (you can implement tasks API later)
+  tableBody.innerHTML = `
+    <tr class="empty-state">
+      <td colspan="7">
+        <div class="empty-content" style="text-align: center; padding: 40px; color: #666;">
+          <i class="fas fa-tasks" style="font-size: 48px; color: #ccc; margin-bottom: 10px;"></i>
+          <p>No tasks found</p>
+          <small>Click "Add Task" to get started</small>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+// ============================
+// SHOW PROJECTS LIST (BACK BUTTON)
+// ============================
+
+function showProjectsList() {
+  // Hide detail view
+  document.getElementById('project-detail-view').style.display = 'none';
+  
+  // Show list view
+  document.getElementById('projects-list-view').style.display = 'block';
+  
+  currentProjectId = null;
+  
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================
+// OPEN/CLOSE PROJECT FORM
+// ============================
+
+function openProjectForm() {
+  const modal = document.getElementById('addProjectModal');
+  if (modal) {
+    modal.style.display = 'block';
+    modal.classList.add('show');
+    
+    const form = document.getElementById('projectForm');
+    if (form) form.reset();
+    
+    clearContactFields();
+    
+    // Reload clients if needed
+    if (clientsData.length === 0) {
+      loadOnboardedClients();
+    }
+  }
+}
+
+function closeProjectForm() {
+  const modal = document.getElementById('addProjectModal');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.classList.remove('show');
   }
 }
 
@@ -607,6 +828,10 @@ function closeProjectForm() {
   }
 }
 
+// ============================
+// SUBMIT PROJECT FORM (FIXED)
+// ============================
+
 async function handleProjectFormSubmit(e) {
   e.preventDefault();
   
@@ -616,45 +841,61 @@ async function handleProjectFormSubmit(e) {
     return;
   }
   
-  const client = clientsData.find(c => c.customerId === customerId);
+  // Find the selected client
+  const client = clientsData.find(c => c.customer_id === customerId);
   
   const projectData = {
-    customer_id: customerId,
-    company_name: client?.companyName || '',
-    customer_name: client?.customerName || '',
-    project_description: document.getElementById('projectDescription')?.value,
-    contact_person: document.getElementById('contactPerson')?.value,
-    contact_number: document.getElementById('contactNumber')?.value,
-    contact_email: document.getElementById('contactEmail')?.value,
-    contact_designation: document.getElementById('contactDesignation')?.value,
-    start_date: document.getElementById('date')?.value,
-    deadline: document.getElementById('deadline')?.value,
-    team_head: document.getElementById('reportingPerson')?.value,
-    allocated_team: document.getElementById('allocatedteam')?.value,
-    remarks: document.getElementById('projectremarks')?.value
+    customerId: customerId,
+    companyName: client?.company_name || '',
+    customerName: client?.customer_name || '',
+    projectDescription: document.getElementById('projectDescriptionForm')?.value || '',
+    contactPerson: document.getElementById('contactPersonForm')?.value || '',
+    contactNumber: document.getElementById('contactNumberForm')?.value || '',
+    contactEmail: document.getElementById('contactEmailForm')?.value || '',
+    contactDesignation: document.getElementById('contactDesignationForm')?.value || '',
+    startDate: document.getElementById('date')?.value || '',
+    completionDate: document.getElementById('deadline')?.value || '',
+    reportingPerson: document.getElementById('reportingPerson')?.value || '',
+    allocatedTeam: document.getElementById('allocatedteam')?.value || '',
+    remarks: document.getElementById('projectremarks')?.value || 'N/A'
   };
-  
-  console.log('📤 Submitting:', projectData);
+
+  console.log('📤 Submitting project:', projectData);
   
   try {
-    const response = await fetch('https://www.fist-o.com/web_crm/create_project.php', {
+    showLoadingSpinner();
+    
+    const response = await fetch('https://www.fist-o.com/web_crm/add_project.php', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
       body: JSON.stringify(projectData)
     });
 
     const result = await response.json();
+    
+    hideLoadingSpinner();
 
-    if (response.ok && result.status === 'success') {
-      await loadProjects();
+    if (response.ok && (result.success === true || result.status === 'success')) {
+      showToast('✅ Project created successfully!', 'success');
       closeProjectForm();
-      showToast('Project created successfully!', 'success');
+      await loadProjects(); // Reload projects
+      
+      // Reset form
+      const form = document.getElementById('projectForm');
+      if (form) form.reset();
+      clearContactFields();
     } else {
-      showToast(result.message || 'Failed to create project', 'error');
+      const errorMsg = result.message || 'Failed to create project';
+      showToast(errorMsg, 'error');
+      console.error('Server error:', result);
     }
   } catch (err) {
-    showToast('Network error', 'error');
-    console.error('Error:', err);
+    hideLoadingSpinner();
+    console.error('❌ Error:', err);
+    showToast('Error: ' + err.message, 'error');
   }
 }
 
@@ -829,6 +1070,88 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeProjectDashboard();
 });
 
+// ============================
+// DELETE PROJECT
+// ============================
+
+function confirmDeleteProject(projectId, companyName) {
+  const confirmed = confirm(
+    `Are you sure you want to delete the project for "${companyName}"?\n\n` +
+    `Project ID: ${projectId}\n\n` +
+    `This action cannot be undone.`
+  );
+  
+  if (confirmed) {
+    deleteProject(projectId);
+  }
+}
+async function deleteProject(projectId) {
+  try {
+    showLoadingSpinner();
+    
+    const response = await fetch('https://www.fist-o.com/web_crm/delete_project.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ projectId: projectId })
+    });
+
+    const result = await response.json();
+    hideLoadingSpinner();
+    
+    if (result.success || result.status === 'success') {
+      showToast('Project deleted successfully', 'success');
+      await loadProjects(); // Reload table
+    } else {
+      showToast(result.message || 'Failed to delete project', 'error');
+    }
+  } catch (err) {
+    hideLoadingSpinner();
+    console.error('Error deleting project:', err);
+    showToast('Failed to delete project', 'error');
+  }
+}
+// ============================
+// UTILITY FUNCTIONS
+// ============================
+
+function formatDate(dateString) {
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString);
+  const options = { year: 'numeric', month: 'short', day: 'numeric' };
+  return date.toLocaleDateString('en-US', options);
+}
+
+function formatFileSize(bytes) {
+  if (!bytes || bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+function escapeHtml(text) {
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+function showLoadingSpinner() {
+  const spinner = document.getElementById('loadingSpinner');
+  if (spinner) spinner.style.display = 'flex';
+}
+
+function hideLoadingSpinner() {
+  const spinner = document.getElementById('loadingSpinner');
+  if (spinner) spinner.style.display = 'none';
+}
 // ============================
 // GLOBAL EXPORTS
 // ============================
