@@ -6,7 +6,7 @@ let projectsData = [];
 let clientsData = [];
 let currentProjectId = null;
 let currentPage = 1;
-const projectsPerPage = 10;
+const projectsPerPage = 5;
 
 // ============================
 // INITIALIZATION
@@ -53,12 +53,10 @@ async function loadOnboardedClients() {
       
       console.log(`📊 Total onboarded projects: ${data.length}`);
       
-      // Debug first record
       if (data.length > 0) {
         console.log('🔍 First record structure:', data[0]);
       }
       
-      // Map to clientsData format
       clientsData = data.map(client => ({
         id: client.client_id,
         customerId: client.customer_id,
@@ -104,8 +102,7 @@ function populateClientDropdown() {
 
   console.log('🔄 Populating dropdown with', clientsData.length, 'projects');
 
-  // Clear existing options
-  clientSelect.innerHTML = '<option value="">-- Select Onboarded Project --</option>';
+  clientSelect.innerHTML = '<option value="">-- Select Project --</option>';
   
   if (clientsData.length === 0) {
     const noDataOption = document.createElement('option');
@@ -121,14 +118,12 @@ function populateClientDropdown() {
     const option = document.createElement('option');
     option.value = client.customerId;
     
-    // Display format: "Project Name - Company Name (Customer ID)"
     const displayText = client.projectName !== 'N/A' 
       ? `${client.projectName} - ${client.companyName} (${client.customerId})`
       : `${client.companyName} (${client.customerId})`;
     
     option.textContent = displayText;
     
-    // Store all data in dataset
     option.dataset.customerId = client.customerId;
     option.dataset.projectName = client.projectName;
     option.dataset.projectDescription = client.projectDescription;
@@ -180,16 +175,10 @@ function handleClientSelection() {
   const selectedOption = clientSelect.options[clientSelect.selectedIndex];
   console.log('📦 Selected option dataset:', selectedOption.dataset);
   
-  // Use requestAnimationFrame to ensure DOM is fully ready
   requestAnimationFrame(() => {
     setTimeout(() => {
-      // Auto-fill Customer ID (read-only)
       fillField('projectCustomerId', selectedOption.dataset.customerId || '', false);
-      
-      // Auto-fill Project Description (editable)
       fillField('projectDescriptionForm', selectedOption.dataset.projectDescription || '', false);
-      
-      // Auto-fill Contact Details (read-only)
       fillField('contactPersonForm', selectedOption.dataset.contactPerson || '', false);
       fillField('contactNumberForm', selectedOption.dataset.phone || '', false);
       fillField('contactEmailForm', selectedOption.dataset.email || '', false);
@@ -200,7 +189,6 @@ function handleClientSelection() {
   });
 }
 
-// New helper function to fill fields reliably
 function fillField(fieldId, value, isReadOnly = false) {
   const field = document.getElementById(fieldId);
   
@@ -211,11 +199,9 @@ function fillField(fieldId, value, isReadOnly = false) {
   
   console.log(`📝 Filling ${fieldId} with: "${value}"`);
   
-  // Remove any attributes that might interfere
   field.removeAttribute('placeholder');
   field.removeAttribute('disabled');
   
-  // Make absolutely sure the field and all parents are visible
   field.style.display = '';
   field.style.visibility = 'visible';
   field.style.opacity = '1';
@@ -228,10 +214,8 @@ function fillField(fieldId, value, isReadOnly = false) {
     parent = parent.parentElement;
   }
   
-  // Set readonly BEFORE setting value
   field.readOnly = isReadOnly;
   
-  // Apply styling
   if (isReadOnly) {
     field.style.cssText += `
       background-color: #f0f0f0 !important;
@@ -247,56 +231,19 @@ function fillField(fieldId, value, isReadOnly = false) {
     `;
   }
   
-  // Critical: Set value property directly
   field.value = value;
-  
-  // Also set as attribute for debugging
   field.setAttribute('value', value);
   field.setAttribute('data-filled', 'true');
   
-  // For textarea, also set innerHTML as backup
   if (field.tagName === 'TEXTAREA') {
     field.innerHTML = value;
     field.textContent = value;
   }
   
-  // Trigger all possible events
   const events = ['input', 'change', 'blur', 'keyup'];
   events.forEach(eventType => {
     field.dispatchEvent(new Event(eventType, { bubbles: true }));
   });
-  
-  // Final check
-  setTimeout(() => {
-    const actualValue = field.value;
-    const isVisible = field.offsetParent !== null;
-    console.log(`✅ ${fieldId}: value="${actualValue}", visible=${isVisible}`);
-    
-    if (!isVisible) {
-      console.warn(`⚠️ ${fieldId} is still not visible! Parent chain:`, getParentChain(field));
-    }
-    
-    if (actualValue !== value) {
-      console.error(`❌ ${fieldId} value mismatch! Expected "${value}", got "${actualValue}"`);
-    }
-  }, 100);
-}
-
-// Helper to debug parent chain
-function getParentChain(element) {
-  const chain = [];
-  let parent = element;
-  while (parent && parent !== document.body) {
-    chain.push({
-      tag: parent.tagName,
-      id: parent.id,
-      class: parent.className,
-      display: window.getComputedStyle(parent).display,
-      visibility: window.getComputedStyle(parent).visibility
-    });
-    parent = parent.parentElement;
-  }
-  return chain;
 }
 
 function clearContactFields() {
@@ -320,23 +267,29 @@ function clearContactFields() {
   
   console.log('🧹 Fields cleared');
 }
-
 // ============================
 // LOAD PROJECTS
 // ============================
 
 async function loadProjects() {
   try {
+    console.log('📡 Loading projects...');
     const response = await fetch('https://www.fist-o.com/web_crm/fetch_projects.php');
     const result = await response.json();
 
     if (result.success && result.data) {
       projectsData = result.data;
-      displayProjectsTable(projectsData);
       console.log(`✅ Loaded ${projectsData.length} projects`);
+      
+      // IMPORTANT: Reset to page 1 when reloading data
+      currentPage = 1;
+      
+      // Render the table with updated data
+      displayProjectsTable(projectsData);
       return projectsData;
     } else {
       projectsData = [];
+      currentPage = 1;
       displayProjectsTable([]);
       showToast('No projects found', 'info');
       return [];
@@ -344,24 +297,50 @@ async function loadProjects() {
   } catch (err) {
     console.error('❌ Error loading projects:', err);
     projectsData = [];
+    currentPage = 1;
     displayProjectsTable([]);
     showToast('Failed to load projects', 'error');
     return [];
   }
 }
+
 // ============================
-// DISPLAY PROJECTS IN TABLE
+// GO TO PAGE (FIXED)
+// ============================
+
+function goToPage(page) {
+  const totalPages = Math.ceil(projectsData.length / projectsPerPage);
+  
+  // Validate page number
+  if (page < 1) page = 1;
+  if (page > totalPages) page = totalPages;
+  
+  console.log(`🔄 Going to page ${page} of ${totalPages}`);
+  currentPage = page;
+  
+  // Re-render with current projectsData
+  displayProjectsTable(projectsData);
+  
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================
+// DISPLAY PROJECTS WITH PAGINATION (5 per page)
 // ============================
 
 function displayProjectsTable(projects) {
   const tableBody = document.getElementById('projectsListTableBody');
+  const projectCount = document.getElementById('projectCount');
   
   if (!tableBody) {
     console.error('❌ Table body element not found');
     return;
   }
 
-  // Clear existing rows
+  if (projectCount) {
+    projectCount.textContent = projects.length;
+  }
+
   tableBody.innerHTML = '';
 
   if (projects.length === 0) {
@@ -376,30 +355,46 @@ function displayProjectsTable(projects) {
         </td>
       </tr>
     `;
+    updatePaginationControls(0);
     return;
   }
 
-  // Create table rows
-  projects.forEach(project => {
+  const startIndex = (currentPage - 1) * projectsPerPage;
+  const endIndex = startIndex + projectsPerPage;
+  const paginatedProjects = projects.slice(startIndex, endIndex);
+
+  console.log(`📄 Displaying page ${currentPage}: showing ${paginatedProjects.length} of ${projects.length} projects (indexes ${startIndex} to ${endIndex - 1})`);
+  
+  if (paginatedProjects.length > 0) {
+    console.log('🔍 First project on this page:', paginatedProjects[0]);
+  }
+
+  paginatedProjects.forEach((project, index) => {
+    const projectName = project.companyName || project.company_name || project.projectName || project.project_name || project.name || 'N/A';
+    const reportingPerson = project.reportingPerson || project.reporting_person || project.teamHead || project.team_head || 'N/A';
+    const startDate = project.startDate || project.start_date || project.date || '';
+    const completionDate = project.completionDate || project.completion_date || project.deadline || project.end_date || '';
+    const projectId = project.projectId || project.project_id || project.id || index;
+    
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>
         <div class="project-name-cell">
-          <span class="project-title">${project.companyName || 'N/A'}</span>
+          <span class="project-title">${projectName}</span>
         </div>
       </td>
-      <td>${project.reportingPerson || 'N/A'}</td>
-      <td>${formatDate(project.startDate)}</td>
-      <td>${formatDate(project.completionDate)}</td>
+      <td>${reportingPerson}</td>
+      <td>${formatDate(startDate)}</td>
+      <td>${formatDate(completionDate)}</td>
       <td>
-        <button class="action-btn view-btn" onclick="viewProject('${project.projectId}')" title="View Project">
+        <button class="action-btn view-btn" onclick="viewProject('${projectId}')" title="View Project">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
             <circle cx="12" cy="12" r="3"></circle>
           </svg>
           View
         </button>
-        <button class="action-btn delete-btn" onclick="confirmDeleteProject('${project.projectId}', '${escapeHtml(project.companyName)}')" title="Delete Project">
+        <button class="action-btn delete-btn" onclick="confirmDeleteProject('${projectId}', '${escapeHtml(projectName)}')" title="Delete Project">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="3 6 5 6 21 6"></polyline>
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -411,15 +406,67 @@ function displayProjectsTable(projects) {
     tableBody.appendChild(row);
   });
 
-  // Update project count
-  const projectCount = document.getElementById('projectCount');
-  if (projectCount) {
-    projectCount.textContent = projects.length;
-  }
+  updatePaginationControls(projects.length);
 }
 
 // ============================
-// VIEW PROJECT DETAILS (SHOW DETAIL VIEW)
+// PAGINATION CONTROLS
+// ============================
+
+function updatePaginationControls(totalProjects) {
+  const totalPages = Math.ceil(totalProjects / projectsPerPage);
+  const paginationNumbers = document.getElementById('paginationNumbers');
+  const prevBtn = document.getElementById('prevPage');
+  const nextBtn = document.getElementById('nextPage');
+
+  if (!paginationNumbers || !prevBtn || !nextBtn) {
+    console.error('❌ Pagination elements not found!');
+    return;
+  }
+
+  paginationNumbers.innerHTML = '';
+
+  for (let i = 1; i <= totalPages; i++) {
+    const pageBtn = document.createElement('button');
+    pageBtn.className = `page-number ${i === currentPage ? 'active' : ''}`;
+    pageBtn.textContent = i.toString().padStart(2, '0');
+    pageBtn.onclick = () => goToPage(i);
+    paginationNumbers.appendChild(pageBtn);
+  }
+
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.style.opacity = prevBtn.disabled ? '0.5' : '1';
+  prevBtn.style.cursor = prevBtn.disabled ? 'not-allowed' : 'pointer';
+  prevBtn.onclick = () => {
+    console.log('⬅️ Previous button clicked');
+    if (currentPage > 1) {
+      goToPage(currentPage - 1);
+    }
+  };
+  
+  nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+  nextBtn.style.opacity = nextBtn.disabled ? '0.5' : '1';
+  nextBtn.style.cursor = nextBtn.disabled ? 'not-allowed' : 'pointer';
+  nextBtn.onclick = () => {
+    console.log('➡️ Next button clicked');
+    if (currentPage < totalPages) {
+      goToPage(currentPage + 1);
+    }
+  };
+
+  console.log(`📊 Pagination: Page ${currentPage} of ${totalPages} (${totalProjects} total projects, ${projectsPerPage} per page)`);
+}
+
+function goToPage(page) {
+  console.log(`🔄 Going to page ${page}`);
+  currentPage = page;
+  displayProjectsTable(projectsData);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+
+// ============================
+// VIEW PROJECT DETAILS
 // ============================
 
 async function viewProject(projectId) {
@@ -444,6 +491,187 @@ async function viewProject(projectId) {
     showToast('Failed to load project details', 'error');
   }
 }
+
+function showProjectDetailView(project) {
+  document.getElementById('projects-list-view').style.display = 'none';
+  document.getElementById('project-detail-view').style.display = 'block';
+  
+  const breadcrumbName = document.getElementById('breadcrumbProjectName');
+  if (breadcrumbName) {
+    breadcrumbName.textContent = project.companyName || 'Project';
+  }
+  
+  populateProjectDetails(project);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function populateProjectDetails(project) {
+  const projectNameTitle = document.getElementById('projectNameTitle');
+  if (projectNameTitle) projectNameTitle.textContent = project.companyName || 'N/A';
+  
+  const projectDescription = document.getElementById('projectDescription');
+  if (projectDescription) projectDescription.textContent = project.projectDescription || 'No description available.';
+  
+  const projectStartDate = document.getElementById('projectStartDate');
+  if (projectStartDate) projectStartDate.textContent = formatDate(project.startDate);
+  
+  const projectDeadlineDate = document.getElementById('projectDeadlineDate');
+  if (projectDeadlineDate) projectDeadlineDate.textContent = formatDate(project.completionDate);
+  
+  const reportingPerson = document.getElementById('teamHeadName');
+  if (reportingPerson) reportingPerson.textContent = project.reportingPerson || 'N/A';
+  
+  updateProjectStats({
+    assignedEmployees: 0,
+    totalTasks: 0,
+    completedTasks: 0,
+    ongoingTasks: 0,
+    delayedTasks: 0,
+    overdueTasks: 0
+  });
+  
+  loadProjectTasks(project.projectId);
+}
+
+function updateProjectStats(stats) {
+  const elements = {
+    assignedEmployeesCount: stats.assignedEmployees || 0,
+    totalTasksCount: stats.totalTasks || 0,
+    completedTasksCount: stats.completedTasks || 0,
+    ongoingTasksCount: stats.ongoingTasks || 0,
+    delayedTasksCount: stats.delayedTasks || 0,
+    overdueTasksCount: stats.overdueTasks || 0
+  };
+  
+  Object.keys(elements).forEach(id => {
+    const element = document.getElementById(id);
+    if (element) element.textContent = elements[id];
+  });
+}
+
+async function loadProjectTasks(projectId) {
+  const tableBody = document.getElementById('projectTasksTableBody');
+  
+  if (!tableBody) return;
+  
+  tableBody.innerHTML = `
+    <tr class="empty-state">
+      <td colspan="7">
+        <div class="empty-content" style="text-align: center; padding: 40px; color: #666;">
+          <i class="fas fa-tasks" style="font-size: 48px; color: #ccc; margin-bottom: 10px;"></i>
+          <p>No tasks found</p>
+          <small>Click "Add Task" to get started</small>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+function showProjectsList() {
+  document.getElementById('project-detail-view').style.display = 'none';
+  document.getElementById('projects-list-view').style.display = 'block';
+  currentProjectId = null;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================
+// PROJECT FORM
+// ============================
+
+function openProjectForm() {
+  console.log('📝 Opening project form...');
+  
+  const modal = document.getElementById('addProjectModal');
+  if (modal) {
+    modal.classList.add('show');
+    modal.style.display = 'block';
+    
+    const form = document.getElementById('projectForm');
+    if (form) form.reset();
+    
+    clearContactFields();
+    
+    if (clientsData.length > 0) {
+      populateClientDropdown();
+    } else {
+      console.warn('⚠️ No clients, reloading...');
+      loadOnboardedClients();
+    }
+  }
+}
+
+function closeProjectForm() {
+  const modal = document.getElementById('addProjectModal');
+  if (modal) {
+    modal.classList.remove('show');
+    modal.style.display = 'none';
+  }
+}
+
+async function handleProjectFormSubmit(e) {
+  e.preventDefault();
+  
+  const customerId = document.getElementById('onboardedProjectSelect')?.value;
+  if (!customerId) {
+    showToast('Please select an onboarded project', 'error');
+    return;
+  }
+  
+  const client = clientsData.find(c => c.customerId === customerId);
+  
+  const projectData = {
+    customerId: customerId,
+    companyName: client?.companyName || '',
+    customerName: client?.customerName || '',
+    projectDescription: document.getElementById('projectDescriptionForm')?.value || '',
+    contactPerson: document.getElementById('contactPersonForm')?.value || '',
+    contactNumber: document.getElementById('contactNumberForm')?.value || '',
+    contactEmail: document.getElementById('contactEmailForm')?.value || '',
+    contactDesignation: document.getElementById('contactDesignationForm')?.value || '',
+    startDate: document.getElementById('date')?.value || '',
+    completionDate: document.getElementById('deadline')?.value || '',
+    reportingPerson: document.getElementById('reportingPerson')?.value || '',
+    allocatedTeam: document.getElementById('allocatedteam')?.value || '',
+    remarks: document.getElementById('projectremarks')?.value || 'N/A'
+  };
+
+  console.log('📤 Submitting project:', projectData);
+  
+  try {
+    showLoadingSpinner();
+    
+    const response = await fetch('https://www.fist-o.com/web_crm/add_project.php', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(projectData)
+    });
+
+    const result = await response.json();
+    hideLoadingSpinner();
+
+    if (response.ok && (result.success === true || result.status === 'success')) {
+      showToast('✅ Project created successfully!', 'success');
+      closeProjectForm();
+      await loadProjects();
+      
+      const form = document.getElementById('projectForm');
+      if (form) form.reset();
+      clearContactFields();
+    } else {
+      const errorMsg = result.message || 'Failed to create project';
+      showToast(errorMsg, 'error');
+      console.error('Server error:', result);
+    }
+  } catch (err) {
+    hideLoadingSpinner();
+    console.error('❌ Error:', err);
+    showToast('Error: ' + err.message, 'error');
+  }
+}
+
 
 
 // ============================
@@ -601,74 +829,74 @@ function closeProjectForm() {
 // RENDER PROJECTS LIST
 // ============================
 
-function renderProjectsList() {
-  const tbody = document.getElementById('projectsListTableBody');
-  const projectCount = document.getElementById('projectCount');
+// function renderProjectsList() {
+//   const tbody = document.getElementById('projectsListTableBody');
+//   const projectCount = document.getElementById('projectCount');
   
-  if (!tbody) return;
+//   if (!tbody) return;
   
-  if (projectCount) {
-    projectCount.textContent = projectsData.length;
-  }
+//   if (projectCount) {
+//     projectCount.textContent = projectsData.length;
+//   }
   
-  tbody.innerHTML = '';
+//   tbody.innerHTML = '';
   
-  if (projectsData.length === 0) {
-    tbody.innerHTML = `
-      <tr class="empty-state">
-        <td colspan="6">
-          <div class="empty-content">
-            <i class="fas fa-project-diagram"></i>
-            <p>No projects found</p>
-            <small>Click "New Project" to get started</small>
-          </div>
-        </td>
-      </tr>
-    `;
-    return;
-  }
+//   if (projectsData.length === 0) {
+//     tbody.innerHTML = `
+//       <tr class="empty-state">
+//         <td colspan="6">
+//           <div class="empty-content">
+//             <i class="fas fa-project-diagram"></i>
+//             <p>No projects found</p>
+//             <small>Click "New Project" to get started</small>
+//           </div>
+//         </td>
+//       </tr>
+//     `;
+//     return;
+//   }
   
-  const startIndex = (currentPage - 1) * projectsPerPage;
-  const endIndex = startIndex + projectsPerPage;
-  const paginatedProjects = projectsData.slice(startIndex, endIndex);
+//   const startIndex = (currentPage - 1) * projectsPerPage;
+//   const endIndex = startIndex + projectsPerPage;
+//   const paginatedProjects = projectsData.slice(startIndex, endIndex);
   
-  paginatedProjects.forEach(project => {
-    const row = createProjectRow(project);
-    tbody.appendChild(row);
-  });
+//   paginatedProjects.forEach(project => {
+//     const row = createProjectRow(project);
+//     tbody.appendChild(row);
+//   });
   
-  updatePagination();
-}
+//   updatePagination();
+// }
 
-function createProjectRow(project) {
-  const tr = document.createElement('tr');
+// function createProjectRow(project) {
+//   const tr = document.createElement('tr');
   
-  tr.innerHTML = `
-    <td>
-      <div class="project-name-cell">
-        <div class="project-info-cell">
-          <span class="project-title">${project.name}</span>
-          <span class="project-client">${project.client || 'N/A'}</span>
-        </div>
-      </div>
-    </td>
-    <td>
-      <div class="team-head-cell">
-        <img src="${project.teamHead?.avatar || 'img/Profileimg.png'}" 
-             alt="${project.teamHead?.name || 'N/A'}" 
-             class="team-head-avatar">
-        <span class="team-head-name">${project.teamHead?.name || 'N/A'}</span>
-      </div>
-    </td>
-    <td class="project-date-cell">${project.startDate || 'N/A'}</td>
-    <td class="project-date-cell">${project.deadline || 'N/A'}</td>
-    <td>
-      <button class="project-view-btn" onclick="viewProjectDetail(${project.id})">View</button>
-    </td>
-  `;
+//   tr.innerHTML = `
+//     <td>
+//       <div class="project-name-cell">
+//         <div class="project-info-cell">
+//           <span class="project-title">${project.name}</span>
+//           <span class="project-client">${project.client || 'N/A'}</span>
+//         </div>
+//       </div>
+//     </td>
+//     <td>
+//       <div class="team-head-cell">
+//         <img src="${project.teamHead?.avatar || 'img/Profileimg.png'}" 
+//              alt="${project.teamHead?.name || 'N/A'}" 
+//              class="team-head-avatar">
+//         <span class="team-head-name">${project.teamHead?.name || 'N/A'}</span>
+//       </div>
+//     </td>
+//     <td class="project-date-cell">${project.startDate || 'N/A'}</td>
+//     <td class="project-date-cell">${project.deadline || 'N/A'}</td>
+//     <td>
+//       <button class="project-view-btn" onclick="viewProjectDetail(${project.id})">View</button>
+//     </td>
+//   `;
   
-  return tr;
-}
+//   return tr;
+// }
 
 // ============================
 // PROJECT DETAIL VIEW
@@ -960,33 +1188,33 @@ function formatDate(dateString) {
   return `${day}/${month}/${year}`;
 }
 
-function updatePagination() {
-  const totalPages = Math.ceil(projectsData.length / projectsPerPage);
-  const paginationNumbers = document.getElementById('paginationNumbers');
-  const prevBtn = document.getElementById('prevPage');
-  const nextBtn = document.getElementById('nextPage');
+// function updatePagination() {
+//   const totalPages = Math.ceil(projectsData.length / projectsPerPage);
+//   const paginationNumbers = document.getElementById('paginationNumbers');
+//   const prevBtn = document.getElementById('prevPage');
+//   const nextBtn = document.getElementById('nextPage');
   
-  if (!paginationNumbers) return;
+//   if (!paginationNumbers) return;
   
-  paginationNumbers.innerHTML = '';
+//   paginationNumbers.innerHTML = '';
   
-  for (let i = 1; i <= Math.min(totalPages, 5); i++) {
-    const btn = document.createElement('button');
-    btn.className = 'page-number' + (i === currentPage ? ' active' : '');
-    btn.textContent = i.toString().padStart(2, '0');
-    btn.onclick = () => goToPage(i);
-    paginationNumbers.appendChild(btn);
-  }
+//   for (let i = 1; i <= Math.min(totalPages, 5); i++) {
+//     const btn = document.createElement('button');
+//     btn.className = 'page-number' + (i === currentPage ? ' active' : '');
+//     btn.textContent = i.toString().padStart(2, '0');
+//     btn.onclick = () => goToPage(i);
+//     paginationNumbers.appendChild(btn);
+//   }
   
-  if (prevBtn) prevBtn.disabled = currentPage === 1;
-  if (nextBtn) nextBtn.disabled = currentPage === totalPages || totalPages === 0;
-}
+//   if (prevBtn) prevBtn.disabled = currentPage === 1;
+//   if (nextBtn) nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+// }
 
-function goToPage(page) {
-  currentPage = page;
-  renderProjectsList();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+// function goToPage(page) {
+//   currentPage = page;
+//   // renderProjectsList();
+//   window.scrollTo({ top: 0, behavior: 'smooth' });
+// }
 
 function filterProjects(searchTerm) {
   if (!searchTerm) {
