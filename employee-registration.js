@@ -1695,45 +1695,69 @@ viewEmployee(index) {
         });
     }
 
-    async deleteEmployee(index) {
-        const employee = this.filteredEmployees[index];
-        if (!employee) {
-            this.showToast('Error', 'Employee not found', 'error');
-            return;
-        }
-
-        const confirmed = await this.showEmployeeDeleteModal(employee.emp_name, employee.emp_id);
-
-        if (!confirmed) {
-            this.showToast('Cancelled', 'Delete action was cancelled.', 'info');
-            return;
-        }
-
-        try {
-            this.showToast('Processing', `Deleting ${employee.emp_name}...`, 'info');
-
-            const response = await this.fetchWithRetry(this.endpoints.delete, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: `emp_id=${encodeURIComponent(employee.emp_id)}`
-            });
-
-            const result = await response.json();
-
-            if (result.status === 'success') {
-                this.showToast('Success', `${employee.emp_name} deleted successfully`, 'success');
-                await this.loadEmployees(false);
-            } else {
-                throw new Error(result.message || 'Failed to delete employee');
-            }
-
-        } catch (error) {
-            console.error('Error deleting employee:', error);
-            this.showToast('Error', 'Failed to delete employee: ' + error.message, 'error');
-        }
+  async deleteEmployee(index) {
+    const employee = this.filteredEmployees[index];
+    if (!employee) {
+        this.showToast('Error', 'Employee not found', 'error');
+        return;
     }
+
+    console.log('=== DELETE EMPLOYEE DEBUG ===');
+    console.log('Employee to delete:', employee);
+    console.log('Employee ID:', employee.emp_id);
+
+    const confirmed = await this.showEmployeeDeleteModal(employee.emp_name, employee.emp_id);
+
+    if (!confirmed) {
+        this.showToast('Cancelled', 'Delete action was cancelled.', 'info');
+        return;
+    }
+
+    try {
+        this.showToast('Processing', `Deleting ${employee.emp_name}...`, 'info');
+
+        console.log('Sending delete request to:', this.endpoints.delete);
+        console.log('Employee ID being sent:', employee.emp_id);
+
+        const response = await fetch(this.endpoints.delete, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: `emp_id=${encodeURIComponent(employee.emp_id)}`
+        });
+
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
+
+        let result;
+        try {
+            result = JSON.parse(responseText);
+            console.log('Parsed result:', result);
+        } catch (parseError) {
+            console.error('JSON parse error:', parseError);
+            console.error('Response was not JSON:', responseText);
+            throw new Error('Server returned invalid response: ' + responseText.substring(0, 100));
+        }
+
+        if (result.status === 'success') {
+            this.showToast('Success', `${employee.emp_name} deleted successfully`, 'success');
+            await this.loadEmployees(false);
+        } else {
+            throw new Error(result.message || 'Failed to delete employee');
+        }
+
+    } catch (error) {
+        console.error('Error deleting employee:', error);
+        this.showToast('Error', 'Failed to delete employee: ' + error.message, 'error');
+    }
+    
+    console.log('=== DELETE EMPLOYEE DEBUG END ===');
+}
 
     async updateEmployeeWithFiles(formData) {
         console.log('=== UPDATE EMPLOYEE WITH FILES DEBUG START ===');
