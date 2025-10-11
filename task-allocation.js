@@ -215,3 +215,67 @@ function closeTaskAllocationForm() {
     console.error('Modal element not found');
   }
 }
+
+
+// ============================
+// POPULATE CLIENT DROPDOWN
+// ============================
+
+function populateClientDropdown() {
+  const clientSelect = document.getElementById('onboardedProjectSelect');
+  
+  if (!clientSelect) {
+    console.error('❌ onboardedProjectSelect dropdown not found!');
+    return;
+  }
+
+  console.log('🔄 Populating dropdown with', clientsData.length, 'projects');
+
+  clientSelect.innerHTML = '<option value="">-- Select Project --</option>';
+  
+  if (clientsData.length === 0) {
+    const noDataOption = document.createElement('option');
+    noDataOption.value = '';
+    noDataOption.textContent = '-- No onboarded projects available --';
+    noDataOption.disabled = true;
+    clientSelect.appendChild(noDataOption);
+    console.warn('⚠️ No projects to populate');
+    return;
+  }
+
+  clientsData.forEach((client, index) => {
+    const option = document.createElement('option');
+    option.value = client.customerId;
+    
+    const displayText = client.projectName !== 'N/A' 
+      ? `${client.projectName} - ${client.companyName} (${client.customerId})`
+      : `${client.companyName} (${client.customerId})`;
+    
+    option.textContent = displayText;
+    
+    option.dataset.customerId = client.customerId;
+    option.dataset.projectName = client.projectName;
+    option.dataset.projectDescription = client.projectDescription;
+    option.dataset.companyName = client.companyName;
+    option.dataset.customerName = client.customerName;
+    option.dataset.phone = client.phoneNo;
+    option.dataset.email = client.mailId;
+    option.dataset.contactPerson = client.contactPerson;
+    option.dataset.designation = client.designation;
+    option.dataset.industry = client.industryType;
+    option.dataset.website = client.website;
+    option.dataset.address = client.address;
+    
+    clientSelect.appendChild(option);
+    
+    if (index === 0) {
+      console.log('📝 Sample dropdown option:', {
+        value: option.value,
+        text: option.textContent,
+        dataset: option.dataset
+      });
+    }
+  });
+  
+  console.log(`✅ Dropdown populated with ${clientsData.length} options`);
+}

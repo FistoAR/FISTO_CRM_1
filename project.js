@@ -465,6 +465,7 @@ function goToPage(page) {
 }
 
 
+
 // ============================
 // VIEW PROJECT DETAILS
 // ============================
