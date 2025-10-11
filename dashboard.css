@@ -4858,8 +4858,8 @@ ease;
 }
 
 .add-employee-btn {
-  width: 36px;
-  height: 36px;
+  width: 60px;
+  height: 40px;
   border-radius: 50%;
   background: black;
   color: white;
@@ -5165,6 +5165,809 @@ ease;
     font-size: 12px;
   }
 }
+
+/* ============================
+   RESOURCES TAB STYLES
+   ============================ */
+
+.resources-container {
+  padding: 30px;
+  background: #f9fafb;
+  min-height: 500px;
+}
+
+.resources-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.resources-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: #1f2937;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.resources-header h3 i {
+  color: #6366f1;
+  font-size: 28px;
+}
+
+.resources-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 24px;
+  margin-top: 20px;
+}
+
+/* Resource Card */
+.resource-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.resource-card:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  border-color: #6366f1;
+}
+
+/* Resource Icon */
+.resource-icon {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  font-size: 26px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.resource-card:nth-child(2) .resource-icon {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.resource-card:nth-child(3) .resource-icon {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.resource-card:nth-child(4) .resource-icon {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+/* Resource Info */
+.resource-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.resource-info h4 {
+  margin: 0 0 6px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.resource-info p {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* Resource Actions */
+.resource-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.btn-icon {
+  background: #f3f4f6;
+  border: none;
+  padding: 10px;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon:hover {
+  background: #6366f1;
+  color: white;
+  transform: scale(1.1);
+}
+
+.btn-icon i {
+  font-size: 16px;
+}
+
+/* Empty State */
+.empty-resource-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 80px 20px;
+  background: white;
+  border-radius: 12px;
+  border: 2px dashed #e5e7eb;
+}
+
+.empty-resource-state i {
+  font-size: 64px;
+  color: #d1d5db;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.empty-resource-state p {
+  font-size: 18px;
+  color: #6b7280;
+  margin: 8px 0;
+  font-weight: 500;
+}
+
+.empty-resource-state small {
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+/* ============================
+   ANALYTICS TAB STYLES
+   ============================ */
+
+.analytics-container {
+  padding: 30px;
+  background: #f9fafb;
+  min-height: 500px;
+}
+
+.analytics-container h3 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 30px 0;
+  color: #1f2937;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.analytics-container h3 i {
+  color: #10b981;
+  font-size: 28px;
+}
+
+.analytics-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.analytics-stats .stat-card {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.analytics-stats .stat-card h4 {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+/* Tab Panel Display */
+.tab-panel {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .resources-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+  }
+  
+  .resource-card {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .resources-container,
+  .analytics-container {
+    padding: 20px;
+  }
+  
+  .resources-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .resources-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .analytics-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+  /* Modal Overlay */
+    .projectmodal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .projectmodal.show {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Modal Content */
+    .projectmodal-content {
+      background: white;
+      width: 90%;
+      max-width: 600px;
+      max-height: 85vh;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+/* ============================
+   ENHANCED PROJECT ALLOCATION MODAL
+   ============================ */
+
+/* Modal Overlay - Enhanced version */
+#addProjectAllocationModal.projectmodal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+#addProjectAllocationModal.projectmodal.show {
+  display: flex;
+}
+
+/* Enhanced Modal Content Container */
+#addProjectAllocationModal .projectmodal-content {
+    background: white;
+    border-radius: 20px;
+    width: 30%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.4s ease;
+    position: relative;
+    right: -70vh;
+    top: 0v;
+    transform: none;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Enhanced Modal Header */
+#addProjectAllocationModal .projectmodal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 25px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  border-bottom: none;
+}
+
+#addProjectAllocationModal .projectmodal-header h2 {
+  font-size: 24px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+
+#addProjectAllocationModal .projectmodal-header h2::before {
+  content: '👥';
+  font-size: 28px;
+}
+
+/* Enhanced Close Button */
+#addProjectAllocationModal .close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+#addProjectAllocationModal .close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+/* Enhanced Modal Body */
+#addProjectAllocationModal .projectmodal-body {
+  padding: 30px;
+  max-height: calc(90vh - 150px);
+  /* overflow-y: auto; */
+}
+
+/* Enhanced Employee List */
+#addProjectAllocationModal .employee-list {
+  margin-bottom: 2\px;
+  min-height: 120px;
+  max-height: 300px;
+  overflow-y: auto;
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 15px;
+  border: 2px dashed #dee2e6;
+}
+
+#addProjectAllocationModal .employee-list:empty::before {
+  content: 'No employees selected yet';
+  display: block;
+  text-align: center;
+  color: #adb5bd;
+  padding: 40px 20px;
+  font-size: 14px;
+}
+
+/* Enhanced Employee Item */
+#addProjectAllocationModal .employee-item {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 12px 15px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+#addProjectAllocationModal .employee-item:hover {
+  border-color: #667eea;
+  transform: translateX(5px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+/* Enhanced Employee Name */
+#addProjectAllocationModal .employee-name {
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#addProjectAllocationModal .employee-name::before {
+  content: '👤';
+  font-size: 18px;
+}
+
+/* Enhanced Remove Button */
+#addProjectAllocationModal .remove-btn {
+  background: #fee;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e53e3e;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+#addProjectAllocationModal .remove-btn:hover {
+  background: #e53e3e;
+  color: white;
+  transform: scale(1.1);
+}
+
+/* Enhanced Select Section */
+#addProjectAllocationModal .select-section {
+  margin-bottom: 25px;
+}
+
+#addProjectAllocationModal .select-label {
+  display: block;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+#addProjectAllocationModal .select-label i {
+  color: #667eea;
+  margin-right: 8px;
+}
+
+/* Enhanced Custom Select Wrapper */
+#addProjectAllocationModal .custom-select-wrapper {
+  position: relative;
+}
+
+#addProjectAllocationModal .custom-select {
+  width: 100%;
+  padding: 14px 45px 14px 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 15px;
+  color: #2d3748;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  font-weight: 500;
+  font-family: inherit;
+}
+
+#addProjectAllocationModal .custom-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+#addProjectAllocationModal .custom-select:hover {
+  border-color: #667eea;
+}
+
+/* Enhanced Select Icon */
+#addProjectAllocationModal .select-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #667eea;
+  pointer-events: none;
+  font-size: 14px;
+}
+
+/* Enhanced Modal Actions */
+#addProjectAllocationModal .modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+#addProjectAllocationModal .add-list{
+  flex: 1;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+#addProjectAllocationModal .submit-btn {
+  flex: 1;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+#addProjectAllocationModal .add-list {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+#addProjectAllocationModal .add-list:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+#addProjectAllocationModal .add-list:active {
+  transform: translateY(0);
+}
+
+#addProjectAllocationModal .submit-btn {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+}
+
+#addProjectAllocationModal .submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(72, 187, 120, 0.4);
+}
+
+#addProjectAllocationModal .submit-btn:active {
+  transform: translateY(0);
+}
+
+/* Enhanced Scrollbar Styling */
+#addProjectAllocationModal .employee-list::-webkit-scrollbar,
+#addProjectAllocationModal .projectmodal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+#addProjectAllocationModal .employee-list::-webkit-scrollbar-track,
+#addProjectAllocationModal .projectmodal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+#addProjectAllocationModal .employee-list::-webkit-scrollbar-thumb,
+#addProjectAllocationModal .projectmodal-body::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 10px;
+}
+
+#addProjectAllocationModal .employee-list::-webkit-scrollbar-thumb:hover,
+#addProjectAllocationModal .projectmodal-body::-webkit-scrollbar-thumb:hover {
+  background: #5568d3;
+}
+
+/* Toast Notification Enhancement */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: white;
+  padding: 16px 24px;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 10000;
+  animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast.success {
+  border-left: 4px solid #48bb78;
+}
+
+.toast.error {
+  border-left: 4px solid #e53e3e;
+}
+
+.toast.warning {
+  border-left: 4px solid #ed8936;
+}
+
+/* Slide Out Animation for Employee Items */
+@keyframes slideOut {
+  to {
+    transform: translateX(-30px);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+  }
+}
+
+/* Responsive Design for Modal */
+@media (max-width: 600px) {
+  #addProjectAllocationModal .projectmodal-content {
+    width: 95%;
+    max-width: none;
+  }
+
+  #addProjectAllocationModal .projectmodal-header {
+    padding: 20px;
+  }
+
+  #addProjectAllocationModal .projectmodal-header h2 {
+    font-size: 20px;
+  }
+
+  #addProjectAllocationModal .projectmodal-body {
+    padding: 20px;
+  }
+
+  #addProjectAllocationModal .modal-actions {
+    flex-direction: column;
+  }
+
+  #addProjectAllocationModal .add-employee-btn,
+  #addProjectAllocationModal .submit-btn {
+    width: 100%;
+  }
+}
+
+/* Override any conflicting styles from the main dashboard.css */
+#addProjectAllocationModal .projectmodal-content {
+  max-width: 600px !important;
+  max-height: 90vh !important;
+  height: auto !important;
+  /* overflow: visible !important; */
+}
+
+#addProjectAllocationModal .form-grid2 {
+  display: block !important;
+}
+
+/* Ensure proper z-index layering */
+#addProjectAllocationModal {
+  z-index: 9999 !important;
+}
+
+#addProjectAllocationModal .projectmodal-content {
+  z-index: 10000 !important;
+}
+
+/* Smooth transitions for modal appearance */
+#addProjectAllocationModal.show {
+  animation: fadeIn 0.3s ease;
+}
+
+#addProjectAllocationModal.show .projectmodal-content {
+  animation: slideUp 0.4s ease;
+}
+
 /* real project css */
 
 .header-project {

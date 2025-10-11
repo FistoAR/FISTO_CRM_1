@@ -8,6 +8,11 @@ let currentProjectId = null;
 let currentPage = 1;
 const projectsPerPage = 5;
 
+
+
+let employeesData = [];
+let selectedEmployees = [];
+
 // ============================
 // INITIALIZATION
 // ============================
@@ -267,6 +272,7 @@ function clearContactFields() {
   
   console.log('🧹 Fields cleared');
 }
+
 // ============================
 // LOAD PROJECTS
 // ============================
@@ -281,10 +287,7 @@ async function loadProjects() {
       projectsData = result.data;
       console.log(`✅ Loaded ${projectsData.length} projects`);
       
-      // IMPORTANT: Reset to page 1 when reloading data
       currentPage = 1;
-      
-      // Render the table with updated data
       displayProjectsTable(projectsData);
       return projectsData;
     } else {
@@ -305,27 +308,7 @@ async function loadProjects() {
 }
 
 // ============================
-// GO TO PAGE (FIXED)
-// ============================
-
-function goToPage(page) {
-  const totalPages = Math.ceil(projectsData.length / projectsPerPage);
-  
-  // Validate page number
-  if (page < 1) page = 1;
-  if (page > totalPages) page = totalPages;
-  
-  console.log(`🔄 Going to page ${page} of ${totalPages}`);
-  currentPage = page;
-  
-  // Re-render with current projectsData
-  displayProjectsTable(projectsData);
-  
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// ============================
-// DISPLAY PROJECTS WITH PAGINATION (5 per page)
+// DISPLAY PROJECTS WITH PAGINATION
 // ============================
 
 function displayProjectsTable(projects) {
@@ -363,11 +346,7 @@ function displayProjectsTable(projects) {
   const endIndex = startIndex + projectsPerPage;
   const paginatedProjects = projects.slice(startIndex, endIndex);
 
-  console.log(`📄 Displaying page ${currentPage}: showing ${paginatedProjects.length} of ${projects.length} projects (indexes ${startIndex} to ${endIndex - 1})`);
-  
-  if (paginatedProjects.length > 0) {
-    console.log('🔍 First project on this page:', paginatedProjects[0]);
-  }
+  console.log(`📄 Displaying page ${currentPage}: showing ${paginatedProjects.length} of ${projects.length} projects`);
 
   paginatedProjects.forEach((project, index) => {
     const projectName = project.companyName || project.company_name || project.projectName || project.project_name || project.name || 'N/A';
@@ -438,33 +417,30 @@ function updatePaginationControls(totalProjects) {
   prevBtn.style.opacity = prevBtn.disabled ? '0.5' : '1';
   prevBtn.style.cursor = prevBtn.disabled ? 'not-allowed' : 'pointer';
   prevBtn.onclick = () => {
-    console.log('⬅️ Previous button clicked');
-    if (currentPage > 1) {
-      goToPage(currentPage - 1);
-    }
+    if (currentPage > 1) goToPage(currentPage - 1);
   };
   
   nextBtn.disabled = currentPage === totalPages || totalPages === 0;
   nextBtn.style.opacity = nextBtn.disabled ? '0.5' : '1';
   nextBtn.style.cursor = nextBtn.disabled ? 'not-allowed' : 'pointer';
   nextBtn.onclick = () => {
-    console.log('➡️ Next button clicked');
-    if (currentPage < totalPages) {
-      goToPage(currentPage + 1);
-    }
+    if (currentPage < totalPages) goToPage(currentPage + 1);
   };
 
-  console.log(`📊 Pagination: Page ${currentPage} of ${totalPages} (${totalProjects} total projects, ${projectsPerPage} per page)`);
+  console.log(`📊 Pagination: Page ${currentPage} of ${totalPages}`);
 }
 
 function goToPage(page) {
+  const totalPages = Math.ceil(projectsData.length / projectsPerPage);
+  
+  if (page < 1) page = 1;
+  if (page > totalPages) page = totalPages;
+  
   console.log(`🔄 Going to page ${page}`);
   currentPage = page;
   displayProjectsTable(projectsData);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-
-
 
 // ============================
 // VIEW PROJECT DETAILS
@@ -493,6 +469,10 @@ async function viewProject(projectId) {
   }
 }
 
+// ============================
+// SHOW PROJECT DETAIL VIEW (MERGED - NO DUPLICATES)
+// ============================
+
 function showProjectDetailView(project) {
   document.getElementById('projects-list-view').style.display = 'none';
   document.getElementById('project-detail-view').style.display = 'block';
@@ -503,8 +483,16 @@ function showProjectDetailView(project) {
   }
   
   populateProjectDetails(project);
+  
+  // ✅ Setup tabs immediately - NO setTimeout needed
+  setupProjectDetailTabs();
+  
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+// ============================
+// POPULATE PROJECT DETAILS (MERGED - NO DUPLICATES)
+// ============================
 
 function populateProjectDetails(project) {
   const projectNameTitle = document.getElementById('projectNameTitle');
@@ -534,6 +522,10 @@ function populateProjectDetails(project) {
   loadProjectTasks(project.projectId);
 }
 
+// ============================
+// UPDATE PROJECT STATS
+// ============================
+
 function updateProjectStats(stats) {
   const elements = {
     assignedEmployeesCount: stats.assignedEmployees || 0,
@@ -549,6 +541,10 @@ function updateProjectStats(stats) {
     if (element) element.textContent = elements[id];
   });
 }
+
+// ============================
+// LOAD PROJECT TASKS
+// ============================
 
 async function loadProjectTasks(projectId) {
   const tableBody = document.getElementById('projectTasksTableBody');
@@ -568,6 +564,10 @@ async function loadProjectTasks(projectId) {
   `;
 }
 
+// ============================
+// SHOW PROJECTS LIST (MERGED - NO DUPLICATES)
+// ============================
+
 function showProjectsList() {
   document.getElementById('project-detail-view').style.display = 'none';
   document.getElementById('projects-list-view').style.display = 'block';
@@ -576,7 +576,7 @@ function showProjectsList() {
 }
 
 // ============================
-// PROJECT FORM
+// OPEN/CLOSE PROJECT FORM (MERGED - NO DUPLICATES)
 // ============================
 
 function openProjectForm() {
@@ -608,6 +608,10 @@ function closeProjectForm() {
     modal.style.display = 'none';
   }
 }
+
+// ============================
+// SUBMIT PROJECT FORM (MERGED - NO DUPLICATES)
+// ============================
 
 async function handleProjectFormSubmit(e) {
   e.preventDefault();
@@ -673,458 +677,245 @@ async function handleProjectFormSubmit(e) {
   }
 }
 
-
-
 // ============================
-// SHOW PROJECT DETAIL VIEW
+// DELETE PROJECT
 // ============================
 
-function showProjectDetailView(project) {
-  // Hide list view
-  document.getElementById('projects-list-view').style.display = 'none';
+function confirmDeleteProject(projectId, companyName) {
+  const confirmed = confirm(
+    `Are you sure you want to delete the project for "${companyName}"?\n\n` +
+    `Project ID: ${projectId}\n\n` +
+    `This action cannot be undone.`
+  );
   
-  // Show detail view
-  document.getElementById('project-detail-view').style.display = 'block';
-  
-  // Update breadcrumb
-  const breadcrumbName = document.getElementById('breadcrumbProjectName');
-  if (breadcrumbName) {
-    breadcrumbName.textContent = project.companyName || 'Project';
-  }
-  
-  // Populate project details
-  populateProjectDetails(project);
-  
-  // Scroll to top
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// ============================
-// POPULATE PROJECT DETAILS
-// ============================
-
-function populateProjectDetails(project) {
-  // Project Name and Description
-  const projectNameTitle = document.getElementById('projectNameTitle');
-  if (projectNameTitle) projectNameTitle.textContent = project.companyName || 'N/A';
-  
-  const projectDescription = document.getElementById('projectDescription');
-  if (projectDescription) projectDescription.textContent = project.projectDescription || 'No description available.';
-  
-  // Dates
-  const projectStartDate = document.getElementById('projectStartDate');
-  if (projectStartDate) projectStartDate.textContent = formatDate(project.startDate);
-  
-  const projectDeadlineDate = document.getElementById('projectDeadlineDate');
-  if (projectDeadlineDate) projectDeadlineDate.textContent = formatDate(project.completionDate);
-  
-  // Team information
-  const reportingPerson = document.getElementById('teamHeadName');
-  if (reportingPerson) reportingPerson.textContent = project.reportingPerson || 'N/A';
-  
-  // Stats (default values - can be updated from tasks API)
-  updateProjectStats({
-    assignedEmployees: 0,
-    totalTasks: 0,
-    completedTasks: 0,
-    ongoingTasks: 0,
-    delayedTasks: 0,
-    overdueT: 0
-  });
-  
-  // Load tasks for this project (if you have tasks API)
-  loadProjectTasks(project.projectId);
-}
-// ============================
-// UPDATE PROJECT STATS
-// ============================
-
-function updateProjectStats(stats) {
-  const elements = {
-    assignedEmployeesCount: stats.assignedEmployees || 0,
-    totalTasksCount: stats.totalTasks || 0,
-    completedTasksCount: stats.completedTasks || 0,
-    ongoingTasksCount: stats.ongoingTasks || 0,
-    delayedTasksCount: stats.delayedTasks || 0,
-    overdueTasksCount: stats.overdueTasks || 0
-  };
-  
-  Object.keys(elements).forEach(id => {
-    const element = document.getElementById(id);
-    if (element) element.textContent = elements[id];
-  });
-}
-
-
-// ============================
-// LOAD PROJECT TASKS
-// ============================
-
-async function loadProjectTasks(projectId) {
-  const tableBody = document.getElementById('projectTasksTableBody');
-  
-  if (!tableBody) return;
-  
-  // Show empty state for now (you can implement tasks API later)
-  tableBody.innerHTML = `
-    <tr class="empty-state">
-      <td colspan="7">
-        <div class="empty-content" style="text-align: center; padding: 40px; color: #666;">
-          <i class="fas fa-tasks" style="font-size: 48px; color: #ccc; margin-bottom: 10px;"></i>
-          <p>No tasks found</p>
-          <small>Click "Add Task" to get started</small>
-        </div>
-      </td>
-    </tr>
-  `;
-}
-
-// ============================
-// SHOW PROJECTS LIST (BACK BUTTON)
-// ============================
-
-function showProjectsList() {
-  // Hide detail view
-  document.getElementById('project-detail-view').style.display = 'none';
-  
-  // Show list view
-  document.getElementById('projects-list-view').style.display = 'block';
-  
-  currentProjectId = null;
-  
-  // Scroll to top
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// ============================
-// OPEN/CLOSE PROJECT FORM
-// ============================
-
-function openProjectForm() {
-  const modal = document.getElementById('addProjectModal');
-  if (modal) {
-    modal.style.display = 'block';
-    modal.classList.add('show');
-    
-    const form = document.getElementById('projectForm');
-    if (form) form.reset();
-    
-    clearContactFields();
-    
-    // Reload clients if needed
-    if (clientsData.length === 0) {
-      loadOnboardedClients();
-    }
+  if (confirmed) {
+    deleteProject(projectId);
   }
 }
 
-function closeProjectForm() {
-  const modal = document.getElementById('addProjectModal');
-  if (modal) {
-    modal.style.display = 'none';
-    modal.classList.remove('show');
-  }
-}
-
-// ============================
-// RENDER PROJECTS LIST
-// ============================
-
-// function renderProjectsList() {
-//   const tbody = document.getElementById('projectsListTableBody');
-//   const projectCount = document.getElementById('projectCount');
-  
-//   if (!tbody) return;
-  
-//   if (projectCount) {
-//     projectCount.textContent = projectsData.length;
-//   }
-  
-//   tbody.innerHTML = '';
-  
-//   if (projectsData.length === 0) {
-//     tbody.innerHTML = `
-//       <tr class="empty-state">
-//         <td colspan="6">
-//           <div class="empty-content">
-//             <i class="fas fa-project-diagram"></i>
-//             <p>No projects found</p>
-//             <small>Click "New Project" to get started</small>
-//           </div>
-//         </td>
-//       </tr>
-//     `;
-//     return;
-//   }
-  
-//   const startIndex = (currentPage - 1) * projectsPerPage;
-//   const endIndex = startIndex + projectsPerPage;
-//   const paginatedProjects = projectsData.slice(startIndex, endIndex);
-  
-//   paginatedProjects.forEach(project => {
-//     const row = createProjectRow(project);
-//     tbody.appendChild(row);
-//   });
-  
-//   updatePagination();
-// }
-
-// function createProjectRow(project) {
-//   const tr = document.createElement('tr');
-  
-//   tr.innerHTML = `
-//     <td>
-//       <div class="project-name-cell">
-//         <div class="project-info-cell">
-//           <span class="project-title">${project.name}</span>
-//           <span class="project-client">${project.client || 'N/A'}</span>
-//         </div>
-//       </div>
-//     </td>
-//     <td>
-//       <div class="team-head-cell">
-//         <img src="${project.teamHead?.avatar || 'img/Profileimg.png'}" 
-//              alt="${project.teamHead?.name || 'N/A'}" 
-//              class="team-head-avatar">
-//         <span class="team-head-name">${project.teamHead?.name || 'N/A'}</span>
-//       </div>
-//     </td>
-//     <td class="project-date-cell">${project.startDate || 'N/A'}</td>
-//     <td class="project-date-cell">${project.deadline || 'N/A'}</td>
-//     <td>
-//       <button class="project-view-btn" onclick="viewProjectDetail(${project.id})">View</button>
-//     </td>
-//   `;
-  
-//   return tr;
-// }
-
-// ============================
-// PROJECT DETAIL VIEW
-// ============================
-
-function viewProjectDetail(projectId) {
-  currentProjectId = projectId;
-  const project = projectsData.find(p => p.id === projectId);
-  
-  if (!project) {
-    console.error('Project not found:', projectId);
-    return;
-  }
-  
-  document.getElementById('projects-list-view').style.display = 'none';
-  document.getElementById('project-detail-view').style.display = 'block';
-  
-  document.getElementById('breadcrumbProjectName').textContent = project.name;
-  renderProjectDetail(project);
-}
-
-function renderProjectDetail(project) {
-  const totalTasks = project.tasks?.length || 0;
-  const completedTasks = project.tasks?.filter(t => t.status === 'done').length || 0;
-  const ongoingTasks = project.tasks?.filter(t => t.status === 'working').length || 0;
-  const assignedEmployees = new Set(project.tasks?.map(t => t.assignedTo?.name)).size || 0;
-  
-  document.getElementById('assignedEmployeesCount').textContent = assignedEmployees;
-  document.getElementById('totalTasksCount').textContent = totalTasks;
-  document.getElementById('completedTasksCount').textContent = completedTasks;
-  document.getElementById('ongoingTasksCount').textContent = ongoingTasks;
-  document.getElementById('delayedTasksCount').textContent = '0';
-  document.getElementById('overdueTasksCount').textContent = '0';
-  
-  document.getElementById('projectNameTitle').textContent = project.name;
-  document.getElementById('projectDescription').textContent = project.description || 'No description available.';
-  document.getElementById('projectPriority').textContent = project.priority || 'Medium';
-  
-  if (project.initiatedBy) {
-    document.getElementById('initiatorName').textContent = project.initiatedBy.name;
-    document.getElementById('initiatorAvatar').src = project.initiatedBy.avatar;
-  }
-  
-  if (project.teamHead) {
-    document.getElementById('teamHeadName').textContent = project.teamHead.name;
-    document.getElementById('teamHeadAvatar').src = project.teamHead.avatar;
-  }
-  
-  document.getElementById('projectStartDate').textContent = project.startDate || 'N/A';
-  document.getElementById('projectDeadlineDate').textContent = project.deadline || 'N/A';
-  
-  renderProjectTasks(project.tasks || []);
-}
-
-function renderProjectTasks(tasks) {
-  const tbody = document.getElementById('projectTasksTableBody');
-  if (!tbody) return;
-  
-  tbody.innerHTML = '';
-  
-  if (tasks.length === 0) {
-    tbody.innerHTML = `
-      <tr class="empty-state">
-        <td colspan="7">
-          <div class="empty-content">
-            <i class="fas fa-tasks"></i>
-            <p>No tasks found</p>
-            <small>Click "Add Task" to get started</small>
-          </div>
-        </td>
-      </tr>
-    `;
-    return;
-  }
-  
-  tasks.forEach((task, index) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${index + 1}</td>
-      <td>${task.title}</td>
-      <td>
-        <div class="task-assignee">
-          <img src="${task.assignedBy?.avatar || 'img/Profileimg.png'}" 
-               alt="${task.assignedBy?.name || 'N/A'}" 
-               class="task-assignee-avatar">
-          <span class="task-assignee-name">${task.assignedBy?.name || 'N/A'}</span>
-        </div>
-      </td>
-      <td>
-        <div class="task-assignee">
-          <img src="${task.assignedTo?.avatar || 'img/Profileimg.png'}" 
-               alt="${task.assignedTo?.name || 'N/A'}" 
-               class="task-assignee-avatar">
-          <span class="task-assignee-name">${task.assignedTo?.name || 'N/A'}</span>
-        </div>
-      </td>
-      <td>${task.startDate || 'N/A'}</td>
-      <td>${task.endDate || 'N/A'}</td>
-      <td>
-        <span class="status-badge ${task.status || 'pending'}">
-          ${getStatusText(task.status)}
-        </span>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function getStatusText(status) {
-  const statusMap = {
-    'done': 'Done',
-    'working': 'Working on it',
-    'stuck': 'Stuck',
-    'pending': 'Pending'
-  };
-  return statusMap[status] || 'Pending';
-}
-
-function showProjectsList() {
-  document.getElementById('project-detail-view').style.display = 'none';
-  document.getElementById('projects-list-view').style.display = 'block';
-  currentProjectId = null;
-}
-
-// ============================
-// ADD NEW PROJECT
-// ============================
-
-function openProjectForm() {
-  console.log('📝 Opening project form...');
-  
-  const modal = document.getElementById('addProjectModal');
-  if (modal) {
-    modal.classList.add('show');
-    modal.style.display = 'block';
-    
-    const form = document.getElementById('projectForm');
-    if (form) form.reset();
-    
-    clearContactFields();
-    
-    if (clientsData.length > 0) {
-      populateClientDropdown();
-    } else {
-      console.warn('⚠️ No clients, reloading...');
-      loadOnboardedClients();
-    }
-  }
-}
-
-function closeProjectForm() {
-  const modal = document.getElementById('addProjectModal');
-  if (modal) {
-    modal.classList.remove('show');
-    modal.style.display = 'none';
-  }
-}
-
-// ============================
-// SUBMIT PROJECT FORM (FIXED)
-// ============================
-
-async function handleProjectFormSubmit(e) {
-  e.preventDefault();
-  
-  const customerId = document.getElementById('onboardedProjectSelect')?.value;
-  if (!customerId) {
-    showToast('Please select an onboarded project', 'error');
-    return;
-  }
-  
-  // Find the selected client
-  const client = clientsData.find(c => c.customer_id === customerId);
-  
-  const projectData = {
-    customerId: customerId,
-    companyName: client?.company_name || '',
-    customerName: client?.customer_name || '',
-    projectDescription: document.getElementById('projectDescriptionForm')?.value || '',
-    contactPerson: document.getElementById('contactPersonForm')?.value || '',
-    contactNumber: document.getElementById('contactNumberForm')?.value || '',
-    contactEmail: document.getElementById('contactEmailForm')?.value || '',
-    contactDesignation: document.getElementById('contactDesignationForm')?.value || '',
-    startDate: document.getElementById('date')?.value || '',
-    completionDate: document.getElementById('deadline')?.value || '',
-    reportingPerson: document.getElementById('reportingPerson')?.value || '',
-    allocatedTeam: document.getElementById('allocatedteam')?.value || '',
-    remarks: document.getElementById('projectremarks')?.value || 'N/A'
-  };
-
-  console.log('📤 Submitting project:', projectData);
-  
+async function deleteProject(projectId) {
   try {
     showLoadingSpinner();
     
-    const response = await fetch('https://www.fist-o.com/web_crm/add_project.php', {
+    const response = await fetch('https://www.fist-o.com/web_crm/delete_project.php', {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      body: JSON.stringify(projectData)
+      body: JSON.stringify({ projectId: projectId })
     });
 
     const result = await response.json();
-    
     hideLoadingSpinner();
-
-    if (response.ok && (result.success === true || result.status === 'success')) {
-      showToast('✅ Project created successfully!', 'success');
-      closeProjectForm();
-      await loadProjects(); // Reload projects
-      
-      // Reset form
-      const form = document.getElementById('projectForm');
-      if (form) form.reset();
-      clearContactFields();
+    
+    if (result.success || result.status === 'success') {
+      showToast('Project deleted successfully', 'success');
+      await loadProjects();
     } else {
-      const errorMsg = result.message || 'Failed to create project';
-      showToast(errorMsg, 'error');
-      console.error('Server error:', result);
+      showToast(result.message || 'Failed to delete project', 'error');
     }
   } catch (err) {
     hideLoadingSpinner();
-    console.error('❌ Error:', err);
-    showToast('Error: ' + err.message, 'error');
+    console.error('Error deleting project:', err);
+    showToast('Failed to delete project', 'error');
   }
+}
+
+// ============================
+// TAB SWITCHING FUNCTIONALITY
+// ============================
+
+function setupProjectDetailTabs() {
+  console.log('🔧 Setting up project detail tabs...');
+  
+  const tabButtons = document.querySelectorAll('.detail-tab');
+  const tabPanels = document.querySelectorAll('.tab-panel');
+  
+  if (tabButtons.length === 0) {
+    console.warn('⚠️ No tab buttons found');
+    return;
+  }
+  
+  console.log(`Found ${tabButtons.length} tabs and ${tabPanels.length} panels`);
+  
+  // Remove existing listeners by cloning
+  tabButtons.forEach(btn => {
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+  });
+  
+  // Get fresh references
+  const freshTabButtons = document.querySelectorAll('.detail-tab');
+  
+  freshTabButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      const targetTab = this.getAttribute('data-tab');
+      console.log(`🔄 Switching to tab: ${targetTab}`);
+      
+      // Update button states
+      freshTabButtons.forEach(btn => btn.classList.remove('active'));
+      this.classList.add('active');
+      
+      // Update panel states
+      tabPanels.forEach(panel => {
+        panel.classList.remove('active');
+        panel.style.display = 'none';
+      });
+      
+      // Show target panel
+      const targetPanel = document.getElementById(`${targetTab}-panel`);
+      if (targetPanel) {
+        targetPanel.classList.add('active');
+        targetPanel.style.display = 'block';
+        console.log(`✅ Showing ${targetTab} panel`);
+        
+        // Load dynamic content
+        if (targetTab === 'resources') {
+          loadResourcesContent();
+        } else if (targetTab === 'analytics') {
+          loadAnalyticsContent();
+        }
+      } else {
+        console.error(`❌ Panel not found: ${targetTab}-panel`);
+      }
+    });
+  });
+  
+  console.log('✅ Tab switching setup complete');
+}
+
+// ============================
+// LOAD RESOURCES CONTENT
+// ============================
+
+function loadResourcesContent() {
+  console.log('📦 Loading resources content...');
+  
+  const resourcesPanel = document.getElementById('resources-panel');
+  if (!resourcesPanel) {
+    console.error('❌ Resources panel not found');
+    return;
+  }
+  
+  resourcesPanel.innerHTML = `
+    <div class="resources-container">
+      <div class="resources-header">
+        <h3><i class="fas fa-folder-open"></i> Project Resources</h3>
+        <button class="primary-btn" onclick="openUploadResourceModal()">
+          <i class="fas fa-upload"></i> Upload Resource
+        </button>
+      </div>
+      
+      <div class="resources-grid">
+        <div class="resource-card">
+          <div class="resource-icon">
+            <i class="fas fa-file-pdf"></i>
+          </div>
+          <div class="resource-info">
+            <h4>Project Requirements.pdf</h4>
+            <p>Uploaded: Jan 15, 2025 • 2.4 MB</p>
+          </div>
+          <div class="resource-actions">
+            <button class="btn-icon" title="Download">
+              <i class="fas fa-download"></i>
+            </button>
+            <button class="btn-icon" title="Delete">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="resource-card">
+          <div class="resource-icon">
+            <i class="fas fa-file-word"></i>
+          </div>
+          <div class="resource-info">
+            <h4>Design Specifications.docx</h4>
+            <p>Uploaded: Jan 12, 2025 • 1.8 MB</p>
+          </div>
+          <div class="resource-actions">
+            <button class="btn-icon" title="Download">
+              <i class="fas fa-download"></i>
+            </button>
+            <button class="btn-icon" title="Delete">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="resource-card">
+          <div class="resource-icon">
+            <i class="fas fa-link"></i>
+          </div>
+          <div class="resource-info">
+            <h4>Project Drive Link</h4>
+            <p>Added: Jan 10, 2025</p>
+          </div>
+          <div class="resource-actions">
+            <button class="btn-icon" title="Open">
+              <i class="fas fa-external-link-alt"></i>
+            </button>
+            <button class="btn-icon" title="Delete">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  console.log('✅ Resources content loaded');
+}
+
+// ============================
+// LOAD ANALYTICS CONTENT
+// ============================
+
+function loadAnalyticsContent() {
+  console.log('📊 Loading analytics content...');
+  
+  const analyticsPanel = document.getElementById('analytics-panel');
+  if (!analyticsPanel) {
+    console.error('❌ Analytics panel not found');
+    return;
+  }
+  
+  analyticsPanel.innerHTML = `
+    <div class="analytics-container">
+      <h3><i class="fas fa-chart-line"></i> Project Analytics</h3>
+      
+      <div class="analytics-stats">
+        <div class="stat-card">
+          <h4>Task Completion Rate</h4>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 65%"></div>
+          </div>
+          <p>65% Complete</p>
+        </div>
+        
+        <div class="stat-card">
+          <h4>Team Productivity</h4>
+          <p class="stat-value">8.5/10</p>
+        </div>
+        
+        <div class="stat-card">
+          <h4>Average Task Duration</h4>
+          <p class="stat-value">3.2 days</p>
+        </div>
+      </div>
+      
+      <div style="margin-top: 20px; padding: 20px; background: #f5f5f5; border-radius: 8px;">
+        <p style="color: #666; text-align: center;">
+          <i class="fas fa-chart-pie"></i> 
+          Detailed analytics charts will be displayed here
+        </p>
+      </div>
+    </div>
+  `;
+  
+  console.log('✅ Analytics content loaded');
 }
 
 // ============================
@@ -1177,97 +968,34 @@ function setupEventListeners() {
 }
 
 // ============================
-// UTILITIES
+// SEARCH/FILTER PROJECTS
 // ============================
-
-function formatDate(dateString) {
-  if (!dateString) return 'N/A';
-  const date = new Date(dateString);
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
-}
-
-// function updatePagination() {
-//   const totalPages = Math.ceil(projectsData.length / projectsPerPage);
-//   const paginationNumbers = document.getElementById('paginationNumbers');
-//   const prevBtn = document.getElementById('prevPage');
-//   const nextBtn = document.getElementById('nextPage');
-  
-//   if (!paginationNumbers) return;
-  
-//   paginationNumbers.innerHTML = '';
-  
-//   for (let i = 1; i <= Math.min(totalPages, 5); i++) {
-//     const btn = document.createElement('button');
-//     btn.className = 'page-number' + (i === currentPage ? ' active' : '');
-//     btn.textContent = i.toString().padStart(2, '0');
-//     btn.onclick = () => goToPage(i);
-//     paginationNumbers.appendChild(btn);
-//   }
-  
-//   if (prevBtn) prevBtn.disabled = currentPage === 1;
-//   if (nextBtn) nextBtn.disabled = currentPage === totalPages || totalPages === 0;
-// }
-
-// function goToPage(page) {
-//   currentPage = page;
-//   // renderProjectsList();
-//   window.scrollTo({ top: 0, behavior: 'smooth' });
-// }
 
 function filterProjects(searchTerm) {
   if (!searchTerm) {
-    renderProjectsList();
+    displayProjectsTable(projectsData);
     return;
   }
   
   const filtered = projectsData.filter(project => {
     const search = searchTerm.toLowerCase();
-    return project.name.toLowerCase().includes(search) ||
-           (project.client && project.client.toLowerCase().includes(search)) ||
-           (project.teamHead?.name && project.teamHead.name.toLowerCase().includes(search));
+    const projectName = (project.companyName || project.company_name || '').toLowerCase();
+    const reportingPerson = (project.reportingPerson || project.reporting_person || '').toLowerCase();
+    const customerId = (project.customerId || project.customer_id || '').toLowerCase();
+    
+    return projectName.includes(search) || 
+           reportingPerson.includes(search) || 
+           customerId.includes(search);
   });
   
-  const tbody = document.getElementById('projectsListTableBody');
-  if (!tbody) return;
-  
-  tbody.innerHTML = '';
-  
-  if (filtered.length === 0) {
-    tbody.innerHTML = `
-      <tr class="empty-state">
-        <td colspan="6">
-          <div class="empty-content">
-            <i class="fas fa-search"></i>
-            <p>No projects match "${searchTerm}"</p>
-          </div>
-        </td>
-      </tr>
-    `;
-    return;
-  }
-  
-  filtered.forEach(project => {
-    tbody.appendChild(createProjectRow(project));
-  });
+  console.log(`🔍 Filtered ${filtered.length} projects from ${projectsData.length}`);
+  currentPage = 1;
+  displayProjectsTable(filtered);
 }
 
-function showToast(message, type = 'success') {
-  const container = document.getElementById('projectToastContainer') || document.getElementById('toast-container');
-  if (!container) {
-    console.log('📢 Toast:', message);
-    return;
-  }
-  
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.innerHTML = `<p>${message}</p>`;
-  container.appendChild(toast);
-  
-  setTimeout(() => toast.remove(), 3000);
-}
+// ============================
+// MODAL HANDLERS
+// ============================
 
 function openTaskAllocationForm() {
   const modal = document.getElementById('addTaskAllocationModal');
@@ -1290,66 +1018,16 @@ function closeProjectAllocationForm() {
 }
 
 // ============================
-// INITIALIZE ON DOM LOAD
-// ============================
-
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('🎬 DOM Loaded - Initializing...');
-  initializeProjectDashboard();
-});
-
-// ============================
-// DELETE PROJECT
-// ============================
-
-function confirmDeleteProject(projectId, companyName) {
-  const confirmed = confirm(
-    `Are you sure you want to delete the project for "${companyName}"?\n\n` +
-    `Project ID: ${projectId}\n\n` +
-    `This action cannot be undone.`
-  );
-  
-  if (confirmed) {
-    deleteProject(projectId);
-  }
-}
-async function deleteProject(projectId) {
-  try {
-    showLoadingSpinner();
-    
-    const response = await fetch('https://www.fist-o.com/web_crm/delete_project.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({ projectId: projectId })
-    });
-
-    const result = await response.json();
-    hideLoadingSpinner();
-    
-    if (result.success || result.status === 'success') {
-      showToast('Project deleted successfully', 'success');
-      await loadProjects(); // Reload table
-    } else {
-      showToast(result.message || 'Failed to delete project', 'error');
-    }
-  } catch (err) {
-    hideLoadingSpinner();
-    console.error('Error deleting project:', err);
-    showToast('Failed to delete project', 'error');
-  }
-}
-// ============================
 // UTILITY FUNCTIONS
 // ============================
 
 function formatDate(dateString) {
   if (!dateString) return 'N/A';
   const date = new Date(dateString);
-  const options = { year: 'numeric', month: 'short', day: 'numeric' };
-  return date.toLocaleDateString('en-US', options);
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
 }
 
 function formatFileSize(bytes) {
@@ -1380,11 +1058,734 @@ function hideLoadingSpinner() {
   const spinner = document.getElementById('loadingSpinner');
   if (spinner) spinner.style.display = 'none';
 }
+
+function showToast(message, type = 'success') {
+  const container = document.getElementById('projectToastContainer') || document.getElementById('toast-container');
+  if (!container) {
+    console.log('📢 Toast:', message);
+    return;
+  }
+  
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<p>${message}</p>`;
+  container.appendChild(toast);
+  
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// ============================
+// INITIALIZE ON DOM LOAD
+// ============================
+
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('🎬 DOM Loaded - Initializing Project Dashboard...');
+  initializeProjectDashboard();
+});
+
+ // Remove employee from list
+    function removeEmployee(button) {
+      const item = button.closest('.employee-item');
+      item.style.animation = 'slideOut 0.3s ease';
+      
+      setTimeout(() => {
+        item.remove();
+      }, 300);
+    }
+
+    // Add employee to list
+    function addEmployeeToList() {
+      const select = document.getElementById('employeeSelect');
+      const employeeName = select.value;
+      
+      if (!employeeName) {
+        showToast('Please select an employee', 'warning');
+        return;
+      }
+
+      // Check if already added
+      const existingItems = document.querySelectorAll('.employee-item');
+      for (let item of existingItems) {
+        if (item.dataset.employee === employeeName) {
+          showToast('Employee already added', 'warning');
+          return;
+        }
+      }
+
+      // Create new employee item
+      const list = document.getElementById('selectedEmployeesList');
+      const newItem = document.createElement('div');
+      newItem.className = 'employee-item';
+      newItem.dataset.employee = employeeName;
+      newItem.innerHTML = `
+        <span class="employee-name">${employeeName}</span>
+        <button class="remove-btn" onclick="removeEmployee(this)" title="Remove">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+      
+      list.appendChild(newItem);
+      select.value = '';
+      showToast('Employee added successfully', 'success');
+    }
+
+    // Submit employees
+    function submitEmployees() {
+      const items = document.querySelectorAll('.employee-item');
+      
+      if (items.length === 0) {
+        showToast('Please add at least one employee', 'error');
+        return;
+      }
+
+      const employees = Array.from(items).map(item => item.dataset.employee);
+      console.log('Submitting employees:', employees);
+      
+      showToast(`${employees.length} employee(s) allocated successfully!`, 'success');
+      
+      // Close modal after 1.5 seconds
+      setTimeout(() => {
+        closeProjectAllocationForm();
+      }, 1500);
+    }
+
+    // Close modal
+    function closeProjectAllocationForm() {
+      const modal = document.getElementById('addProjectAllocationModal');
+      modal.style.animation = 'fadeOut 0.3s ease';
+      
+      setTimeout(() => {
+        modal.style.display = 'none';
+      }, 300);
+    }
+
+    // Show toast notification
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      
+      const icon = type === 'success' ? '✓' : 
+                   type === 'error' ? '✕' : '⚠';
+      
+      toast.innerHTML = `
+        <span style="font-size: 20px;">${icon}</span>
+        <span>${message}</span>
+      `;
+      
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.animation = 'slideInRight 0.3s ease reverse';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // Add slideOut animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideOut {
+        to {
+          transform: translateX(-30px);
+          opacity: 0;
+        }
+      }
+      @keyframes fadeOut {
+        to { opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+
+
+    
+// ============================
+// FETCH EMPLOYEES FROM DATABASE
+// ============================
+
+async function fetchProjectEmployees(projectId = null) {
+  try {
+    console.log('📡 Fetching employees from add_project_employee.php...');
+    
+    const url = projectId 
+      ? `https://www.fist-o.com/web_crm/add_project_employee.php?project_id=${projectId}`
+      : 'https://www.fist-o.com/web_crm/add_project_employee.php';
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const result = await response.json();
+
+    console.log('📦 Employee fetch response:', result);
+
+    if (result.success && result.data) {
+      employeesData = result.data;
+      populateEmployeeDropdown();
+      console.log(`✅ Loaded ${result.data.length} employees`);
+      return result.data;
+    } else {
+      employeesData = [];
+      populateEmployeeDropdown();
+      showToast(result.message || 'No employees available', 'warning');
+      return [];
+    }
+  } catch (error) {
+    console.error('❌ Error fetching employees:', error);
+    employeesData = [];
+    populateEmployeeDropdown();
+    showToast('Error loading employees', 'error');
+    return [];
+  }
+}
+
+// ============================
+// POPULATE EMPLOYEE DROPDOWN
+// ============================
+
+function populateEmployeeDropdown() {
+  const select = document.getElementById('employeeSelect');
+  
+  if (!select) {
+    console.error('❌ employeeSelect dropdown not found');
+    return;
+  }
+
+  select.innerHTML = '<option value="">-- SELECT EMPLOYEE --</option>';
+
+  if (employeesData.length === 0) {
+    const noDataOption = document.createElement('option');
+    noDataOption.value = '';
+    noDataOption.textContent = '-- No employees available --';
+    noDataOption.disabled = true;
+    select.appendChild(noDataOption);
+    console.warn('⚠️ No employees to display');
+    return;
+  }
+
+  employeesData.forEach(emp => {
+    const option = document.createElement('option');
+    option.value = emp.id;
+    
+    // Display format: "NAME - Designation"
+    const displayText = emp.designation 
+      ? `${emp.name} - ${emp.designation}`
+      : emp.name;
+    
+    option.textContent = displayText;
+    option.dataset.employeeId = emp.id;
+    option.dataset.name = emp.name;
+    option.dataset.designation = emp.designation || '';
+    
+    select.appendChild(option);
+  });
+  
+  console.log(`✅ Dropdown populated with ${employeesData.length} employees`);
+}
+
+// ============================
+// OPEN PROJECT ALLOCATION MODAL
+// ============================
+
+function openProjectAllocationForm(projectId = null) {
+  console.log('📝 Opening employee allocation modal for project:', projectId);
+  
+  const modal = document.getElementById('addProjectAllocationModal');
+  if (!modal) {
+    console.error('❌ Modal not found');
+    return;
+  }
+
+  // Store current project ID globally
+  if (projectId) {
+    window.currentProjectId = projectId;
+  }
+
+  // Clear previous selections
+  selectedEmployees = [];
+  const list = document.getElementById('selectedEmployeesList');
+  if (list) list.innerHTML = '';
+
+  // Show modal
+  modal.style.display = 'block';
+  modal.style.animation = 'fadeIn 0.3s ease';
+  
+  // Fetch employees for this project
+  fetchProjectEmployees(projectId);
+}
+
+// ============================
+// CLOSE PROJECT ALLOCATION MODAL
+// ============================
+
+function closeProjectAllocationForm() {
+  const modal = document.getElementById('addProjectAllocationModal');
+  if (!modal) return;
+  
+  modal.style.animation = 'fadeOut 0.3s ease';
+  
+  setTimeout(() => {
+    modal.style.display = 'none';
+    selectedEmployees = [];
+    const list = document.getElementById('selectedEmployeesList');
+    if (list) list.innerHTML = '';
+  }, 300);
+}
+
+// ============================
+// ADD EMPLOYEE TO SELECTION LIST
+// ============================
+
+function addEmployeeToList() {
+  const select = document.getElementById('employeeSelect');
+  
+  if (!select || !select.value) {
+    showToast('Please select an employee', 'warning');
+    return;
+  }
+
+  const selectedOption = select.options[select.selectedIndex];
+  const employeeId = select.value;
+  const employeeName = selectedOption.dataset.name;
+  const designation = selectedOption.dataset.designation;
+
+  // Check if already added
+  if (selectedEmployees.find(emp => emp.id === employeeId)) {
+    showToast('Employee already added to list', 'warning');
+    return;
+  }
+
+  // Add to selected employees array
+  selectedEmployees.push({
+    id: employeeId,
+    name: employeeName,
+    designation: designation
+  });
+
+  // Create visual list item
+  const list = document.getElementById('selectedEmployeesList');
+  if (!list) {
+    console.error('❌ selectedEmployeesList not found');
+    return;
+  }
+
+  const newItem = document.createElement('div');
+  newItem.className = 'employee-item';
+  newItem.dataset.employeeId = employeeId;
+  newItem.dataset.employee = employeeName;
+  newItem.innerHTML = `
+    <span class="employee-name">
+      ${employeeName}
+      ${designation ? `<small style="color: #666; margin-left: 8px;">- ${designation}</small>` : ''}
+    </span>
+    <button class="remove-btn" onclick="removeEmployee(this)" title="Remove">
+      <i class="fas fa-times"></i>
+    </button>
+  `;
+  
+  list.appendChild(newItem);
+  select.value = '';
+  
+  showToast(`${employeeName} added to list`, 'success');
+  console.log('📝 Current selected employees:', selectedEmployees);
+}
+
+// ============================
+// REMOVE EMPLOYEE FROM LIST
+// ============================
+
+function removeEmployee(button) {
+  const item = button.closest('.employee-item');
+  if (!item) return;
+
+  const employeeId = item.dataset.employeeId;
+  
+  // Remove from array
+  selectedEmployees = selectedEmployees.filter(emp => emp.id !== employeeId);
+  
+  // Animate removal
+  item.style.animation = 'slideOut 0.3s ease';
+  
+  setTimeout(() => {
+    item.remove();
+    showToast('Employee removed from list', 'info');
+  }, 300);
+  
+  console.log('📝 Current selected employees:', selectedEmployees);
+}
+
+// ============================
+// SUBMIT EMPLOYEE ALLOCATION
+// ============================
+
+async function submitEmployees() {
+  if (selectedEmployees.length === 0) {
+    showToast('Please add at least one employee', 'error');
+    return;
+  }
+
+  // Use global currentProjectId or window.currentProjectId
+  const projectId = window.currentProjectId || currentProjectId;
+  
+  if (!projectId) {
+    showToast('Project ID not found', 'error');
+    return;
+  }
+
+  const allocationData = {
+    project_id: projectId,
+    employees: selectedEmployees.map(emp => ({
+      id: emp.id,
+      name: emp.name
+    }))
+  };
+
+  console.log('📤 Submitting employee allocation:', allocationData);
+
+  try {
+    showLoadingSpinner();
+
+    const response = await fetch('https://www.fist-o.com/web_crm/add_project_employee.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(allocationData)
+    });
+
+    const result = await response.json();
+    hideLoadingSpinner();
+
+    console.log('📦 Allocation response:', result);
+
+    if (result.success || result.status === 'success') {
+      const message = result.message || `${selectedEmployees.length} employee(s) allocated successfully!`;
+      showToast(message, 'success');
+      
+      // Close modal after delay
+      setTimeout(() => {
+        closeProjectAllocationForm();
+        
+        // Refresh project details if viewing project
+        if (projectId && typeof viewProject === 'function') {
+          viewProject(projectId);
+        }
+      }, 1500);
+    } else {
+      showToast(result.message || 'Failed to allocate employees', 'error');
+    }
+  } catch (error) {
+    hideLoadingSpinner();
+    console.error('❌ Error submitting allocation:', error);
+    showToast('Error: ' + error.message, 'error');
+  }
+}
+
+// ============================
+// EXPORT FUNCTIONS TO GLOBAL SCOPE
+// ============================
+
+window.fetchProjectEmployees = fetchProjectEmployees;
+window.populateEmployeeDropdown = populateEmployeeDropdown;
+window.addEmployeeToList = addEmployeeToList;
+window.removeEmployee = removeEmployee;
+window.submitEmployees = submitEmployees;
+
+console.log('✅ Employee management functions loaded');
+
+// ============================
+// POPULATE EMPLOYEE DROPDOWN
+// ============================
+
+function populateEmployeeDropdown() {
+  const select = document.getElementById('employeeSelect');
+  
+  if (!select) {
+    console.error('❌ employeeSelect dropdown not found');
+    return;
+  }
+
+  select.innerHTML = '<option value="">-- SELECT EMPLOYEE --</option>';
+
+  if (employeesData.length === 0) {
+    const noDataOption = document.createElement('option');
+    noDataOption.value = '';
+    noDataOption.textContent = '-- No employees available --';
+    noDataOption.disabled = true;
+    select.appendChild(noDataOption);
+    console.warn('⚠️ No employees to display');
+    return;
+  }
+
+  employeesData.forEach(emp => {
+    const option = document.createElement('option');
+    option.value = emp.id;
+    
+    // Display format: "NAME - Designation"
+    const displayText = emp.designation 
+      ? `${emp.name} - ${emp.designation}`
+      : emp.name;
+    
+    option.textContent = displayText;
+    option.dataset.employeeId = emp.id;
+    option.dataset.name = emp.name;
+    option.dataset.designation = emp.designation || '';
+    
+    select.appendChild(option);
+  });
+  
+  console.log(`✅ Dropdown populated with ${employeesData.length} employees`);
+}
+
+// ============================
+// OPEN PROJECT ALLOCATION MODAL
+// ============================
+
+function openProjectAllocationForm(projectId = null) {
+  console.log('📝 Opening employee allocation modal for project:', projectId);
+  
+  const modal = document.getElementById('addProjectAllocationModal');
+  if (!modal) {
+    console.error('❌ Modal not found');
+    return;
+  }
+
+  // Store current project ID
+  if (projectId) {
+    currentProjectId = projectId;
+  }
+
+  // Clear previous selections
+  selectedEmployees = [];
+  const list = document.getElementById('selectedEmployeesList');
+  if (list) list.innerHTML = '';
+
+  // Show modal
+  modal.style.display = 'block';
+  modal.style.animation = 'fadeIn 0.3s ease';
+  
+  // Fetch employees for this project
+  fetchProjectEmployees(projectId);
+}
+
+// ============================
+// CLOSE PROJECT ALLOCATION MODAL
+// ============================
+
+function closeProjectAllocationForm() {
+  const modal = document.getElementById('addProjectAllocationModal');
+  if (!modal) return;
+  
+  modal.style.animation = 'fadeOut 0.3s ease';
+  
+  setTimeout(() => {
+    modal.style.display = 'none';
+    selectedEmployees = [];
+    const list = document.getElementById('selectedEmployeesList');
+    if (list) list.innerHTML = '';
+  }, 300);
+}
+
+// ============================
+// ADD EMPLOYEE TO SELECTION LIST
+// ============================
+
+function addEmployeeToList() {
+  const select = document.getElementById('employeeSelect');
+  
+  if (!select || !select.value) {
+    showToast('Please select an employee', 'warning');
+    return;
+  }
+
+  const selectedOption = select.options[select.selectedIndex];
+  const employeeId = select.value;
+  const employeeName = selectedOption.dataset.name;
+  const designation = selectedOption.dataset.designation;
+
+  // Check if already added
+  if (selectedEmployees.find(emp => emp.id === employeeId)) {
+    showToast('Employee already added to list', 'warning');
+    return;
+  }
+
+  // Add to selected employees array
+  selectedEmployees.push({
+    id: employeeId,
+    name: employeeName,
+    designation: designation
+  });
+
+  // Create visual list item
+  const list = document.getElementById('selectedEmployeesList');
+  if (!list) {
+    console.error('❌ selectedEmployeesList not found');
+    return;
+  }
+
+  const newItem = document.createElement('div');
+  newItem.className = 'employee-item';
+  newItem.dataset.employeeId = employeeId;
+  newItem.dataset.employee = employeeName;
+  newItem.innerHTML = `
+    <span class="employee-name">
+      ${employeeName}
+      ${designation ? `<small style="color: #666; margin-left: 8px;">- ${designation}</small>` : ''}
+    </span>
+    <button class="remove-btn" onclick="removeEmployee(this)" title="Remove">
+      <i class="fas fa-times"></i>
+    </button>
+  `;
+  
+  list.appendChild(newItem);
+  select.value = '';
+  
+  showToast(`${employeeName} added to list`, 'success');
+  console.log('📝 Current selected employees:', selectedEmployees);
+}
+
+// ============================
+// REMOVE EMPLOYEE FROM LIST
+// ============================
+
+function removeEmployee(button) {
+  const item = button.closest('.employee-item');
+  if (!item) return;
+
+  const employeeId = item.dataset.employeeId;
+  
+  // Remove from array
+  selectedEmployees = selectedEmployees.filter(emp => emp.id !== employeeId);
+  
+  // Animate removal
+  item.style.animation = 'slideOut 0.3s ease';
+  
+  setTimeout(() => {
+    item.remove();
+    showToast('Employee removed from list', 'info');
+  }, 300);
+  
+  console.log('📝 Current selected employees:', selectedEmployees);
+}
+
+// ============================
+// SUBMIT EMPLOYEE ALLOCATION
+// ============================
+
+async function submitEmployees() {
+  if (selectedEmployees.length === 0) {
+    showToast('Please add at least one employee', 'error');
+    return;
+  }
+
+  if (!currentProjectId) {
+    showToast('Project ID not found', 'error');
+    return;
+  }
+
+  const allocationData = {
+    project_id: currentProjectId,
+    employees: selectedEmployees.map(emp => ({
+      id: emp.id,
+      name: emp.name
+    }))
+  };
+
+  console.log('📤 Submitting employee allocation:', allocationData);
+
+  try {
+    showLoadingSpinner();
+
+    const response = await fetch('https://www.fist-o.com/web_crm/submit_project_allocation.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(allocationData)
+    });
+
+    const result = await response.json();
+    hideLoadingSpinner();
+
+    console.log('📦 Allocation response:', result);
+
+    if (result.success || result.status === 'success') {
+      const message = result.message || `${selectedEmployees.length} employee(s) allocated successfully!`;
+      showToast(message, 'success');
+      
+      // Close modal after delay
+      setTimeout(() => {
+        closeProjectAllocationForm();
+        
+        // Refresh project details if viewing project
+        if (currentProjectId) {
+          viewProject(currentProjectId);
+        }
+      }, 1500);
+    } else {
+      showToast(result.message || 'Failed to allocate employees', 'error');
+    }
+  } catch (error) {
+    hideLoadingSpinner();
+    console.error('❌ Error submitting allocation:', error);
+    showToast('Error: ' + error.message, 'error');
+  }
+}
+
+// ============================
+// UTILITY: SHOW/HIDE LOADING SPINNER
+// ============================
+
+function showLoadingSpinner() {
+  let spinner = document.getElementById('loadingSpinner');
+  if (!spinner) {
+    spinner = document.createElement('div');
+    spinner.id = 'loadingSpinner';
+    spinner.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    `;
+    spinner.innerHTML = `
+      <div style="background: white; padding: 30px; border-radius: 10px; text-align: center;">
+        <div class="loading-spinner"></div>
+        <p style="margin-top: 15px; color: #333;">Processing...</p>
+      </div>
+    `;
+    document.body.appendChild(spinner);
+  }
+  spinner.style.display = 'flex';
+}
+
+function hideLoadingSpinner() {
+  const spinner = document.getElementById('loadingSpinner');
+  if (spinner) spinner.style.display = 'none';
+}
+
+// ============================
+// EXPORT FUNCTIONS TO GLOBAL SCOPE
+// ============================
+
+window.fetchProjectEmployees = fetchProjectEmployees;
+window.populateEmployeeDropdown = populateEmployeeDropdown;
+window.addEmployeeToList = addEmployeeToList;
+window.removeEmployee = removeEmployee;
+window.submitEmployees = submitEmployees;
+
+console.log('✅ Employee management functions loaded');
 // ============================
 // GLOBAL EXPORTS
 // ============================
 
-window.viewProjectDetail = viewProjectDetail;
+window.viewProject = viewProject;
 window.showProjectsList = showProjectsList;
 window.openProjectForm = openProjectForm;
 window.closeProjectForm = closeProjectForm;
@@ -1395,3 +1796,9 @@ window.closeProjectAllocationForm = closeProjectAllocationForm;
 window.handleClientSelection = handleClientSelection;
 window.loadProjects = loadProjects;
 window.initializeProjectDashboard = initializeProjectDashboard;
+window.setupProjectDetailTabs = setupProjectDetailTabs;
+window.loadResourcesContent = loadResourcesContent;
+window.loadAnalyticsContent = loadAnalyticsContent;
+window.confirmDeleteProject = confirmDeleteProject;
+
+console.log('✅ Project.js loaded successfully - All duplicates removed!');

@@ -833,7 +833,7 @@
         </div>
 
         <!-- Add Project Allocation Modal -->
-        <div id="addProjectAllocationModal" class="projectmodal">
+         <div id="addProjectAllocationModal" class="projectmodal">
           <div class="projectmodal-content">
             <div class="projectmodal-header">
               <h2>Add Employee</h2>
@@ -841,58 +841,67 @@
                 <i class="fas fa-times"></i>
               </button>
             </div>
-            <form id="allocationForm" class="project-form">
-              <div class="form-grid2">
-                <div class="form-group">
-                  <label for="onboardedProjectSelect">Project Name</label>
-                  <select id="onboardedProjectSelect" name="onboardedProjectSelect">
-                    <option value="">-- Select Project from Client Table --</option>
+
+            <div class="projectmodal-body">
+              <!-- Selected Employees List -->
+              <div class="employee-list" id="selectedEmployeesList">
+                <!-- Sample employees - these will be cleared on init -->
+              need to fetch the data from the employee_details table created on my sql
+              </div>
+
+              <!-- Select Employee Dropdown -->
+              <div class="select-section">
+                <label class="select-label">
+                  <i class="fas fa-users"></i> Select Employee to Add
+                </label>
+                <div class="custom-select-wrapper">
+                  <select class="custom-select" id="employeeSelect">
+                    <option value="">-- SELECT EMPLOYEE --</option>
+                    <option value="SAMEER">SAMEER</option>
+                    <option value="HARISH">HARISH</option>
+                    <option value="MURUGAN">MURUGAN</option>
+                    <option value="SHAM">SHAM</option>
+                    <option value="SHAFIQ">SHAFIQ</option>
+                    <option value="ANISHA">ANISHA</option>
+                    <option value="VIGNESH">VIGNESH</option>
+                     <option value="SAMEER">SAMEER</option>
+                    <option value="HARISH">HARISH</option>
+                    <option value="MURUGAN">MURUGAN</option>
+                    <option value="SHAM">SHAM</option>
+                    <option value="SHAFIQ">SHAFIQ</option>
+                    <option value="ANISHA">ANISHA</option>
+                    <option value="VIGNESH">VIGNESH</option>
+                     <option value="SAMEER">SAMEER</option>
+                    <option value="HARISH">HARISH</option>
+                    <option value="MURUGAN">MURUGAN</option>
+                    <option value="SHAM">SHAM</option>
+                    <option value="SHAFIQ">SHAFIQ</option>
+                    <option value="ANISHA">ANISHA</option>
+                    <option value="VIGNESH">VIGNESH</option>
+                     <option value="SAMEER">SAMEER</option>
+                    <option value="HARISH">HARISH</option>
+                    <option value="MURUGAN">MURUGAN</option>
+                    <option value="SHAM">SHAM</option>
+                    <option value="SHAFIQ">SHAFIQ</option>
+                    <option value="ANISHA">ANISHA</option>
+                    <option value="VIGNESH">VIGNESH</option>
                   </select>
-                </div>
-                <div class="form-group">
-                  <label for="allocStartDate">Start Date <span class="required">*</span></label>
-                  <input type="date" id="allocStartDate" name="allocStartDate" required>
-                </div>
-                <div class="form-group">
-                  <label for="allocDeadline">Deadline <span class="required">*</span></label>
-                  <input type="date" id="allocDeadline" name="allocDeadline" required>
-                </div>
-                <div class="form-group full-width">
-                  <label for="allocProjectDescription">Project Description</label>
-                  <textarea id="allocProjectDescription" name="allocProjectDescription" rows="4"
-                    placeholder="Enter project description..."></textarea>
-                </div>
-                <div class="form-group">
-                  <label for="allocTeamName">Team Name <span class="required">*</span></label>
-                  <select id="allocTeamName" name="allocTeamName" required>
-                    <option value="">Select Team</option>
-                    <option value="Developer">Developer</option>
-                    <option value="UI/UX">UI/UX</option>
-                    <option value="AR/VR">AR/VR</option>
-                    <option value="2D/3D">2D/3D</option>
-                    <option value="Digital catalogue">Digital catalogue</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="allocAssignedBy">Assigned By <span class="required">*</span></label>
-                  <input type="text" id="allocAssignedBy" name="allocAssignedBy" required>
-                </div>
-                <div class="form-group">
-                  <label for="allocAssignedTo">Assigned To <span class="required">*</span></label>
-                  <select id="allocAssignedTo" name="allocAssignedTo" required>
-                    <option value="">Select Employee</option>
-                    <option value="Sameer">Sameer</option>
-                    <option value="Harish">Harish</option>
-                    <option value="Murugan">Murugan</option>
-                    <option value="Sham">Sham</option>
-                    <option value="Shafiq">Shafiq</option>
-                  </select>
+                  <i class="fas fa-chevron-down select-icon"></i>
                 </div>
               </div>
-            </form>
-            <div class="form-actions">
-                <button type="submit" class="submit-btn">Submit</button>
+
+              <!-- Action Buttons -->
+              <div class="modal-actions">
+                <button class="add-list" onclick="addEmployeeToList()">
+                  <i class="fas fa-plus"></i>
+                  Add to List
+                </button>
+                <button class="submit-btn" onclick="submitEmployees()">
+                  <i class="fas fa-check"></i>
+                  Submit
+                </button>
               </div>
+            </div>
           </div>
         </div>
 
