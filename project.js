@@ -1217,12 +1217,20 @@ async function fetchProjectEmployees(projectId = null) {
     const result = await response.json();
 
     console.log('📦 Employee fetch response:', result);
+    console.log('📦 First employee data structure:', result.data?.[0]); // ✅ Added debug log
 
     if (result.success && result.data) {
-      employeesData = result.data;
+      // ✅ Normalize the data structure to ensure consistent property names
+      employeesData = result.data.map(emp => ({
+        id: emp.id || emp.employee_id || emp.emp_id,
+        name: emp.name || emp.employee_name || emp.full_name || emp.emp_name || 'Unknown',
+        designation: emp.designation || emp.role || emp.position || ''
+      }));
+      
+      console.log('📦 Normalized employees:', employeesData); // ✅ Added debug log
       populateEmployeeDropdown();
-      console.log(`✅ Loaded ${result.data.length} employees`);
-      return result.data;
+      console.log(`✅ Loaded ${employeesData.length} employees`);
+      return employeesData;
     } else {
       employeesData = [];
       populateEmployeeDropdown();
@@ -1345,7 +1353,7 @@ function addEmployeeToList() {
 
   const selectedOption = select.options[select.selectedIndex];
   const employeeId = select.value;
-  const employeeName = selectedOption.dataset.name;
+  const employeeName = selectedOption.dataset.emp_name;
   const designation = selectedOption.dataset.designation;
 
   // Check if already added
@@ -1497,45 +1505,45 @@ console.log('✅ Employee management functions loaded');
 // POPULATE EMPLOYEE DROPDOWN
 // ============================
 
-function populateEmployeeDropdown() {
-  const select = document.getElementById('employeeSelect');
+// function populateEmployeeDropdown() {
+//   const select = document.getElementById('employeeSelect');
   
-  if (!select) {
-    console.error('❌ employeeSelect dropdown not found');
-    return;
-  }
+//   if (!select) {
+//     console.error('❌ employeeSelect dropdown not found');
+//     return;
+//   }
 
-  select.innerHTML = '<option value="">-- SELECT EMPLOYEE --</option>';
+//   select.innerHTML = '<option value="">-- SELECT EMPLOYEE --</option>';
 
-  if (employeesData.length === 0) {
-    const noDataOption = document.createElement('option');
-    noDataOption.value = '';
-    noDataOption.textContent = '-- No employees available --';
-    noDataOption.disabled = true;
-    select.appendChild(noDataOption);
-    console.warn('⚠️ No employees to display');
-    return;
-  }
+//   if (employeesData.length === 0) {
+//     const noDataOption = document.createElement('option');
+//     noDataOption.value = '';
+//     noDataOption.textContent = '-- No employees available --';
+//     noDataOption.disabled = true;
+//     select.appendChild(noDataOption);
+//     console.warn('⚠️ No employees to display');
+//     return;
+//   }
 
-  employeesData.forEach(emp => {
-    const option = document.createElement('option');
-    option.value = emp.id;
+//   employeesData.forEach(emp => {
+//     const option = document.createElement('option');
+//     option.value = emp.id;
     
-    // Display format: "NAME - Designation"
-    const displayText = emp.designation 
-      ? `${emp.name} - ${emp.designation}`
-      : emp.name;
+//     // Display format: "NAME - Designation"
+//     const displayText = emp.designation 
+//       ? `${emp.name} - ${emp.designation}`
+//       : emp.name;
     
-    option.textContent = displayText;
-    option.dataset.employeeId = emp.id;
-    option.dataset.name = emp.name;
-    option.dataset.designation = emp.designation || '';
+//     option.textContent = displayText;
+//     option.dataset.employeeId = emp.id;
+//     option.dataset.name = emp.name;
+//     option.dataset.designation = emp.designation || '';
     
-    select.appendChild(option);
-  });
+//     select.appendChild(option);
+//   });
   
-  console.log(`✅ Dropdown populated with ${employeesData.length} employees`);
-}
+//   console.log(`✅ Dropdown populated with ${employeesData.length} employees`);
+// }
 
 // ============================
 // OPEN PROJECT ALLOCATION MODAL
