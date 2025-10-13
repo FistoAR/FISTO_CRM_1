@@ -14,11 +14,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = passwordField?.value.trim();
 
     if (!empId || !password) {
-      // showAlert("Please enter both Employee ID and password", "error");
+      showAlert("Please enter both Employee ID and password", "error");
       return;
     }
 
-    const submitButton = loginForm.querySelector('button[type="submit"]');
+    const submitButton = loginForm.querySelector('button[type="submit"]') || 
+                         document.querySelector('.login-btn');
     if (!submitButton || submitButton.disabled) return;
 
     const originalText = submitButton.textContent;
@@ -58,7 +59,6 @@ document.addEventListener("DOMContentLoaded", () => {
         sessionStorage.setItem("gender", user.gender);
         sessionStorage.setItem("phone", user.Phone);
         sessionStorage.setItem("loginTime", new Date().toISOString());
-
         sessionStorage.setItem("currentUser", JSON.stringify(user));
 
         showAlert("Login successful! Redirecting...", "success");
@@ -80,8 +80,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Password toggle
   if (passwordField && toggleButton) {
     passwordField.type = "password";
-    eyeIcon && (eyeIcon.style.display = "none");
-    eyeOffIcon && (eyeOffIcon.style.display = "block");
+    if (eyeIcon) eyeIcon.style.display = "none";
+    if (eyeOffIcon) eyeOffIcon.style.display = "block";
 
     toggleButton.addEventListener("click", () => {
       const isPassword = passwordField.type === "password";
