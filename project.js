@@ -1032,9 +1032,41 @@ function filterProjects(searchTerm) {
 // ============================
 
 function openTaskAllocationForm() {
-  const modal = document.getElementById('addTaskAllocationModal');
-  if (modal) modal.style.display = 'block';
+    const modal = document.getElementById('addTaskAllocationModal');
+    if (modal) {
+        modal.style.display = 'block';
+        
+        // ✅ GET PROJECT DATA FROM SESSION STORAGE
+        const sessionProject = getProjectSession();
+        
+        if (sessionProject) {
+            // ✅ Populate display fields (readonly info section)
+            const taskProjectName = document.getElementById('taskProjectName');
+            const taskCompanyName = document.getElementById('taskCompanyName');
+            const taskProjectDescription = document.getElementById('taskProjectDescription');
+            const taskStartDate = document.getElementById('taskStartDate');
+            const taskCompletionDate = document.getElementById('taskCompletionDate');
+            
+            if (taskProjectName) taskProjectName.textContent = sessionProject.project_name || sessionProject.company_name || 'N/A';
+            if (taskCompanyName) taskCompanyName.textContent = sessionProject.company_name || 'N/A';
+            if (taskProjectDescription) taskProjectDescription.textContent = sessionProject.project_description || 'No description available';
+            if (taskStartDate) taskStartDate.textContent = formatDate(sessionProject.start_date) || 'N/A';
+            if (taskCompletionDate) taskCompletionDate.textContent = formatDate(sessionProject.completion_date) || 'N/A';
+            
+            // ✅ Also populate the form input field (if you want it auto-filled)
+            const projectNameInput = document.getElementById('projectName');
+            if (projectNameInput) {
+                projectNameInput.value = sessionProject.project_name || sessionProject.company_name || '';
+            }
+            
+            console.log('✅ Task form populated with session data:', sessionProject);
+        } else {
+            console.warn('⚠️ No project session data found');
+        }
+    }
 }
+
+
 
 function closeTaskAllocationForm() {
   const modal = document.getElementById('addTaskAllocationModal');
@@ -1110,6 +1142,409 @@ function closeProjectAllocationForm() {
     if (list) list.innerHTML = '';
   }, 300);
 }
+
+// ========================================
+// ✅ FETCH TEAMS FROM project_allocations TABLE
+// ========================================
+async function fetchTaskAllocationTeams() {
+    try {
+        const sessionProject = getProjectSession();
+        const projectId = sessionProject?.project_id;
+        
+        if (!projectId) {
+            console.error('❌ No project ID in session');
+            showToast('Please select a project first', 'error');
+            return [];
+        }
+        
+        console.log('🔍 Fetching teams for project:', projectId);
+        
+        // ✅ REMOVE Content-Type header for GET requests
+        const response = await fetch(`https://www.fist-o.com/web_crm/fetch_project_teams.php?project_id=${projectId}`, {
+            method: 'GET'
+            // ❌ Don't add headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            console.log('✅ Teams loaded:', result.data);
+            return result.data;
+        } else {
+            console.warn('⚠️ No teams found for this project');
+            return [];
+        }
+    } catch (error) {
+        console.error('❌ Error fetching teams:', error);
+        showToast('Failed to load teams', 'error');
+        return [];
+    }
+}
+
+// ========================================
+// ✅ POPULATE TEAM NAME DROPDOWN
+// ========================================
+async function populateTaskTeamDropdown() {
+    const teamSelect = document.getElementById('TaskTeamName');
+    
+    if (!teamSelect) {
+        console.error('❌ TaskTeamName dropdown not found');
+        return;
+    }
+    
+    // Show loading state
+    teamSelect.innerHTML = '<option value="">Loading teams...</option>';
+    teamSelect.disabled = true;
+    
+    const teams = await fetchTaskAllocationTeams();
+    
+    // Reset dropdown
+    teamSelect.innerHTML = '<option value="">-- Select Team --</option>';
+    
+    if (teams.length === 0) {
+        teamSelect.innerHTML = '<option value="">-- No teams allocated --</option>';
+        teamSelect.disabled = true;
+        return;
+    }
+    
+    // Populate with teams
+    teams.forEach(team => {
+        const option = document.createElement('option');
+        option.value = team.team_name;
+        option.textContent = `${team.team_name} (${team.members.length} members)`;
+        option.dataset.members = JSON.stringify(team.members);
+        teamSelect.appendChild(option);
+    });
+    
+    teamSelect.disabled = false;
+    console.log(`✅ Populated ${teams.length} teams`);
+}
+
+// ========================================
+// ✅ HANDLE TEAM SELECTION - POPULATE MEMBERS
+// ========================================
+function handleTaskTeamChange() {
+    const teamSelect = document.getElementById('TaskTeamName');
+    const memberSelect = document.getElementById('allocAssignedTo');
+    
+    if (!teamSelect || !memberSelect) {
+        console.error('❌ Dropdowns not found');
+        return;
+    }
+    
+    // Clear member dropdown
+    memberSelect.innerHTML = '<option value="">-- Select Member --</option>';
+    memberSelect.disabled = true;
+    
+    const selectedTeam = teamSelect.value;
+    
+    if (!selectedTeam) {
+        console.log('ℹ️ No team selected');
+        return;
+    }
+    
+    // Get selected option and extract members
+    const selectedOption = teamSelect.options[teamSelect.selectedIndex];
+    const members = JSON.parse(selectedOption.dataset.members || '[]');
+    
+    console.log('👥 Team selected:', selectedTeam);
+    console.log('👥 Members:', members);
+    
+    if (members.length === 0) {
+        memberSelect.innerHTML = '<option value="">-- No members in this team --</option>';
+        return;
+    }
+    
+    // Populate member dropdown
+    members.forEach(member => {
+        const option = document.createElement('option');
+        option.value = member.emp_id;
+        option.textContent = `${member.emp_name}${member.designation ? ' - ' + member.designation : ''}`;
+        option.dataset.empId = member.emp_id;
+        option.dataset.empName = member.emp_name;
+        option.dataset.designation = member.designation;
+        memberSelect.appendChild(option);
+    });
+    
+    memberSelect.disabled = false;
+    console.log(`✅ Populated ${members.length} members for team: ${selectedTeam}`);
+}
+
+// ========================================
+// ✅ OPEN TASK ALLOCATION FORM - LOAD TEAMS
+// ========================================
+async function openTaskAllocationForm() {
+    const modal = document.getElementById('addTaskAllocationModal');
+    if (modal) {
+        modal.style.display = 'block';
+        
+        // ✅ GET PROJECT DATA FROM SESSION
+        const sessionProject = getProjectSession();
+        
+        if (sessionProject) {
+            // Populate project info (if you have display elements)
+            const taskProjectName = document.getElementById('taskProjectName');
+            const taskCompanyName = document.getElementById('taskCompanyName');
+            const taskProjectDescription = document.getElementById('ProjectDescription');
+            
+            if (taskProjectName) taskProjectName.textContent = sessionProject.project_name || 'N/A';
+            if (taskCompanyName) taskCompanyName.textContent = sessionProject.company_name || 'N/A';
+            if (taskProjectDescription) taskProjectDescription.textContent = sessionProject.project_description || 'N/A';
+            
+            // Auto-fill form fields
+            const projectNameInput = document.getElementById('projectName');
+            if (projectNameInput) {
+                projectNameInput.value = sessionProject.project_name || '';
+            }
+            
+            // ✅ LOAD TEAMS FOR THIS PROJECT
+            await populateTaskTeamDropdown();
+            
+            console.log('✅ Task allocation form opened for project:', sessionProject.project_id);
+        } else {
+            showToast('Please select a project first', 'error');
+            closeTaskAllocationForm();
+        }
+    }
+}
+
+// ========================================
+// ✅ CLOSE TASK ALLOCATION FORM
+// ========================================
+function closeTaskAllocationForm() {
+    const modal = document.getElementById('addTaskAllocationModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// ========================================
+// ✅ ADD EVENT LISTENER ON PAGE LOAD
+// ========================================
+document.addEventListener('DOMContentLoaded', () => {
+    const teamSelect = document.getElementById('TaskTeamName');
+    
+    if (teamSelect) {
+        teamSelect.addEventListener('change', handleTaskTeamChange);
+        console.log('✅ Team dropdown event listener attached');
+    }
+});
+
+
+// ========================================
+// TASK ALLOCATION - TEMPORARY STORAGE
+// ========================================
+let tempTasks = [];
+
+// ========================================
+// HANDLE "ADD" BUTTON - ADD TASK TO TABLE
+// ========================================
+function handleAddTaskToTable(event) {
+    event.preventDefault();
+    
+    const taskName = document.getElementById('TaskName').value.trim();
+    const taskDescription = document.getElementById('ProjectDescription').value.trim();
+    const startDate = document.getElementById('TaskStartDate').value;
+    const endDate = document.getElementById('TaskEndDate').value;
+    const teamSelect = document.getElementById('TaskTeamName');
+    const memberSelect = document.getElementById('allocAssignedTo');
+    const remarks = document.getElementById('projectremarks').value.trim();
+    
+    const teamName = teamSelect.value;
+    const assignedToEmpId = memberSelect.value;
+    const assignedToName = memberSelect.options[memberSelect.selectedIndex]?.text || '';
+    
+    if (!taskName || !startDate || !endDate || !teamName || !assignedToEmpId || !remarks) {
+        showToast('Please fill all required fields', 'error');
+        return;
+    }
+    
+    if (new Date(startDate) > new Date(endDate)) {
+        showToast('End date must be after start date', 'error');
+        return;
+    }
+    
+    const task = {
+        id: Date.now(),
+        taskName: taskName,
+        description: taskDescription,
+        startDate: startDate,
+        endDate: endDate,
+        teamName: teamName,
+        assignedToEmpId: assignedToEmpId,
+        assignedToName: assignedToName,
+        remarks: remarks
+    };
+    
+    tempTasks.push(task);
+    updateTempTaskTable();
+    clearTaskFormFields();
+    
+    showToast('✅ Task added to list', 'success');
+    console.log('✅ Task added:', task);
+    console.log('📋 Total tasks:', tempTasks.length);
+}
+
+// ========================================
+// UPDATE TEMPORARY TASK TABLE
+// ========================================
+function updateTempTaskTable() {
+    const tbody = document.querySelector('#tempTaskTable tbody');
+    
+    if (!tbody) {
+        console.error('❌ Task table body not found');
+        return;
+    }
+    
+    if (tempTasks.length === 0) {
+        tbody.innerHTML = `
+            <tr class="empty-state-temp">
+                <td colspan="6">No tasks added yet</td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = tempTasks.map(task => `
+        <tr>
+            <td>${task.taskName}</td>
+            <td>${task.description || '-'}</td>
+            <td>${formatDateDisplay(task.startDate)}</td>
+            <td>${formatDateDisplay(task.endDate)}</td>
+            <td>${task.assignedToName}</td>
+            <td>
+                <button type="button" onclick="removeTaskFromTable(${task.id})" 
+                        style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+    
+    console.log(`✅ Table updated: ${tempTasks.length} tasks`);
+}
+
+// ========================================
+// REMOVE TASK FROM TABLE
+// ========================================
+function removeTaskFromTable(taskId) {
+    const taskIndex = tempTasks.findIndex(t => t.id === taskId);
+    if (taskIndex > -1) {
+        const removedTask = tempTasks.splice(taskIndex, 1)[0];
+        updateTempTaskTable();
+        showToast(`Task "${removedTask.taskName}" removed`, 'info');
+        console.log('🗑️ Remaining tasks:', tempTasks.length);
+    }
+}
+
+// ========================================
+// CLEAR TASK FORM FIELDS
+// ========================================
+function clearTaskFormFields() {
+    document.getElementById('TaskName').value = '';
+    document.getElementById('TaskStartDate').value = '';
+    document.getElementById('TaskEndDate').value = '';
+    
+    const teamSelect = document.getElementById('TaskTeamName');
+    const memberSelect = document.getElementById('allocAssignedTo');
+    
+    if (teamSelect) teamSelect.selectedIndex = 0;
+    if (memberSelect) {
+        memberSelect.innerHTML = '<option value="">-- Select Member --</option>';
+        memberSelect.disabled = true;
+    }
+    
+    document.getElementById('projectremarks').value = '';
+}
+
+// ========================================
+// SUBMIT ALL TASKS TO DATABASE
+// ========================================
+async function submitAllTasks() {
+    if (tempTasks.length === 0) {
+        showToast('❌ Please add at least one task', 'error');
+        return;
+    }
+    
+    const sessionProject = getProjectSession();
+    const projectId = sessionProject?.project_id;
+    
+    if (!projectId) {
+        showToast('❌ No project selected', 'error');
+        return;
+    }
+    
+    try {
+        console.log('📤 Submitting tasks to database:', tempTasks);
+        
+        const response = await fetch('https://www.fist-o.com/web_crm/add_task_allocations.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                project_id: projectId,
+                tasks: tempTasks
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast(`✅ ${tempTasks.length} task(s) allocated successfully!`, 'success');
+            
+            // Clear tasks and table
+            tempTasks = [];
+            updateTempTaskTable();
+            
+            // Close modal
+            closeTaskAllocationForm();
+            
+            console.log('✅ All tasks submitted successfully');
+        } else {
+            showToast(result.message || 'Failed to submit tasks', 'error');
+            console.error('❌ Server error:', result);
+        }
+        
+    } catch (error) {
+        console.error('❌ Error submitting tasks:', error);
+        showToast('Network error while submitting tasks', 'error');
+    }
+}
+
+// ========================================
+// FORMAT DATE FOR DISPLAY
+// ========================================
+function formatDateDisplay(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+// ========================================
+// SETUP EVENT LISTENERS
+// ========================================
+document.addEventListener('DOMContentLoaded', () => {
+    // "Add" button - add task to table
+    const taskForm = document.getElementById('TaskAllocationForm');
+    if (taskForm) {
+        taskForm.addEventListener('submit', handleAddTaskToTable);
+        console.log('✅ Task form listener attached');
+    }
+    
+    // "Submit" button - save all tasks to DB
+    const submitBtn = document.querySelector('.submit-task-btn');
+    if (submitBtn) {
+        submitBtn.addEventListener('click', submitAllTasks);
+        console.log('✅ Submit button listener attached');
+    }
+    
+    // Team dropdown change
+    const teamSelect = document.getElementById('TaskTeamName');
+    if (teamSelect) {
+        teamSelect.addEventListener('change', handleTaskTeamChange);
+        console.log('✅ Team select listener attached');
+    }
+});
+
 
 // ============================
 // EMPLOYEE MANAGEMENT
@@ -1574,5 +2009,17 @@ window.populateEmployeeDropdown = populateEmployeeDropdown;
 window.addEmployeeToList = addEmployeeToList;
 window.removeEmployee = removeEmployee;
 window.submitEmployees = submitEmployees;
+window.fetchTaskAllocationTeams = fetchTaskAllocationTeams;
+window.populateTaskTeamDropdown = populateTaskTeamDropdown;
+window.handleTaskTeamChange = handleTaskTeamChange;
+window.openTaskAllocationForm = openTaskAllocationForm;
+window.closeTaskAllocationForm = closeTaskAllocationForm;
+window.handleAddTaskToTable = handleAddTaskToTable;
+window.removeTaskFromTable = removeTaskFromTable;
+window.submitAllTasks = submitAllTasks;
+window.updateTempTaskTable = updateTempTaskTable;
+window.formatDateDisplay = formatDateDisplay;
+
+
 
 console.log('✅ Project.js loaded successfully - All duplicates removed!');
