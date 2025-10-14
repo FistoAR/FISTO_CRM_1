@@ -798,7 +798,7 @@
                     <option value="SBU Head">SBU Head</option>
                   </select>
                 </div> -->
-                <div class="form-group">
+              <div class="form-group">
                 <label for="allocatedteam">Allocated Team <span class="required">*</span></label>
                 <input type="text" id="allocatedteam" class="form-control"
                   placeholder="Allocated Your Teams for This Project" required />
@@ -904,10 +904,6 @@
                     placeholder="Enter project description..."></textarea>
                 </div>
                 <div class="form-group">
-                  <label for="TaskTeamName">Team Name <span class="required">*</span></label>
-                  <input type="text" id="TaskTeamName" name="TaskTeamName" required>
-                </div>
-                <div class="form-group">
                   <label for="TaskName">Task Name <span class="required">*</span></label>
                   <input type="text" id="TaskName" name="TaskName" required>
                 </div>
@@ -918,6 +914,10 @@
                 <div class="form-group">
                   <label for="TaskEndDate">End Date <span class="required">*</span></label>
                   <input type="date" id="TaskEndDate" name="TaskEndDate" required>
+                </div>
+                 <div class="form-group">
+                  <label for="TaskTeamName">Team Name <span class="required">*</span></label>
+                  <input type="text" id="TaskTeamName" name="TaskTeamName" required>
                 </div>
                 <div class="form-group">
                   <label for="allocAssignedTo">Assigned To <span class="required">*</span></label>
@@ -3033,6 +3033,14 @@
             <input type="text" id="loginTime" readonly />
           </div>
 
+          <div class="form-group">
+            <label for="attendanceType">Attendance Type</label>
+            <select id="attendanceType" class="form-control">
+                <option value="morning" >Morning </option>
+                 <option value="afternoon">Afternoon</option>
+            </select>
+        </div>
+
           <!-- Action (In/Out) -->
           <div class="form-group">
             <label>Action:</label>
@@ -3062,35 +3070,39 @@
     </div>
   </div>
 
-  <!-- Keep your existing confirm modal for other purposes -->
-  <div id="confirmModal" class="modal">
-    <div class="clientmodal-content-c confirm-content-c">
-      <p id="confirmMessage">Are you sure?</p>
-      <div id="projectFields" style="display: none;"> <!-- New wrapper -->
+<!-- Keep your existing confirm modal for other purposes -->
+<div id="confirmModal" class="modal">
+  <div class="clientmodal-content-c confirm-content-c">
+    <p id="confirmMessage">Are you sure?</p>
+    
+    <!-- Project fields - ONLY for onboard status -->
+    <div id="projectFields" style="display: none;">
       <div class="form-group" style="text-align: left;">
-        <label for="projectname" style="display: block; text-align: left; margin-bottom: 5px;">Project Name *</label>
-        <input type="text" id="projectname" name="projectname" required style="width: 100%;">
+        <label for="projectName" style="display: block; text-align: left; margin-bottom: 5px;">Project Name *</label>
+        <input type="text" id="projectName" name="projectName" required style="width: 100%;">
       </div>
       <div class="form-group full-width" style="text-align: left">
-      <label for="allocProjectDescription">Project Description </label>
-      <textarea 
-        id="allocProjectDescription" 
-        name="project_description" 
-        rows="4"
-        placeholder="Enter project description..."></textarea>
-    </div>
-      <div class="form-group" style="text-align: left;">
-        <label for="remarks" style="display: block; text-align: left; margin-bottom: 5px;">Remarks *</label>
-        <input type="text" id="remarks" name="remarks" required style="width: 100%;">
+        <label for="allocProjectDescription">Project Description *</label>
+        <textarea 
+          id="allocProjectDescription" 
+          name="project_description" 
+          rows="4"
+          placeholder="Enter project description..."></textarea>
       </div>
     </div>
-      <div class="confirm-buttons-c">
-        <button id="confirmYesBtn">Yes</button>
-        <button id="confirmNoBtn">No</button>
-      </div>
+
+      <!-- Remarks field - ALWAYS VISIBLE -->
+    <div class="form-group" style="text-align: left;">
+      <label for="remarks" style="display: block; text-align: left; margin-bottom: 5px;">Remarks *</label>
+      <input type="text" id="remarks" name="remarks" required style="width: 100%;">
+    </div>
+    
+    <div class="confirm-buttons-c">
+      <button id="confirmYesBtn">Yes</button>
+      <button id="confirmNoBtn">No</button>
     </div>
   </div>
-
+</div>
 
   <!-- View Client Modal (unchanged) -->
   <div class="clientmodal" id="clientviewModal">

@@ -165,6 +165,26 @@ function updateStatus() {
         statusBadge.textContent = 'Logged Out';
         statusBadge.className = 'status logged-out';
     }
+    const stageLabels = {
+        'none': 'Not Started',
+        'waiting_login_morning': 'Ready for Morning Login',
+        'waiting_logout_morning': 'Morning Logged In',
+        'waiting_login_afternoon': 'Ready for Afternoon Login',
+        'waiting_logout_afternoon': 'Afternoon Logged In',
+        'complete': 'Day Complete'
+    };
+    
+    const stageClasses = {
+        'none': 'status-default',
+        'waiting_login_morning': 'status-waiting',
+        'waiting_logout_morning': 'status-logged-in',
+        'waiting_login_afternoon': 'status-waiting',
+        'waiting_logout_afternoon': 'status-logged-in',
+        'complete': 'status-complete'
+    };
+    
+    statusBadge.textContent = stageLabels[currentAttendanceStage] || 'Unknown';
+    statusBadge.className = 'status ' + (stageClasses[currentAttendanceStage] || 'status-default');
 }
 
 // Update radio button states based on attendance status
@@ -261,7 +281,77 @@ function showCompletionMessage() {
         radioContainer.appendChild(messageDiv);
     }
 }
+// NEW: Update UI based on attendance stage
+function updateAttendanceUI(attendanceStatus) {
+    console.log("🎨 Updating attendance UI with status:", attendanceStatus);
+    
+    // Remove existing stage info
+    const existingInfo = document.querySelector('.attendance-stage-info');
+    if (existingInfo) existingInfo.remove();
+    
+    const existingComplete = document.querySelector('.attendance-complete-message');
+    if (existingComplete) existingComplete.remove();
+    
+    // Hide all action buttons first
+    hideAllActionButtons();
+    
+    if (!attendanceStatus || !attendanceStatus.attendance_stage) {
+        currentAttendanceStage = 'none';
+        showActionButton('login-morning');
+        showStageInfo('Morning Login', 'Please punch in for morning session');
+        updateStatus();
+        return;
+    }
+    
+    currentAttendanceStage = attendanceStatus.attendance_stage;
+    const nextAction = attendanceStatus.next_action;
+    
+    console.log("📊 Current stage:", currentAttendanceStage, "Next action:", nextAction);
+    
+    switch(currentAttendanceStage) {
+        case 'none':
+            showActionButton('login-morning');
+            showStageInfo('Morning Login', 'Please punch in for morning session');
+            break;
+            
+        case 'waiting_logout_morning':
+            showActionButton('logout-morning');
+            showStageInfo('Morning Logout', 'You are logged in. Punch out for lunch break');
+            break;
+            
+        case 'waiting_login_afternoon':
+            showActionButton('login-afternoon');
+            showStageInfo('Afternoon Login', 'Please punch in for afternoon session');
+            break;
+            
+        case 'waiting_logout_afternoon':
+            showActionButton('logout-afternoon');
+            showStageInfo('Afternoon Logout', 'You are logged in. Punch out to end your day');
+            break;
+            
+        case 'complete':
+            showCompletionMessage('✅ All attendance punches completed for today');
+            break;
+            
+        default:
+            showActionButton('login-morning');
+            showStageInfo('Morning Login', 'Please punch in for morning session');
+    }
+    
+    updateStatus();
+}
 
+// Hide all action buttons
+function hideAllActionButtons() {
+    const buttons = ['login-morning', 'logout-morning', 'login-afternoon', 'logout-afternoon'];
+    buttons.forEach(btnId => {
+        const btn = document.getElementById(btnId + '-btn');
+        if (btn) {
+            btn.style.display = 'none';
+            btn.disabled = true;
+        }
+    });
+}
 // Check attendance status for the current employee and date
 async function checkAttendanceStatus(empId, date) {
     console.log("🔍 Checking attendance status for:", { empId, date });

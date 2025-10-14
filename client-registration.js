@@ -1,8 +1,3 @@
-let remarksInput = document.getElementById('remarks');
-let projectNameInput = document.getElementById('projectname');
-let projectDescInput = document.getElementById('allocProjectDescription');
-
-
 class ClientManager {
     constructor() {
         this.clients = [];
@@ -149,7 +144,7 @@ async confirmStatusChange(confirmed) {
             updateFormData.append('remarks', newRemarks || client.remarks);
 
             if (newStatus.toLowerCase() === 'onboard') {
-                const projectNameInput = document.querySelector('#projectFields input#projectname');
+                const projectNameInput = document.querySelector('#projectFields input#projectName');
                 const projectDescInput = document.querySelector('#projectFields textarea#allocProjectDescription');
 
                 const projectName = projectNameInput ? projectNameInput.value.trim() : '';
@@ -556,50 +551,69 @@ updateStatus(index, newStatus) {
 
     const client = this.clients[index];
     const confirmMessage = document.getElementById('confirmMessage');
-
-    // Updated IDs to match your HTML:
-    let remarksInput = document.getElementById('remarks');
     const confirmYesBtn = document.getElementById('confirmYesBtn');
     const projectFields = document.getElementById('projectFields');
-    let projectNameInput = document.getElementById('projectname');
-    let projectDescInput = document.getElementById('allocProjectDescription');
 
     confirmMessage.textContent = `Are you sure you want to change ${client.companyName} status to ${newStatus}?`;
 
+    // Show/hide project fields based on status
     if (newStatus.toLowerCase() === 'onboard') {
         projectFields.style.display = 'block';
-        if (projectNameInput) projectNameInput.required = true;
-        if (projectDescInput) projectDescInput.required = true;
     } else {
         projectFields.style.display = 'none';
-        if (projectNameInput) {
-            projectNameInput.required = false;
-            projectNameInput.value = '';
-        }
-        if (projectDescInput) {
-            projectDescInput.required = false;
-            projectDescInput.value = '';
-        }
     }
 
-    // Clear all inputs
+    // Get fresh references and clear inputs
+    const remarksInput = document.getElementById('remarks');
+    const projectNameInput = document.getElementById('projectName');
+    const projectDescInput = document.getElementById('allocProjectDescription');
+
     if (remarksInput) remarksInput.value = '';
-    if (projectNameInput) projectNameInput.value = '';
-    if (projectDescInput) projectDescInput.value = '';
+    if (projectNameInput) {
+        projectNameInput.value = '';
+        projectNameInput.required = newStatus.toLowerCase() === 'onboard';
+    }
+    if (projectDescInput) {
+        projectDescInput.value = '';
+        projectDescInput.required = newStatus.toLowerCase() === 'onboard';
+    }
 
     // Disable Yes button initially
     confirmYesBtn.disabled = true;
     confirmYesBtn.style.opacity = '0.5';
     confirmYesBtn.style.cursor = 'not-allowed';
 
-    // Validation function
+    // Remove all existing event listeners by replacing with clone
+    const newRemarksInput = remarksInput.cloneNode(true);
+    remarksInput.parentNode.replaceChild(newRemarksInput, remarksInput);
+
+    let newProjectNameInput = null;
+    let newProjectDescInput = null;
+
+    if (projectNameInput) {
+        newProjectNameInput = projectNameInput.cloneNode(true);
+        projectNameInput.parentNode.replaceChild(newProjectNameInput, projectNameInput);
+    }
+
+    if (projectDescInput) {
+        newProjectDescInput = projectDescInput.cloneNode(true);
+        projectDescInput.parentNode.replaceChild(newProjectDescInput, projectDescInput);
+    }
+
+    // ✅ FIX: Validation function that ALWAYS gets fresh DOM references
     const validateFields = () => {
-        console.log('hi')
-        const remarksFilled = remarksInput && remarksInput.value.trim() !== '';
+        // Get CURRENT values from DOM every time this runs
+        const currentRemarks = document.getElementById('remarks');
+        const currentProjectName = document.getElementById('projectName');
+        const currentProjectDesc = document.getElementById('allocProjectDescription');
+        
+        const remarksFilled = currentRemarks && currentRemarks.value.trim() !== '';
+
         if (newStatus.toLowerCase() === 'onboard') {
-            const projectNameFilled = projectNameInput && projectNameInput.value.trim() !== '';
-            const projectDescFilled = projectDescInput && projectDescInput.value.trim() !== '';
-            if (remarksFilled && projectNameFilled) {
+            const projectNameFilled = currentProjectName && currentProjectName.value.trim() !== '';
+            const projectDescFilled = currentProjectDesc && currentProjectDesc.value.trim() !== '';
+
+            if (remarksFilled && projectNameFilled && projectDescFilled) {
                 confirmYesBtn.disabled = false;
                 confirmYesBtn.style.opacity = '1';
                 confirmYesBtn.style.cursor = 'pointer';
@@ -621,36 +635,22 @@ updateStatus(index, newStatus) {
         }
     };
 
-    // Clone inputs to remove old listeners & re-assign references
-   // Clone inputs to remove old event listeners and update variables
-        if (remarksInput) {
-            const newRemarksInput = remarksInput.cloneNode(true);
-            remarksInput.parentNode.replaceChild(newRemarksInput, remarksInput);
-            remarksInput = newRemarksInput;
-            remarksInput.addEventListener('input', validateFields);
+    // Add event listeners to the NEW cloned elements
+    newRemarksInput.addEventListener('input', validateFields);
+    
+    if (newStatus.toLowerCase() === 'onboard') {
+        if (newProjectNameInput) {
+            newProjectNameInput.addEventListener('input', validateFields);
         }
-
-        if (newStatus.toLowerCase() === 'onboard') {
-            if (projectNameInput) {
-                const newProjectNameInput = projectNameInput.cloneNode(true);
-                projectNameInput.parentNode.replaceChild(newProjectNameInput, projectNameInput);
-                projectNameInput = newProjectNameInput;
-                projectNameInput.addEventListener('input', validateFields);
-            }
-          if (projectDescInput) {
-                const newProjectDescInput = projectDescInput.cloneNode(true);
-                projectDescInput.parentNode.replaceChild(newProjectDescInput, projectDescInput);
-                projectDescInput = newProjectDescInput; // ✅ THIS LINE IS MISSING
-                projectDescInput.addEventListener('input', validateFields);
-            }
-
+        if (newProjectDescInput) {
+            newProjectDescInput.addEventListener('input', validateFields);
         }
+    }
 
     // Show modal & disable background scroll
     document.getElementById('confirmModal').classList.add('show');
     document.body.style.overflow = 'hidden';
 }
-
 
 
 
