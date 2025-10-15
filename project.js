@@ -66,6 +66,7 @@ let currentPage = 1;
 const projectsPerPage = 5;
 let employeesData = [];
 let selectedEmployees = [];
+let tempTasks = [];
 
 // ============================
 // INITIALIZATION
@@ -502,8 +503,7 @@ async function viewProject(projectId) {
       storeProjectSession(project);
       
       // CRITICAL: Store the NUMERIC id for API calls
-      // The database likely has: id (INT), project_id (VARCHAR)
-      const numericId = project.id; // This is the auto-increment ID
+      const numericId = project.id;
       const stringProjectId = project.projectId || project.project_id || projectId;
       
       if (!numericId) {
@@ -513,9 +513,9 @@ async function viewProject(projectId) {
         return;
       }
       
-      currentProjectId = numericId; // Use numeric ID for allocation API
+      currentProjectId = numericId;
       window.currentProjectId = numericId;
-      window.projectStringId = stringProjectId; // Keep string ID for display
+      window.projectStringId = stringProjectId;
       
       console.log('✅ Set currentProjectId (numeric for API):', numericId, typeof numericId);
       console.log('✅ Set projectStringId (for display):', stringProjectId);
@@ -543,7 +543,6 @@ function showProjectDetailView(project) {
   if (detailView) {
     detailView.style.display = 'block';
     
-    // Store project ID in data attribute as backup
     const projectId = project.projectId || project.project_id || project.id;
     if (projectId) {
       detailView.setAttribute('data-project-id', projectId);
@@ -556,7 +555,6 @@ function showProjectDetailView(project) {
     breadcrumbName.textContent = project.companyName || 'Project';
   }
   
-  // CRITICAL: Store project ID from the project object
   const projectId = project.projectId || project.project_id || project.id;
   if (projectId) {
     currentProjectId = projectId;
@@ -590,7 +588,6 @@ function populateProjectDetails(project) {
   const reportingPerson = document.getElementById('teamHeadName');
   if (reportingPerson) reportingPerson.textContent = project.reportingPerson || 'N/A';
   
-  // CRITICAL: Ensure project ID is stored
   const projectId = project.projectId || project.project_id || project.id;
   if (projectId) {
     currentProjectId = projectId;
@@ -709,7 +706,6 @@ async function handleProjectFormSubmit(e) {
   
   const client = clientsData.find(c => c.customerId === customerId);
   
-  // 🔍 DEBUG: Log what we're about to send
   console.log('📦 Client data found:', client);
   console.log('📦 Project name from client:', client?.projectName);
   
@@ -717,7 +713,7 @@ async function handleProjectFormSubmit(e) {
     customerId: customerId,
     companyName: client?.companyName || '',
     customerName: client?.customerName || '',
-     project_name: client?.project_name || client?.projectName || '', 
+    project_name: client?.project_name || client?.projectName || '', 
     projectDescription: document.getElementById('projectDescriptionForm')?.value || '',
     contactPerson: document.getElementById('contactPersonForm')?.value || '',
     contactNumber: document.getElementById('contactNumberForm')?.value || '',
@@ -731,8 +727,7 @@ async function handleProjectFormSubmit(e) {
   };
 
   console.log('📤 Submitting project data:', projectData);
-  console.log('📤 Project name being sent:', projectData.projectName);
-
+  console.log('📤 Project name being sent:', projectData.project_name);
   
   try {
     showLoadingSpinner();
@@ -868,7 +863,6 @@ function setupProjectDetailTabs() {
   console.log('✅ Tab switching setup complete');
 }
 
-
 // ============================
 // LOAD RESOURCES CONTENT
 // ============================
@@ -952,6 +946,10 @@ function loadResourcesContent() {
   console.log('✅ Resources content loaded');
 }
 
+function loadAnalyticsContent() {
+  console.log('📊 Analytics content placeholder');
+}
+
 // ============================
 // EVENT LISTENERS
 // ============================
@@ -959,7 +957,6 @@ function loadResourcesContent() {
 function setupEventListeners() {
   console.log('🔗 Setting up event listeners...');
   
-  // Client selection
   const clientSelect = document.getElementById('onboardedProjectSelect');
   if (clientSelect) {
     clientSelect.removeEventListener('change', handleClientSelection);
@@ -967,7 +964,6 @@ function setupEventListeners() {
     console.log('✅ Client select listener attached');
   }
   
-  // Form submission
   const projectForm = document.getElementById('projectForm');
   if (projectForm) {
     projectForm.removeEventListener('submit', handleProjectFormSubmit);
@@ -975,13 +971,11 @@ function setupEventListeners() {
     console.log('✅ Form submit listener attached');
   }
   
-  // Search
   const searchInput = document.getElementById('projectSearchInput');
   if (searchInput) {
     searchInput.addEventListener('input', (e) => filterProjects(e.target.value));
   }
   
-  // Pagination
   const prevBtn = document.getElementById('prevPage');
   const nextBtn = document.getElementById('nextPage');
   
@@ -1028,124 +1022,49 @@ function filterProjects(searchTerm) {
 }
 
 // ============================
-// MODAL HANDLERS
+// TASK ALLOCATION MODAL
 // ============================
 
-function openTaskAllocationForm() {
+async function openTaskAllocationForm() {
     const modal = document.getElementById('addTaskAllocationModal');
     if (modal) {
         modal.style.display = 'block';
         
-        // ✅ GET PROJECT DATA FROM SESSION STORAGE
         const sessionProject = getProjectSession();
         
         if (sessionProject) {
-            // ✅ Populate display fields (readonly info section)
             const taskProjectName = document.getElementById('taskProjectName');
             const taskCompanyName = document.getElementById('taskCompanyName');
-            const taskProjectDescription = document.getElementById('taskProjectDescription');
-            const taskStartDate = document.getElementById('taskStartDate');
-            const taskCompletionDate = document.getElementById('taskCompletionDate');
+            const taskProjectDescription = document.getElementById('ProjectDescription');
             
-            if (taskProjectName) taskProjectName.textContent = sessionProject.project_name || sessionProject.company_name || 'N/A';
+            if (taskProjectName) taskProjectName.textContent = sessionProject.project_name || 'N/A';
             if (taskCompanyName) taskCompanyName.textContent = sessionProject.company_name || 'N/A';
-            if (taskProjectDescription) taskProjectDescription.textContent = sessionProject.project_description || 'No description available';
-            if (taskStartDate) taskStartDate.textContent = formatDate(sessionProject.start_date) || 'N/A';
-            if (taskCompletionDate) taskCompletionDate.textContent = formatDate(sessionProject.completion_date) || 'N/A';
+            if (taskProjectDescription) taskProjectDescription.textContent = sessionProject.project_description || 'N/A';
             
-            // ✅ Also populate the form input field (if you want it auto-filled)
             const projectNameInput = document.getElementById('projectName');
             if (projectNameInput) {
-                projectNameInput.value = sessionProject.project_name || sessionProject.company_name || '';
+                projectNameInput.value = sessionProject.project_name || '';
             }
             
-            console.log('✅ Task form populated with session data:', sessionProject);
+            await populateTaskTeamDropdown();
+            
+            console.log('✅ Task allocation form opened for project:', sessionProject.project_id);
         } else {
-            console.warn('⚠️ No project session data found');
+            showToast('Please select a project first', 'error');
+            closeTaskAllocationForm();
         }
     }
 }
-
-
 
 function closeTaskAllocationForm() {
   const modal = document.getElementById('addTaskAllocationModal');
   if (modal) modal.style.display = 'none';
 }
 
-function openProjectAllocationForm(projectId = null) {
-  console.log('📝 Opening employee allocation modal...');
-  console.log('📝 Received projectId parameter:', projectId);
-  
-  // CRITICAL: Get projectId from multiple sources
-  let finalProjectId = projectId || 
-                       currentProjectId || 
-                       window.currentProjectId || 
-                       getProjectIdFromSession();
-  
-  // Try getting from DOM as last resort
-  if (!finalProjectId) {
-    const detailView = document.getElementById('project-detail-view');
-    if (detailView) {
-      finalProjectId = detailView.getAttribute('data-project-id');
-      console.log('📝 Got project ID from DOM:', finalProjectId);
-    }
-  }
-  
-  if (!finalProjectId) {
-    showToast('Error: Project ID not found. Please view a project first.', 'error');
-    console.error('❌ No project ID available from any source:', {
-      param: projectId,
-      current: currentProjectId,
-      window: window.currentProjectId,
-      session: getProjectIdFromSession(),
-      dom: document.getElementById('project-detail-view')?.getAttribute('data-project-id')
-    });
-    return;
-  }
-  
-  console.log('✅ Using project ID:', finalProjectId);
-  
-  const modal = document.getElementById('addProjectAllocationModal');
-  if (!modal) {
-    console.error('❌ Modal not found');
-    return;
-  }
+// ============================
+// FETCH TEAMS FROM project_allocations TABLE
+// ============================
 
-  // Store current project ID in multiple places
-  currentProjectId = finalProjectId;
-  window.currentProjectId = finalProjectId;
-
-  // Clear previous selections
-  selectedEmployees = [];
-  const list = document.getElementById('selectedEmployeesList');
-  if (list) list.innerHTML = '';
-
-  // Show modal
-  modal.style.display = 'block';
-  modal.style.animation = 'fadeIn 0.3s ease';
-  
-  // Fetch employees for this project
-  fetchProjectEmployees(finalProjectId);
-}
-
-function closeProjectAllocationForm() {
-  const modal = document.getElementById('addProjectAllocationModal');
-  if (!modal) return;
-  
-  modal.style.animation = 'fadeOut 0.3s ease';
-  
-  setTimeout(() => {
-    modal.style.display = 'none';
-    selectedEmployees = [];
-    const list = document.getElementById('selectedEmployeesList');
-    if (list) list.innerHTML = '';
-  }, 300);
-}
-
-// ========================================
-// ✅ FETCH TEAMS FROM project_allocations TABLE
-// ========================================
 async function fetchTaskAllocationTeams() {
     try {
         const sessionProject = getProjectSession();
@@ -1159,10 +1078,8 @@ async function fetchTaskAllocationTeams() {
         
         console.log('🔍 Fetching teams for project:', projectId);
         
-        // ✅ REMOVE Content-Type header for GET requests
         const response = await fetch(`https://www.fist-o.com/web_crm/fetch_project_teams.php?project_id=${projectId}`, {
             method: 'GET'
-            // ❌ Don't add headers: { 'Content-Type': 'application/json' }
         });
         
         const result = await response.json();
@@ -1181,9 +1098,6 @@ async function fetchTaskAllocationTeams() {
     }
 }
 
-// ========================================
-// ✅ POPULATE TEAM NAME DROPDOWN
-// ========================================
 async function populateTaskTeamDropdown() {
     const teamSelect = document.getElementById('TaskTeamName');
     
@@ -1192,13 +1106,11 @@ async function populateTaskTeamDropdown() {
         return;
     }
     
-    // Show loading state
     teamSelect.innerHTML = '<option value="">Loading teams...</option>';
     teamSelect.disabled = true;
     
     const teams = await fetchTaskAllocationTeams();
     
-    // Reset dropdown
     teamSelect.innerHTML = '<option value="">-- Select Team --</option>';
     
     if (teams.length === 0) {
@@ -1207,7 +1119,6 @@ async function populateTaskTeamDropdown() {
         return;
     }
     
-    // Populate with teams
     teams.forEach(team => {
         const option = document.createElement('option');
         option.value = team.team_name;
@@ -1220,9 +1131,6 @@ async function populateTaskTeamDropdown() {
     console.log(`✅ Populated ${teams.length} teams`);
 }
 
-// ========================================
-// ✅ HANDLE TEAM SELECTION - POPULATE MEMBERS
-// ========================================
 function handleTaskTeamChange() {
     const teamSelect = document.getElementById('TaskTeamName');
     const memberSelect = document.getElementById('allocAssignedTo');
@@ -1232,7 +1140,6 @@ function handleTaskTeamChange() {
         return;
     }
     
-    // Clear member dropdown
     memberSelect.innerHTML = '<option value="">-- Select Member --</option>';
     memberSelect.disabled = true;
     
@@ -1243,7 +1150,6 @@ function handleTaskTeamChange() {
         return;
     }
     
-    // Get selected option and extract members
     const selectedOption = teamSelect.options[teamSelect.selectedIndex];
     const members = JSON.parse(selectedOption.dataset.members || '[]');
     
@@ -1255,7 +1161,6 @@ function handleTaskTeamChange() {
         return;
     }
     
-    // Populate member dropdown
     members.forEach(member => {
         const option = document.createElement('option');
         option.value = member.emp_id;
@@ -1270,75 +1175,10 @@ function handleTaskTeamChange() {
     console.log(`✅ Populated ${members.length} members for team: ${selectedTeam}`);
 }
 
-// ========================================
-// ✅ OPEN TASK ALLOCATION FORM - LOAD TEAMS
-// ========================================
-async function openTaskAllocationForm() {
-    const modal = document.getElementById('addTaskAllocationModal');
-    if (modal) {
-        modal.style.display = 'block';
-        
-        // ✅ GET PROJECT DATA FROM SESSION
-        const sessionProject = getProjectSession();
-        
-        if (sessionProject) {
-            // Populate project info (if you have display elements)
-            const taskProjectName = document.getElementById('taskProjectName');
-            const taskCompanyName = document.getElementById('taskCompanyName');
-            const taskProjectDescription = document.getElementById('ProjectDescription');
-            
-            if (taskProjectName) taskProjectName.textContent = sessionProject.project_name || 'N/A';
-            if (taskCompanyName) taskCompanyName.textContent = sessionProject.company_name || 'N/A';
-            if (taskProjectDescription) taskProjectDescription.textContent = sessionProject.project_description || 'N/A';
-            
-            // Auto-fill form fields
-            const projectNameInput = document.getElementById('projectName');
-            if (projectNameInput) {
-                projectNameInput.value = sessionProject.project_name || '';
-            }
-            
-            // ✅ LOAD TEAMS FOR THIS PROJECT
-            await populateTaskTeamDropdown();
-            
-            console.log('✅ Task allocation form opened for project:', sessionProject.project_id);
-        } else {
-            showToast('Please select a project first', 'error');
-            closeTaskAllocationForm();
-        }
-    }
-}
-
-// ========================================
-// ✅ CLOSE TASK ALLOCATION FORM
-// ========================================
-function closeTaskAllocationForm() {
-    const modal = document.getElementById('addTaskAllocationModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
-
-// ========================================
-// ✅ ADD EVENT LISTENER ON PAGE LOAD
-// ========================================
-document.addEventListener('DOMContentLoaded', () => {
-    const teamSelect = document.getElementById('TaskTeamName');
-    
-    if (teamSelect) {
-        teamSelect.addEventListener('change', handleTaskTeamChange);
-        console.log('✅ Team dropdown event listener attached');
-    }
-});
-
-
-// ========================================
+// ============================
 // TASK ALLOCATION - TEMPORARY STORAGE
-// ========================================
-let tempTasks = [];
+// ============================
 
-// ========================================
-// HANDLE "ADD" BUTTON - ADD TASK TO TABLE
-// ========================================
 function handleAddTaskToTable(event) {
     event.preventDefault();
     
@@ -1385,9 +1225,6 @@ function handleAddTaskToTable(event) {
     console.log('📋 Total tasks:', tempTasks.length);
 }
 
-// ========================================
-// UPDATE TEMPORARY TASK TABLE
-// ========================================
 function updateTempTaskTable() {
     const tbody = document.querySelector('#tempTaskTable tbody');
     
@@ -1424,9 +1261,6 @@ function updateTempTaskTable() {
     console.log(`✅ Table updated: ${tempTasks.length} tasks`);
 }
 
-// ========================================
-// REMOVE TASK FROM TABLE
-// ========================================
 function removeTaskFromTable(taskId) {
     const taskIndex = tempTasks.findIndex(t => t.id === taskId);
     if (taskIndex > -1) {
@@ -1437,9 +1271,6 @@ function removeTaskFromTable(taskId) {
     }
 }
 
-// ========================================
-// CLEAR TASK FORM FIELDS
-// ========================================
 function clearTaskFormFields() {
     document.getElementById('TaskName').value = '';
     document.getElementById('TaskStartDate').value = '';
@@ -1457,9 +1288,6 @@ function clearTaskFormFields() {
     document.getElementById('projectremarks').value = '';
 }
 
-// ========================================
-// SUBMIT ALL TASKS TO DATABASE
-// ========================================
 async function submitAllTasks() {
     if (tempTasks.length === 0) {
         showToast('❌ Please add at least one task', 'error');
@@ -1491,11 +1319,9 @@ async function submitAllTasks() {
         if (result.success) {
             showToast(`✅ ${tempTasks.length} task(s) allocated successfully!`, 'success');
             
-            // Clear tasks and table
             tempTasks = [];
             updateTempTaskTable();
             
-            // Close modal
             closeTaskAllocationForm();
             
             console.log('✅ All tasks submitted successfully');
@@ -1510,44 +1336,492 @@ async function submitAllTasks() {
     }
 }
 
-// ========================================
-// FORMAT DATE FOR DISPLAY
-// ========================================
 function formatDateDisplay(dateString) {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-// ========================================
-// SETUP EVENT LISTENERS
-// ========================================
-document.addEventListener('DOMContentLoaded', () => {
-    // "Add" button - add task to table
-    const taskForm = document.getElementById('TaskAllocationForm');
-    if (taskForm) {
-        taskForm.addEventListener('submit', handleAddTaskToTable);
-        console.log('✅ Task form listener attached');
+// ============================
+// EMPLOYEE ALLOCATION MODAL - WITH ALLOCATED DISPLAY
+// ============================
+
+async function openProjectAllocationForm(projectId = null) {
+  console.log('📝 Opening employee allocation modal...');
+  console.log('📝 Received projectId parameter:', projectId);
+  
+  let finalProjectId = projectId || 
+                       currentProjectId || 
+                       window.currentProjectId || 
+                       getProjectIdFromSession();
+  
+  if (!finalProjectId) {
+    const detailView = document.getElementById('project-detail-view');
+    if (detailView) {
+      finalProjectId = detailView.getAttribute('data-project-id');
+      console.log('📝 Got project ID from DOM:', finalProjectId);
+    }
+  }
+  
+  if (!finalProjectId) {
+    showToast('Error: Project ID not found. Please view a project first.', 'error');
+    console.error('❌ No project ID available from any source');
+    return;
+  }
+  
+  console.log('✅ Using project ID:', finalProjectId);
+  
+  const modal = document.getElementById('addProjectAllocationModal');
+  if (!modal) {
+    console.error('❌ Modal not found');
+    return;
+  }
+
+  currentProjectId = finalProjectId;
+  window.currentProjectId = finalProjectId;
+
+  selectedEmployees = [];
+  
+  modal.style.display = 'block';
+  modal.style.animation = 'fadeIn 0.3s ease';
+  
+  const list = document.getElementById('selectedEmployeesList');
+  if (list) {
+    list.innerHTML = `
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p style="color: #999; margin: 10px 0 0 0;">Loading current team members...</p>
+      </div>
+    `;
+  }
+  
+  await fetchAndDisplayAllocatedInModal(finalProjectId);
+  
+  fetchProjectEmployees(finalProjectId);
+}
+
+async function fetchAndDisplayAllocatedInModal(projectId) {
+  try {
+    console.log('📡 Fetching allocated employees for modal display...');
+    
+    const response = await fetch(
+      `https://www.fist-o.com/web_crm/get_allocated_employees.php?project_id=${projectId}`,
+      {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('📦 Modal allocated employees response:', result);
+
+    if (result.success && result.data && result.data.employees && result.data.employees.length > 0) {
+      displayAllocatedInModal(result.data.employees);
+    } else {
+      showEmptyStateInModal();
+    }
+  } catch (error) {
+    console.error('❌ Error fetching allocated employees for modal:', error);
+    showEmptyStateInModal();
+  }
+}
+// ============================
+// DISPLAY ALLOCATED EMPLOYEES IN MODAL - SINGLE AREA WITH X BUTTON
+// ============================
+
+function displayAllocatedInModal(allocatedEmployees) {
+  const selectedList = document.getElementById('selectedEmployeesList');
+  
+  if (!selectedList) {
+    console.error('❌ Selected employee list container not found');
+    return;
+  }
+
+  if (!allocatedEmployees || allocatedEmployees.length === 0) {
+    showEmptyStateInModal();
+    return;
+  }
+
+  // Display allocated employees - using CORRECT emp_id from data
+  selectedList.innerHTML = allocatedEmployees.map(emp => `
+    <div class="employee-card allocated" data-emp-id="${emp.emp_id}">
+      <div class="emp-card-content">
+        <i class="fas fa-user"></i>
+        <span class="emp-card-name">${emp.emp_name || 'Unknown'}</span>
+        <small style="color: #999; font-size: 11px; margin-left: 8px;">${emp.emp_id}</small>
+      </div>
+      <button class="remove-card-btn" 
+              onclick="removeAllocatedEmployee('${emp.emp_id}', '${escapeHtml(emp.emp_name)}')" 
+              title="Remove from project">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  `).join('');
+
+  console.log(`✅ Displayed ${allocatedEmployees.length} allocated employees`);
+  console.log('Employee IDs:', allocatedEmployees.map(e => e.emp_id));
+}
+
+function showEmptyStateInModal() {
+  const selectedList = document.getElementById('selectedEmployeesList');
+  
+  if (!selectedList) return;
+
+  selectedList.innerHTML = `
+    <div class="empty-selection-state">
+      <i class="fas fa-users-slash" style="font-size: 48px; color: #ccc; margin-bottom: 10px;"></i>
+      <p style="color: #999; margin: 0; font-size: 14px;">No employees allocated yet</p>
+      <small style="color: #bbb; font-size: 12px;">Select employees from the dropdown below</small>
+    </div>
+  `;
+}
+
+function getTeamBadgeClass(teamName) {
+  if (!teamName) return 'badge-general';
+  
+  const teamClasses = {
+    'Management Team': 'badge-management',
+    'Development Team': 'badge-development',
+    'UI/UX Team': 'badge-design',
+    '3D Design Team': 'badge-3d',
+    'HR Team': 'badge-hr',
+    'Marketing Team': 'badge-marketing',
+    'Admin Team': 'badge-admin',
+    'General Team': 'badge-general'
+  };
+  
+  return teamClasses[teamName] || 'badge-general';
+}
+
+function addToSelectedList() {
+  const selectElement = document.getElementById('employeeSelect');
+  
+  if (!selectElement) {
+    console.error('❌ Employee select element not found');
+    return;
+  }
+
+  const selectedValue = selectElement.value;
+  
+  if (!selectedValue) {
+    showToast('Please select an employee', 'warning');
+    return;
+  }
+
+  const selectedOption = selectElement.options[selectElement.selectedIndex];
+  
+  const employee = {
+    emp_id: selectedValue,
+    emp_name: selectedOption.getAttribute('data-name') || selectedOption.textContent,
+    designation: selectedOption.getAttribute('data-designation') || 'N/A'
+  };
+
+  if (selectedEmployees.some(emp => emp.emp_id === employee.emp_id)) {
+    showToast('Employee already added to the list', 'warning');
+    return;
+  }
+
+  selectedEmployees.push(employee);
+  
+  console.log('✅ Added employee to selection:', employee);
+  console.log('Current selections:', selectedEmployees);
+
+  displayNewSelectionsInModal();
+
+  selectElement.value = '';
+  
+  showToast(`${employee.emp_name} added to selection`, 'success');
+}
+
+// ============================
+// DISPLAY NEW SELECTIONS IN MODAL - COMBINED WITH ALLOCATED
+// ============================
+
+function displayNewSelectionsInModal() {
+  const selectedList = document.getElementById('selectedEmployeesList');
+  
+  if (!selectedList) {
+    console.error('❌ Selected employees list not found');
+    return;
+  }
+
+  if (selectedEmployees.length === 0) {
+    const projectId = currentProjectId || window.currentProjectId || getProjectIdFromSession();
+    if (projectId) {
+      fetchAndDisplayAllocatedInModal(projectId);
+    }
+    return;
+  }
+
+  const projectId = currentProjectId || window.currentProjectId || getProjectIdFromSession();
+  
+  if (projectId) {
+    fetch(`https://www.fist-o.com/web_crm/get_allocated_employees.php?project_id=${projectId}`)
+      .then(response => response.json())
+      .then(result => {
+        let cardsHTML = '';
+        
+        // Add allocated employees cards - use emp_id from database
+        if (result.success && result.data && result.data.employees && result.data.employees.length > 0) {
+          cardsHTML += result.data.employees.map(emp => `
+            <div class="employee-card allocated" data-emp-id="${emp.emp_id}">
+              <div class="emp-card-content">
+                <i class="fas fa-user"></i>
+                <span class="emp-card-name">${emp.emp_name || 'Unknown'}</span>
+                <small style="color: #999; font-size: 11px; margin-left: 8px;">${emp.emp_id}</small>
+              </div>
+              <button class="remove-card-btn" 
+                      onclick="removeAllocatedEmployee('${emp.emp_id}', '${escapeHtml(emp.emp_name)}')" 
+                      title="Remove from project">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          `).join('');
+        }
+        
+        // Add new selections cards - use emp_id from selection
+        cardsHTML += selectedEmployees.map(emp => `
+          <div class="employee-card new-selection" data-emp-id="${emp.emp_id}">
+            <div class="emp-card-content">
+              <i class="fas fa-user"></i>
+              <span class="emp-card-name">${emp.emp_name}</span>
+              <small style="color: #28a745; font-size: 11px; margin-left: 8px;">${emp.emp_id}</small>
+              <span class="new-badge">NEW</span>
+            </div>
+            <button class="remove-card-btn" 
+                    onclick="removeFromNewSelection('${emp.emp_id}')" 
+                    title="Remove from selection">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        `).join('');
+        
+        selectedList.innerHTML = cardsHTML;
+      })
+      .catch(error => {
+        console.error('Error fetching allocated employees:', error);
+        selectedList.innerHTML = selectedEmployees.map(emp => `
+          <div class="employee-card new-selection" data-emp-id="${emp.emp_id}">
+            <div class="emp-card-content">
+              <i class="fas fa-user"></i>
+              <span class="emp-card-name">${emp.emp_name}</span>
+              <small style="color: #28a745; font-size: 11px; margin-left: 8px;">${emp.emp_id}</small>
+              <span class="new-badge">NEW</span>
+            </div>
+            <button class="remove-card-btn" 
+                    onclick="removeFromNewSelection('${emp.emp_id}')" 
+                    title="Remove from selection">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        `).join('');
+      });
+  } else {
+    selectedList.innerHTML = selectedEmployees.map(emp => `
+      <div class="employee-card new-selection" data-emp-id="${emp.emp_id}">
+        <div class="emp-card-content">
+          <i class="fas fa-user"></i>
+          <span class="emp-card-name">${emp.emp_name}</span>
+          <small style="color: #28a745; font-size: 11px; margin-left: 8px;">${emp.emp_id}</small>
+          <span class="new-badge">NEW</span>
+        </div>
+        <button class="remove-card-btn" 
+                onclick="removeFromNewSelection('${emp.emp_id}')" 
+                title="Remove from selection">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    `).join('');
+  }
+}
+
+// ============================
+// REMOVE ALLOCATED EMPLOYEE - WITH DEBUGGING
+// ============================
+
+async function removeAllocatedEmployee(empId, employeeName) {
+  console.log('🔍 Remove function called with:');
+  console.log('  - empId:', empId);
+  console.log('  - employeeName:', employeeName);
+  
+  const confirmed = confirm(
+    `Are you sure you want to remove "${employeeName}" (${empId}) from this project?\n\n` +
+    `This will remove them from the project team.`
+  );
+  
+  if (!confirmed) return;
+
+  try {
+    // Disable the button immediately
+    const cardElement = document.querySelector(`.employee-card[data-emp-id="${empId}"]`);
+    if (cardElement) {
+      const removeBtn = cardElement.querySelector('.remove-card-btn');
+      if (removeBtn) {
+        removeBtn.disabled = true;
+        removeBtn.style.opacity = '0.5';
+        removeBtn.style.cursor = 'not-allowed';
+        removeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      }
     }
     
-    // "Submit" button - save all tasks to DB
-    const submitBtn = document.querySelector('.submit-task-btn');
-    if (submitBtn) {
-        submitBtn.addEventListener('click', submitAllTasks);
-        console.log('✅ Submit button listener attached');
+    showLoadingSpinner();
+    
+    const projectId = currentProjectId || window.currentProjectId || getProjectIdFromSession();
+    
+    if (!projectId) {
+      hideLoadingSpinner();
+      showToast('Error: Project ID not found', 'error');
+      return;
     }
     
-    // Team dropdown change
-    const teamSelect = document.getElementById('TaskTeamName');
-    if (teamSelect) {
-        teamSelect.addEventListener('change', handleTaskTeamChange);
-        console.log('✅ Team select listener attached');
+    const requestData = { 
+      project_id: String(projectId),
+      emp_id: String(empId)
+    };
+    
+    console.log('📤 Sending remove request:', requestData);
+    
+    const response = await fetch('https://www.fist-o.com/web_crm/remove_allocated_employee.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(requestData)
+    });
+
+    const result = await response.json();
+    hideLoadingSpinner();
+    
+    console.log('📦 Remove response:', result);
+    
+    if (result.success) {
+      // Remove the card with animation
+      if (cardElement) {
+        cardElement.style.transition = 'all 0.3s ease';
+        cardElement.style.opacity = '0';
+        cardElement.style.transform = 'translateX(-20px)';
+        setTimeout(() => {
+          cardElement.remove();
+          
+          // Check if list is now empty
+          const selectedList = document.getElementById('selectedEmployeesList');
+          if (selectedList && selectedList.children.length === 0) {
+            showEmptyStateInModal();
+          }
+        }, 300);
+      }
+      
+      showToast(`${employeeName} removed from project successfully`, 'success');
+      
+      // ✅ REFRESH THE DROPDOWN TO SHOW THE REMOVED EMPLOYEE
+      console.log('🔄 Refreshing employee dropdown...');
+      await fetchProjectEmployees(projectId);
+      
+      // Also refresh the allocated list
+      setTimeout(() => {
+        fetchAndDisplayAllocatedInModal(projectId);
+      }, 500);
+      
+    } else {
+      showToast(result.message || 'Failed to remove employee', 'error');
+      console.error('❌ Server error:', result);
+      
+      // Re-enable button if failed
+      if (cardElement) {
+        const removeBtn = cardElement.querySelector('.remove-card-btn');
+        if (removeBtn) {
+          removeBtn.disabled = false;
+          removeBtn.style.opacity = '1';
+          removeBtn.style.cursor = 'pointer';
+          removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+        }
+      }
     }
-});
+  } catch (error) {
+    hideLoadingSpinner();
+    console.error('❌ Error removing employee:', error);
+    showToast('Failed to remove employee: ' + error.message, 'error');
+    
+    // Re-enable button if error
+    const cardElement = document.querySelector(`.employee-card[data-emp-id="${empId}"]`);
+    if (cardElement) {
+      const removeBtn = cardElement.querySelector('.remove-card-btn');
+      if (removeBtn) {
+        removeBtn.disabled = false;
+        removeBtn.style.opacity = '1';
+        removeBtn.style.cursor = 'pointer';
+        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+      }
+    }
+  }
+}
+
+
 
 
 // ============================
-// EMPLOYEE MANAGEMENT
+// REMOVE FROM NEW SELECTION (From Temporary List)
+// ============================
+
+function removeFromNewSelection(empId) {
+  console.log('🗑️ Removing employee from new selection:', empId);
+  
+  selectedEmployees = selectedEmployees.filter(emp => emp.emp_id !== empId);
+  
+  console.log('Updated selections:', selectedEmployees);
+  
+  displayNewSelectionsInModal();
+  
+  showToast('Employee removed from selection', 'info');
+}
+
+// ============================
+// ADD escapeHtml HELPER FUNCTION
+// ============================
+
+function escapeHtml(text) {
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+function closeProjectAllocationForm() {
+  const modal = document.getElementById('addProjectAllocationModal');
+  if (!modal) return;
+  
+  modal.style.animation = 'fadeOut 0.3s ease';
+  
+  setTimeout(() => {
+    modal.style.display = 'none';
+    
+    selectedEmployees = [];
+    
+    const list = document.getElementById('selectedEmployeesList');
+    if (list) {
+      list.innerHTML = '';
+    }
+    
+    const selectElement = document.getElementById('employeeSelect');
+    if (selectElement) {
+      selectElement.value = '';
+    }
+    
+    console.log('✅ Modal closed and cleaned up');
+  }, 300);
+}
+
+// ============================
+// FETCH AND POPULATE EMPLOYEES
 // ============================
 
 async function fetchProjectEmployees(projectId = null) {
@@ -1569,7 +1843,6 @@ async function fetchProjectEmployees(projectId = null) {
 
     const result = await response.json();
     console.log('📦 Employee fetch response:', result);
-    console.log('📦 First employee data structure:', result.data?.[0]);
 
     if (result.success && result.data) {
       employeesData = result.data.map(emp => ({
@@ -1629,96 +1902,14 @@ function populateEmployeeDropdown() {
     option.textContent = displayText;
     
     option.dataset.id = emp.id;
-    option.dataset.emp_id = emp.emp_id;
-    option.dataset.emp_name = emp.emp_name;
+    option.dataset.empId = emp.emp_id;
+    option.dataset.name = emp.emp_name;
     option.dataset.designation = emp.designation;
-    
-    console.log('Setting option dataset for', emp.emp_name, ':', option.dataset);
     
     select.appendChild(option);
   });
   
   console.log(`✅ Dropdown populated with ${employeesData.length} employees`);
-}
-
-function addEmployeeToList() {
-  const select = document.getElementById('employeeSelect');
-  
-  if (!select || !select.value) {
-    showToast('Please select an employee', 'warning');
-    return;
-  }
-
-  const selectedOption = select.options[select.selectedIndex];
-  
-  const id = selectedOption.dataset.id;
-  const emp_id = selectedOption.dataset.emp_id;
-  const emp_name = selectedOption.dataset.emp_name;
-  const designation = selectedOption.dataset.designation;
-
-  console.log('📝 Adding employee:', { id, emp_id, emp_name, designation });
-
-  if (!emp_id || !emp_name) {
-    showToast('Error: Employee data incomplete', 'error');
-    console.error('Missing emp_id or emp_name. Dataset:', selectedOption.dataset);
-    return;
-  }
-
-  if (selectedEmployees.find(emp => emp.emp_id === emp_id)) {
-    showToast('Employee already added to list', 'warning');
-    return;
-  }
-
-  selectedEmployees.push({
-    id: id,
-    emp_id: emp_id,
-    emp_name: emp_name,
-    designation: designation
-  });
-
-  const list = document.getElementById('selectedEmployeesList');
-  if (!list) {
-    console.error('❌ selectedEmployeesList not found');
-    return;
-  }
-
-  const newItem = document.createElement('div');
-  newItem.className = 'employee-item';
-  newItem.dataset.employeeId = emp_id;
-  newItem.dataset.employee = emp_name;
-  newItem.innerHTML = `
-    <span class="employee-name">
-      ${emp_name}
-      ${designation && designation !== 'N/A' ? `<small style="color: #666; margin-left: 8px;">- ${designation}</small>` : ''}
-    </span>
-    <button class="remove-btn" onclick="removeEmployee(this)" title="Remove">
-      <i class="fas fa-times"></i>
-    </button>
-  `;
-  
-  list.appendChild(newItem);
-  select.value = '';
-  
-  showToast(`${emp_name} added to list`, 'success');
-  console.log('✅ Current selected employees:', selectedEmployees);
-}
-
-function removeEmployee(button) {
-  const item = button.closest('.employee-item');
-  if (!item) return;
-
-  const employeeId = item.dataset.employeeId;
-  
-  selectedEmployees = selectedEmployees.filter(emp => emp.emp_id !== employeeId);
-  
-  item.style.animation = 'slideOut 0.3s ease';
-  
-  setTimeout(() => {
-    item.remove();
-    showToast('Employee removed from list', 'info');
-  }, 300);
-  
-  console.log('📝 Current selected employees:', selectedEmployees);
 }
 
 async function submitEmployees() {
@@ -1727,12 +1918,10 @@ async function submitEmployees() {
     return;
   }
 
-  // CRITICAL: Try multiple sources for project ID
   let projectId = currentProjectId || 
                   window.currentProjectId || 
                   getProjectIdFromSession();
   
-  // Try DOM as last resort
   if (!projectId) {
     const detailView = document.getElementById('project-detail-view');
     if (detailView) {
@@ -1742,17 +1931,10 @@ async function submitEmployees() {
   
   if (!projectId) {
     showToast('Error: Project ID not found. Please try again.', 'error');
-    console.error('❌ Project ID missing from all sources:', {
-      currentProjectId,
-      windowProjectId: window.currentProjectId,
-      sessionProjectId: getProjectIdFromSession(),
-      domProjectId: document.getElementById('project-detail-view')?.getAttribute('data-project-id')
-    });
+    console.error('❌ Project ID missing from all sources');
     return;
   }
 
-  // FIX: Keep project ID as string - don't convert to integer
-  // Your API likely expects the string ID like "PRJ20251011_9f1781fac20c"
   const finalProjectId = String(projectId).trim();
   
   if (!finalProjectId) {
@@ -1764,7 +1946,7 @@ async function submitEmployees() {
   console.log('✅ Using project ID for submission:', finalProjectId);
 
   const allocationData = {
-    project_id: finalProjectId,  // Send as string, not integer
+    project_id: finalProjectId,
     employees: selectedEmployees.map(emp => ({
       emp_id: emp.emp_id,
       emp_name: emp.emp_name,
@@ -1983,6 +2165,27 @@ document.head.appendChild(style);
 document.addEventListener('DOMContentLoaded', () => {
   console.log('🎬 DOM Loaded - Initializing Project Dashboard...');
   initializeProjectDashboard();
+  
+  // Task team dropdown event listener
+  const teamSelect = document.getElementById('TaskTeamName');
+  if (teamSelect) {
+    teamSelect.addEventListener('change', handleTaskTeamChange);
+    console.log('✅ Team dropdown event listener attached');
+  }
+  
+  // Task form event listener
+  const taskForm = document.getElementById('TaskAllocationForm');
+  if (taskForm) {
+    taskForm.addEventListener('submit', handleAddTaskToTable);
+    console.log('✅ Task form listener attached');
+  }
+  
+  // Submit button event listener
+  const submitBtn = document.querySelector('.submit-task-btn');
+  if (submitBtn) {
+    submitBtn.addEventListener('click', submitAllTasks);
+    console.log('✅ Submit button listener attached');
+  }
 });
 
 // ============================
@@ -2006,20 +2209,22 @@ window.loadAnalyticsContent = loadAnalyticsContent;
 window.confirmDeleteProject = confirmDeleteProject;
 window.fetchProjectEmployees = fetchProjectEmployees;
 window.populateEmployeeDropdown = populateEmployeeDropdown;
-window.addEmployeeToList = addEmployeeToList;
-window.removeEmployee = removeEmployee;
+window.addToSelectedList = addToSelectedList;
 window.submitEmployees = submitEmployees;
+window.removeAllocatedEmployee = removeAllocatedEmployee; // ❌ THIS IS MISSING!
 window.fetchTaskAllocationTeams = fetchTaskAllocationTeams;
 window.populateTaskTeamDropdown = populateTaskTeamDropdown;
 window.handleTaskTeamChange = handleTaskTeamChange;
-window.openTaskAllocationForm = openTaskAllocationForm;
-window.closeTaskAllocationForm = closeTaskAllocationForm;
 window.handleAddTaskToTable = handleAddTaskToTable;
 window.removeTaskFromTable = removeTaskFromTable;
 window.submitAllTasks = submitAllTasks;
 window.updateTempTaskTable = updateTempTaskTable;
 window.formatDateDisplay = formatDateDisplay;
+window.fetchAndDisplayAllocatedInModal = fetchAndDisplayAllocatedInModal;
+window.displayAllocatedInModal = displayAllocatedInModal;
+window.showEmptyStateInModal = showEmptyStateInModal;
+window.displayNewSelectionsInModal = displayNewSelectionsInModal;
+window.removeFromNewSelection = removeFromNewSelection;
+window.getTeamBadgeClass = getTeamBadgeClass;
 
-
-
-console.log('✅ Project.js loaded successfully - All duplicates removed!');
+console.log('✅ Project.js loaded successfully - All functions organized and deduplicated!');
