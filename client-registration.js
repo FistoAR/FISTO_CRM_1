@@ -4,6 +4,7 @@ class ClientManager {
         this.pendingStatusIndex = null;
         this.pendingStatusNewValue = null;
         this.currentEditingIndex = null;
+        this.contactCount = 1; 
         this.initializeEventListeners();
         this.setDefaultDate();
         this.loadClients();
@@ -46,6 +47,98 @@ class ClientManager {
         if (dateInput) {
             dateInput.value = today;
         }
+    }
+
+    addContactField() {
+        this.contactCount++;
+        const contactsContainer = document.getElementById('contactsContainer');
+        
+        if (!contactsContainer) {
+            console.error('contactsContainer not found!');
+            return;
+        }
+        
+        const contactItem = document.createElement('div');
+        contactItem.className = 'contact-item';
+        contactItem.setAttribute('data-contact-index', this.contactCount - 1);
+        contactItem.style.cssText = 'background: white; padding: 20px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #dee2e6; position: relative; animation: slideIn 0.3s ease-out; box-shadow: 0 2px 4px rgba(0,0,0,0.05);';
+        
+        contactItem.innerHTML = `
+            <div class="contact-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #4ecdc4;">
+                <h4 style="margin: 0; color: #2c3e50; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-user-circle" style="color: #4ecdc4;"></i>
+                    Contact Person ${this.contactCount}
+                </h4>
+                <button type="button" class="remove-contact-btn" onclick="clientManager.removeContactField(this)"
+                        style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.3s ease; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(220,53,69,0.3);">
+                    <i class="fas fa-times"></i> Remove
+                </button>
+            </div>
+            <div class="content-details-grid">
+                <div class="form-group">
+                    <label>Contact Person *</label>
+                    <input type="text" name="contactPerson[]" placeholder="Enter contact person name" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number *</label>
+                    <input type="tel" name="phoneNo[]" placeholder="Enter phone number" required>
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" name="mailId[]" placeholder="example@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Designation *</label>
+                    <input type="text" name="designation[]" placeholder="e.g., Manager, CEO" required>
+                </div>
+            </div>
+        `;
+        
+        contactsContainer.appendChild(contactItem);
+        this.showToast('Success', `Contact Person ${this.contactCount} added`);
+        console.log(`✅ Added contact field #${this.contactCount}`);
+    }
+
+    /**
+     * ✅ ADD THIS METHOD
+     */
+    removeContactField(button) {
+        const contactItem = button.closest('.contact-item');
+        const contactsContainer = document.getElementById('contactsContainer');
+        
+        if (!contactsContainer) return;
+        
+        // Don't allow removing if only one contact remains
+        if (contactsContainer.children.length <= 1) {
+            this.showToast('Warning', 'At least one contact is required');
+            return;
+        }
+        
+        // Add fade-out animation
+        contactItem.style.animation = 'slideOut 0.3s ease-out';
+        
+        setTimeout(() => {
+            contactItem.remove();
+            this.contactCount--;
+            this.renumberContacts();
+            this.showToast('Success', 'Contact removed successfully');
+        }, 300);
+    }
+
+    /**
+     * ✅ ADD THIS METHOD
+     */
+    renumberContacts() {
+        const contactItems = document.querySelectorAll('#contactsContainer .contact-item');
+        contactItems.forEach((item, index) => {
+            const header = item.querySelector('.contact-header h4');
+            if (header) {
+                const icon = '<i class="fas fa-user-circle" style="color: #4ecdc4;"></i>';
+                header.innerHTML = `${icon} Contact Person ${index + 1}`;
+            }
+            item.setAttribute('data-contact-index', index);
+        });
+        this.contactCount = contactItems.length;
     }
 
     async submitViewClientChanges(index) {
@@ -287,35 +380,64 @@ async confirmStatusChange(confirmed) {
         this.currentEditingIndex = null;
     }
 
-    async handleFormSubmit() {
-        const form = document.getElementById('clientForm');
+   async handleFormSubmit() {
+    const form = document.getElementById('clientForm');
 
-        if (!form.reportValidity()) return;
-
-        const formData = new FormData(form);
-
-        const clientData = {
-            Date: formData.get('Date'),
-            customerId: formData.get('customerId'),
-            companyName: formData.get('companyName'),
-            customerName: formData.get('customerName'),
-            address: formData.get('address') || 'N/A',
-            industryType: formData.get('industryType') || 'N/A',
-            website: formData.get('website') || 'N/A',
-            reference: formData.get('reference') || 'N/A',
-            remarks: formData.get('clientremarks') || 'N/A',
-            contactPerson: formData.get('contactPerson') || 'N/A',
-            phoneNumber: formData.get('phoneNo'),
-            mailId: formData.get('mailId'),
-            designation: formData.get('designation') || 'N/A'
-        };
-
-        if (this.currentEditingIndex !== null) {
-            await this.updateClient(clientData);
-        } else {
-            await this.addNewClient(clientData);
-        }
+    if (!form.reportValidity()) {
+        this.showToast('Error', 'Please fill all required fields');
+        return;
     }
+
+    const formData = new FormData(form);
+
+    // Collect client data
+    const clientData = {
+        Date: formData.get('Date'),
+        customerId: formData.get('customerId'),
+        companyName: formData.get('companyName'),
+        customerName: formData.get('customerName'),
+        address: formData.get('address') || 'N/A',
+        industryType: formData.get('industryType') || 'N/A',
+        website: formData.get('website') || 'N/A',
+        reference: formData.get('reference') || 'N/A',
+        remarks: formData.get('clientremarks') || 'N/A',
+        contacts: []
+    };
+
+    // Collect all contact details
+    const contactPersons = formData.getAll('contactPerson[]');
+    const phoneNos = formData.getAll('phoneNo[]');
+    const mailIds = formData.getAll('mailId[]');
+    const designations = formData.getAll('designation[]');
+
+    // ✅ ADD THIS DEBUG CODE
+    console.log('🔍 DEBUG - Raw form data:');
+    console.log('  contactPersons:', contactPersons);
+    console.log('  phoneNos:', phoneNos);
+    console.log('  mailIds:', mailIds);
+    console.log('  designations:', designations);
+
+    // Build contacts array
+    for (let i = 0; i < contactPersons.length; i++) {
+        clientData.contacts.push({
+            contactPerson: contactPersons[i] || 'N/A',
+            phoneNumber: phoneNos[i],
+            mailId: mailIds[i],
+            designation: designations[i] || 'N/A'
+        });
+    }
+
+    // ✅ ADD THIS DEBUG CODE
+    console.log('📤 Final clientData being sent:', clientData);
+    console.log('📊 Number of contacts:', clientData.contacts.length);
+
+    if (this.currentEditingIndex !== null) {
+        await this.updateClient(clientData);
+    } else {
+        await this.addNewClient(clientData);
+    }
+}
+
 
     async addNewClient(clientData) {
         try {
