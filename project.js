@@ -148,53 +148,74 @@ async function loadOnboardedClients() {
 // ============================
 
 function populateClientDropdown() {
-  const clientSelect = document.getElementById('onboardedProjectSelect');
-  
-  if (!clientSelect) {
-    console.error('❌ onboardedProjectSelect dropdown not found!');
-    return;
-  }
+    const clientSelect = document.getElementById('onboardedProjectSelect');
+    if (!clientSelect) {
+        console.error('onboardedProjectSelect dropdown not found!');
+        return;
+    }
 
-  console.log('🔄 Populating dropdown with', clientsData.length, 'projects');
-  clientSelect.innerHTML = '<option value="">-- Select Project --</option>';
-  
-  if (clientsData.length === 0) {
-    const noDataOption = document.createElement('option');
-    noDataOption.value = '';
-    noDataOption.textContent = '-- No onboarded projects available --';
-    noDataOption.disabled = true;
-    clientSelect.appendChild(noDataOption);
-    console.warn('⚠️ No projects to populate');
-    return;
-  }
+    console.log('Populating dropdown with', clientsData.length, 'projects');
+    clientSelect.innerHTML = `<option value="">-- Select Project --</option>`;
 
-  clientsData.forEach((client, index) => {
-    const option = document.createElement('option');
-    option.value = client.customerId;
-    
-    const displayText = client.projectName !== 'N/A' 
-      ? `${client.projectName} - ${client.companyName} (${client.customerId})`
-      : `${client.companyName} (${client.customerId})`;
-    
-    option.textContent = displayText;
-    
-    option.dataset.customerId = client.customerId;
-    option.dataset.projectName = client.projectName;
-    option.dataset.projectDescription = client.projectDescription;
-    option.dataset.companyName = client.companyName;
-    option.dataset.customerName = client.customerName;
-    option.dataset.phone = client.phoneNo;
-    option.dataset.email = client.mailId;
-    option.dataset.contactPerson = client.contactPerson;
-    option.dataset.designation = client.designation;
-    option.dataset.industry = client.industryType;
-    option.dataset.website = client.website;
-    option.dataset.address = client.address;
-    
-    clientSelect.appendChild(option);
-  });
-  
-  console.log(`✅ Dropdown populated with ${clientsData.length} options`);
+    if (clientsData.length === 0) {
+        const noDataOption = document.createElement('option');
+        noDataOption.value = '';
+        noDataOption.textContent = '-- No onboarded projects available --';
+        noDataOption.disabled = true;
+        clientSelect.appendChild(noDataOption);
+        console.warn('No projects to populate');
+        return;
+    }
+
+    // ✅ NEW: Filter out clients that already have projects
+    const availableClients = clientsData.filter(client => {
+        // Check if this client already has a project in projectsData
+        const hasProject = projectsData && projectsData.some(project => 
+            project.customerId === client.customerId || 
+            project.customerid === client.customerId
+        );
+        return !hasProject; // Only include clients WITHOUT projects
+    });
+
+    console.log(`Filtered: ${availableClients.length} available out of ${clientsData.length} total`);
+
+    if (availableClients.length === 0) {
+        const noDataOption = document.createElement('option');
+        noDataOption.value = '';
+        noDataOption.textContent = '-- All onboarded projects have been added --';
+        noDataOption.disabled = true;
+        clientSelect.appendChild(noDataOption);
+        console.warn('All clients already have projects');
+        return;
+    }
+
+    // Populate with only available clients
+    availableClients.forEach((client, index) => {
+        const option = document.createElement('option');
+        option.value = client.customerId;
+        
+        const displayText = (client.projectName && client.projectName !== 'N/A') 
+            ? `${client.projectName} - ${client.companyName} (${client.customerId})`
+            : `${client.companyName} (${client.customerId})`;
+        
+        option.textContent = displayText;
+        option.dataset.customerId = client.customerId;
+        option.dataset.projectName = client.projectName;
+        option.dataset.projectDescription = client.projectDescription;
+        option.dataset.companyName = client.companyName;
+        option.dataset.customerName = client.customerName;
+        option.dataset.phone = client.phoneNo;
+        option.dataset.email = client.mailId;
+        option.dataset.contactPerson = client.contactPerson;
+        option.dataset.designation = client.designation;
+        option.dataset.industry = client.industryType;
+        option.dataset.website = client.website;
+        option.dataset.address = client.address;
+        
+        clientSelect.appendChild(option);
+    });
+
+    console.log('Dropdown populated with', availableClients.length, 'available options');
 }
 
 // ============================
@@ -512,6 +533,9 @@ async function viewProject(projectId) {
         showToast('Error: Project structure issue. Check console.', 'error');
         return;
       }
+       // Load project tasks
+      loadProjectTasks(projectId);
+      
       
       currentProjectId = numericId;
       window.currentProjectId = numericId;
@@ -627,6 +651,7 @@ function updateProjectStats(stats) {
   });
 }
 
+
 // ============================
 // LOAD PROJECT TASKS
 // ============================
@@ -634,19 +659,121 @@ function updateProjectStats(stats) {
 async function loadProjectTasks(projectId) {
   const tableBody = document.getElementById('projectTasksTableBody');
   
-  if (!tableBody) return;
+  if (!tableBody) {
+    console.error('❌ Tasks table body not found');
+    return;
+  }
   
+  // Show loading state
   tableBody.innerHTML = `
-    <tr class="empty-state">
-      <td colspan="7">
-        <div class="empty-content" style="text-align: center; padding: 40px; color: #666;">
-          <i class="fas fa-tasks" style="font-size: 48px; color: #ccc; margin-bottom: 10px;"></i>
-          <p>No tasks found</p>
-          <small>Click "Add Task" to get started</small>
-        </div>
+    <tr class="loading-state">
+      <td colspan="7" style="text-align: center; padding: 40px;">
+        <i class="fas fa-spinner fa-spin" style="font-size: 32px; color: #5e72e4;"></i>
+        <p style="margin-top: 10px; color: #666;">Loading tasks...</p>
       </td>
     </tr>
   `;
+  
+  try {
+    console.log('📋 Fetching tasks for project:', projectId);
+    
+    const response = await fetch(`https://www.fist-o.com/web_crm/get_project_tasks.php?project_id=${projectId}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    console.log('📦 Tasks response:', result);
+    
+    if (result.success && result.data && result.data.tasks && result.data.tasks.length > 0) {
+      const tasks = result.data.tasks;
+      
+      tableBody.innerHTML = tasks.map((task, index) => `
+        <tr>
+          <td>${index + 1}</td>
+          <td>
+            <div class="task-title-cell">
+              <strong>${task.task_name}</strong>
+              <small style="display: block; color: #999; margin-top: 4px;">${task.task_description}</small>
+            </div>
+          </td>
+          <td>
+            <span class="team-badge ${getTeamBadgeClass(task.team_name)}">${task.team_name}</span>
+          </td>
+          <td>
+            <div style="display: flex; flex-direction: column;">
+              <strong>${task.assigned_to_name}</strong>
+              <small style="color: #999;">${task.assigned_to_emp_id}</small>
+            </div>
+          </td>
+          <td>
+            <div style="display: flex; flex-direction: column;">
+              <span>${formatDateDisplay(task.start_date)}</span>
+              <small style="color: #666;">${formatTime(task.start_time)}</small>
+            </div>
+          </td>
+          <td>
+            <div style="display: flex; flex-direction: column;">
+              <span>${formatDateDisplay(task.end_date)}</span>
+              <small style="color: #666;">${formatTime(task.end_time)}</small>
+            </div>
+          </td>
+          <td>
+            <span class="status-badge status-${task.status.toLowerCase()}">${capitalizeFirst(task.status)}</span>
+          </td>
+        </tr>
+      `).join('');
+      
+      console.log(`✅ Displayed ${tasks.length} tasks`);
+    } else {
+      // No tasks found
+      tableBody.innerHTML = `
+        <tr class="empty-state">
+          <td colspan="7">
+            <div class="empty-content" style="text-align: center; padding: 40px; color: #666;">
+              <i class="fas fa-tasks" style="font-size: 48px; color: #ccc; margin-bottom: 10px; display: block;"></i>
+              <p style="font-size: 16px; margin: 10px 0;">No tasks found</p>
+              <small style="color: #999;">Click "Add Task" to get started</small>
+            </div>
+          </td>
+        </tr>
+      `;
+      
+      console.log('ℹ️ No tasks found for this project');
+    }
+  } catch (error) {
+    console.error('❌ Error loading tasks:', error);
+    
+    tableBody.innerHTML = `
+      <tr class="error-state">
+        <td colspan="7" style="text-align: center; padding: 40px;">
+          <i class="fas fa-exclamation-circle" style="font-size: 48px; color: #dc3545; margin-bottom: 10px; display: block;"></i>
+          <p style="color: #dc3545; font-size: 16px; margin: 10px 0;">Failed to load tasks</p>
+          <small style="color: #999;">${error.message}</small>
+        </td>
+      </tr>
+    `;
+  }
+}
+// Format time from HH:MM:SS to HH:MM AM/PM
+function formatTime(timeString) {
+  if (!timeString) return '09:00 AM';
+  
+  const [hours, minutes] = timeString.split(':');
+  const hour = parseInt(hours);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 || 12;
+  
+  return `${displayHour}:${minutes} ${ampm}`;
+}
+
+
+// Capitalize first letter
+function capitalizeFirst(str) {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
 // ============================
@@ -696,73 +823,80 @@ function closeProjectForm() {
 }
 
 async function handleProjectFormSubmit(e) {
-  e.preventDefault();
-  
-  const customerId = document.getElementById('onboardedProjectSelect')?.value;
-  if (!customerId) {
-    showToast('Please select an onboarded project', 'error');
-    return;
-  }
-  
-  const client = clientsData.find(c => c.customerId === customerId);
-  
-  console.log('📦 Client data found:', client);
-  console.log('📦 Project name from client:', client?.projectName);
-  
-  const projectData = {
-    customerId: customerId,
-    companyName: client?.companyName || '',
-    customerName: client?.customerName || '',
-    project_name: client?.project_name || client?.projectName || '', 
-    projectDescription: document.getElementById('projectDescriptionForm')?.value || '',
-    contactPerson: document.getElementById('contactPersonForm')?.value || '',
-    contactNumber: document.getElementById('contactNumberForm')?.value || '',
-    contactEmail: document.getElementById('contactEmailForm')?.value || '',
-    contactDesignation: document.getElementById('contactDesignationForm')?.value || '',
-    startDate: document.getElementById('date')?.value || '',
-    completionDate: document.getElementById('deadline')?.value || '',
-    reportingPerson: document.getElementById('reportingPerson')?.value || '',
-    allocatedTeam: document.getElementById('allocatedteam')?.value || '',
-    remarks: document.getElementById('projectremarks')?.value || 'N/A'
-  };
+    e.preventDefault();
 
-  console.log('📤 Submitting project data:', projectData);
-  console.log('📤 Project name being sent:', projectData.project_name);
-  
-  try {
-    showLoadingSpinner();
-    
-    const response = await fetch('https://www.fist-o.com/web_crm/add_project.php', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(projectData)
-    });
-
-    const result = await response.json();
-    hideLoadingSpinner();
-
-    if (response.ok && (result.success === true || result.status === 'success')) {
-      showToast('✅ Project created successfully!', 'success');
-      closeProjectForm();
-      await loadProjects();
-      
-      const form = document.getElementById('projectForm');
-      if (form) form.reset();
-      clearContactFields();
-    } else {
-      const errorMsg = result.message || 'Failed to create project';
-      showToast(errorMsg, 'error');
-      console.error('Server error:', result);
+    const customerId = document.getElementById('onboardedProjectSelect')?.value;
+    if (!customerId) {
+        showToast('Please select an onboarded project', 'error');
+        return;
     }
-  } catch (err) {
-    hideLoadingSpinner();
-    console.error('❌ Error:', err);
-    showToast('Error: ' + err.message, 'error');
-  }
+
+    const client = clientsData.find(c => c.customerId === customerId);
+    console.log('Client data found:', client);
+    console.log('Project name from client:', client?.projectName);
+
+    const projectData = {
+        customerId: customerId,
+        companyName: client?.companyName,
+        customerName: client?.customerName,
+        projectname: client?.projectname || client?.projectName,
+        projectDescription: document.getElementById('projectDescriptionForm')?.value,
+        contactPerson: document.getElementById('contactPersonForm')?.value,
+        contactNumber: document.getElementById('contactNumberForm')?.value,
+        contactEmail: document.getElementById('contactEmailForm')?.value,
+        contactDesignation: document.getElementById('contactDesignationForm')?.value,
+        startDate: document.getElementById('date')?.value,
+        completionDate: document.getElementById('deadline')?.value,
+        reportingPerson: document.getElementById('reportingPerson')?.value,
+        allocatedTeam: document.getElementById('allocatedteam')?.value,
+        remarks: document.getElementById('projectremarks')?.value || 'N/A'
+    };
+
+    console.log('Submitting project data:', projectData);
+    console.log('Project name being sent:', projectData.projectname);
+
+    try {
+        showLoadingSpinner();
+        
+        const response = await fetch('https://www.fist-o.com/web_crm/add_project.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(projectData)
+        });
+
+        const result = await response.json();
+        hideLoadingSpinner();
+
+        if (response.ok && (result.success === true || result.status === 'success')) {
+            showToast('Project created successfully!', 'success');
+            closeProjectForm();
+            
+            // ✅ Reload projects data to update the list
+            await loadProjects();
+            
+            // ✅ Reload onboarded clients and refresh dropdown
+            await loadOnboardedClients();
+            
+            const form = document.getElementById('projectForm');
+            if (form) {
+                form.reset();
+                clearContactFields();
+            }
+        } else {
+            const errorMsg = result.message || 'Failed to create project';
+            showToast(errorMsg, 'error');
+            console.error('Server error:', result);
+        }
+    } catch (err) {
+        hideLoadingSpinner();
+        console.error('Error:', err);
+        showToast('Error: ' + err.message, 'error');
+    }
 }
+
 
 // ============================
 // DELETE PROJECT
@@ -1182,38 +1316,92 @@ function handleTaskTeamChange() {
 function handleAddTaskToTable(event) {
     event.preventDefault();
     
-    const taskName = document.getElementById('TaskName').value.trim();
-    const taskDescription = document.getElementById('ProjectDescription').value.trim();
-    const startDate = document.getElementById('TaskStartDate').value;
-    const endDate = document.getElementById('TaskEndDate').value;
+    const taskName = document.getElementById('TaskName')?.value.trim();
+    const taskDescription = document.getElementById('ProjectDescription')?.value.trim();
+    const startDate = document.getElementById('TaskStartDate')?.value;
+    const startTime = document.getElementById('TaskStartTime')?.value; // ✅ NEW
+    const endDate = document.getElementById('TaskEndDate')?.value;
+    const endTime = document.getElementById('TaskEndTime')?.value; // ✅ NEW
     const teamSelect = document.getElementById('TaskTeamName');
     const memberSelect = document.getElementById('allocAssignedTo');
-    const remarks = document.getElementById('projectremarks').value.trim();
+    const remarks = document.getElementById('taskremarks')?.value.trim();
     
-    const teamName = teamSelect.value;
-    const assignedToEmpId = memberSelect.value;
-    const assignedToName = memberSelect.options[memberSelect.selectedIndex]?.text || '';
+    const teamName = teamSelect?.value;
+    const assignedToEmpId = memberSelect?.value;
+    const assignedToName = memberSelect?.options[memberSelect.selectedIndex]?.text || '';
     
-    if (!taskName || !startDate || !endDate || !teamName || !assignedToEmpId || !remarks) {
-        showToast('Please fill all required fields', 'error');
+    console.log('📋 Form Values:');
+    console.log('  taskName:', taskName);
+    console.log('  startDate:', startDate);
+    console.log('  startTime:', startTime); // ✅ NEW
+    console.log('  endDate:', endDate);
+    console.log('  endTime:', endTime); // ✅ NEW
+    console.log('  teamName:', teamName);
+    console.log('  assignedToEmpId:', assignedToEmpId);
+    console.log('  remarks:', remarks);
+    
+    // Validation
+    if (!taskName) {
+        showToast('❌ Task Name is required', 'error');
         return;
     }
     
-    if (new Date(startDate) > new Date(endDate)) {
-        showToast('End date must be after start date', 'error');
+    if (!startDate) {
+        showToast('❌ Start Date is required', 'error');
+        return;
+    }
+    
+    if (!startTime) {
+        showToast('❌ Start Time is required', 'error');
+        return;
+    }
+    
+    if (!endDate) {
+        showToast('❌ End Date is required', 'error');
+        return;
+    }
+    
+    if (!endTime) {
+        showToast('❌ End Time is required', 'error');
+        return;
+    }
+    
+    if (!teamName) {
+        showToast('❌ Team Name is required', 'error');
+        return;
+    }
+    
+    if (!assignedToEmpId) {
+        showToast('❌ Assigned To is required', 'error');
+        return;
+    }
+    
+    if (!remarks) {
+        showToast('❌ Remarks is required', 'error');
+        return;
+    }
+    
+    // ✅ Validate date-time combination
+    const startDateTime = new Date(`${startDate}T${startTime}`);
+    const endDateTime = new Date(`${endDate}T${endTime}`);
+    
+    if (startDateTime >= endDateTime) {
+        showToast('❌ End date/time must be after start date/time', 'error');
         return;
     }
     
     const task = {
         id: Date.now(),
         taskName: taskName,
-        description: taskDescription,
+        description: taskDescription || '',
         startDate: startDate,
+        startTime: startTime, // ✅ NEW
         endDate: endDate,
+        endTime: endTime, // ✅ NEW
         teamName: teamName,
         assignedToEmpId: assignedToEmpId,
         assignedToName: assignedToName,
-        remarks: remarks
+        taskremarks: remarks
     };
     
     tempTasks.push(task);
@@ -1222,8 +1410,8 @@ function handleAddTaskToTable(event) {
     
     showToast('✅ Task added to list', 'success');
     console.log('✅ Task added:', task);
-    console.log('📋 Total tasks:', tempTasks.length);
 }
+
 
 function updateTempTaskTable() {
     const tbody = document.querySelector('#tempTaskTable tbody');
@@ -1236,30 +1424,31 @@ function updateTempTaskTable() {
     if (tempTasks.length === 0) {
         tbody.innerHTML = `
             <tr class="empty-state-temp">
-                <td colspan="6">No tasks added yet</td>
+                <td colspan="7">No tasks added yet</td>
             </tr>
         `;
         return;
     }
     
-    tbody.innerHTML = tempTasks.map(task => `
-        <tr>
-            <td>${task.taskName}</td>
-            <td>${task.description || '-'}</td>
-            <td>${formatDateDisplay(task.startDate)}</td>
-            <td>${formatDateDisplay(task.endDate)}</td>
-            <td>${task.assignedToName}</td>
-            <td>
-                <button type="button" onclick="removeTaskFromTable(${task.id})" 
-                        style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        </tr>
-    `).join('');
-    
-    console.log(`✅ Table updated: ${tempTasks.length} tasks`);
+tbody.innerHTML = tempTasks.map(task => `
+    <tr>
+        <td>${task.taskName}</td>
+        <td>${task.description || '-'}</td>
+        <td>${formatDateDisplay(task.startDate)}<br><small>${task.startTime || '09:00'}</small></td>
+        <td>${formatDateDisplay(task.endDate)}<br><small>${task.endTime || '18:00'}</small></td>
+        <td>${task.assignedToName}</td>
+        <td>${task.taskremarks || '-'}</td>
+        <td>
+            <button type="button" onclick="removeTaskFromTable(${task.id})" 
+                    style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+                <i class="fas fa-trash"></i>
+            </button>
+        </td>
+    </tr>
+`).join('');
+
 }
+
 
 function removeTaskFromTable(taskId) {
     const taskIndex = tempTasks.findIndex(t => t.id === taskId);
@@ -1274,7 +1463,9 @@ function removeTaskFromTable(taskId) {
 function clearTaskFormFields() {
     document.getElementById('TaskName').value = '';
     document.getElementById('TaskStartDate').value = '';
+    document.getElementById('TaskStartTime').value = '09:00'; // ✅ Reset to default
     document.getElementById('TaskEndDate').value = '';
+    document.getElementById('TaskEndTime').value = '18:00'; // ✅ Reset to default
     
     const teamSelect = document.getElementById('TaskTeamName');
     const memberSelect = document.getElementById('allocAssignedTo');
@@ -1285,7 +1476,7 @@ function clearTaskFormFields() {
         memberSelect.disabled = true;
     }
     
-    document.getElementById('projectremarks').value = '';
+    document.getElementById('taskremarks').value = '';
 }
 
 async function submitAllTasks() {

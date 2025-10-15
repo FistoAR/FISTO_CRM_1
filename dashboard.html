@@ -905,14 +905,31 @@
                   <label for="TaskName">Task Name <span class="required">*</span></label>
                   <input type="text" id="TaskName" name="TaskName" required>
                 </div>
+               <!-- Start Date & Time Row -->
+              <div class="form-row">
                 <div class="form-group">
-                  <label for="TaskStartDate">Start Date <span class="required">*</span></label>
+                  <label for="TaskStartDate">Start Date *</label>
                   <input type="date" id="TaskStartDate" name="TaskStartDate" required>
                 </div>
+                
                 <div class="form-group">
-                  <label for="TaskEndDate">End Date <span class="required">*</span></label>
+                  <label for="TaskStartTime">Start Time *</label>
+                  <input type="time" id="TaskStartTime" name="TaskStartTime" value="09:00" required>
+                </div>
+              </div>
+
+              <!-- End Date & Time Row -->
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="TaskEndDate">End Date *</label>
                   <input type="date" id="TaskEndDate" name="TaskEndDate" required>
                 </div>
+                
+                <div class="form-group">
+                  <label for="TaskEndTime">End Time *</label>
+                  <input type="time" id="TaskEndTime" name="TaskEndTime" value="18:00" required>
+                </div>
+              </div>
                 <div class="form-group">
                   <label for="TaskTeamName">Team Name <span class="required">*</span></label>
                   <select id="TaskTeamName" name="TaskTeamName" required>
@@ -926,8 +943,8 @@
                   </select>
                 </div>   
                 <div class="form-group">
-                  <label for="projectremarks">Remarks *</label>
-                  <input type="text" id="projectremarks" name="projectremarks" required>
+                  <label for="taskremarks">Remarks *</label>
+                  <input type="text" id="taskremarks" name="taskremarks" required>
                 </div>
                 <div class="Add-More-Task">
                   <button type="submit" class="Add-More-Task-btn">add</button>
@@ -936,22 +953,23 @@
                   <div class="table-container">
                     <div class="temp-table">
                       <table id="tempTaskTable" aria-label="Temporary task list">
-                        <thead>
-                          <tr>
-                            <th>Task Name</th>
-                            <th>Description</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                            <th>Assigned To</th>
-                            <th>Action</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr class="empty-state-temp">
-                            <td colspan="6">No tasks added yet</td>
-                          </tr>
-                        </tbody>
-                      </table>
+                      <thead>
+                        <tr>
+                          <th>Task Name</th>
+                          <th>Description</th>
+                          <th>Start Date & Time</th>
+                          <th>End Date & Time</th>
+                          <th>Assigned To</th>
+                          <th>Remarks</th> <!-- ✅ ADDED -->
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr class="empty-state-temp">
+                          <td colspan="7">No tasks added yet</td> <!-- ✅ CHANGED from 6 to 7 -->
+                        </tr>
+                      </tbody>
+                    </table>
                     </div>
                   </div>
                 </div>

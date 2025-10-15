@@ -6623,7 +6623,7 @@ ease;
     border-left: 1px solid #000000;
     /* Adds | and - borders */
     padding: 8px 12px;
-    text-align: left;
+    text-align: center;
 }
 
 .temp-table td {

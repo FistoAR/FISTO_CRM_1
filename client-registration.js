@@ -170,7 +170,7 @@ async confirmStatusChange(confirmed) {
                 this.clients[index].remarks = newRemarks || client.remarks;
                 this.clients[index].updatedAt = new Date().toISOString();
             if (newStatus.toLowerCase() === 'onboard') {
-                const projectNameInput = document.querySelector('#projectFields input#projectname');
+                const projectNameInput = document.querySelector('#projectFields input#projectName');
                 const projectDescInput = document.querySelector('#projectFields textarea#allocProjectDescription');
 
                 this.clients[index].projectName = projectNameInput ? projectNameInput.value.trim() : 'N/A';
@@ -206,7 +206,7 @@ async confirmStatusChange(confirmed) {
 
     // Clear all inputs after closing modal
     if (remarksInput) remarksInput.value = '';
-    const projectNameInput = document.getElementById('projectname');
+    const projectNameInput = document.getElementById('projectName');
     const projectDescInput = document.getElementById('allocProjectDescription');
     if (projectNameInput) projectNameInput.value = '';
     if (projectDescInput) projectDescInput.value = '';
@@ -544,8 +544,7 @@ async confirmStatusChange(confirmed) {
                 </td>
             </tr>`).join('');
     }
-
-updateStatus(index, newStatus) {
+ updateStatus(index, newStatus) {
     this.pendingStatusIndex = index;
     this.pendingStatusNewValue = newStatus;
 
@@ -556,100 +555,187 @@ updateStatus(index, newStatus) {
 
     confirmMessage.textContent = `Are you sure you want to change ${client.companyName} status to ${newStatus}?`;
 
-    // Show/hide project fields based on status
-    if (newStatus.toLowerCase() === 'onboard') {
-        projectFields.style.display = 'block';
-    } else {
-        projectFields.style.display = 'none';
-    }
+    // Show/hide project fields
+    const isOnboard = newStatus.toLowerCase() === 'onboard';
+    projectFields.style.display = isOnboard ? 'block' : 'none';
 
-    // Get fresh references and clear inputs
-    const remarksInput = document.getElementById('remarks');
-    const projectNameInput = document.getElementById('projectName');
-    const projectDescInput = document.getElementById('allocProjectDescription');
-
-    if (remarksInput) remarksInput.value = '';
-    if (projectNameInput) {
-        projectNameInput.value = '';
-        projectNameInput.required = newStatus.toLowerCase() === 'onboard';
-    }
-    if (projectDescInput) {
-        projectDescInput.value = '';
-        projectDescInput.required = newStatus.toLowerCase() === 'onboard';
-    }
-
-    // Disable Yes button initially
-    confirmYesBtn.disabled = true;
-    confirmYesBtn.style.opacity = '0.5';
-    confirmYesBtn.style.cursor = 'not-allowed';
-
-    // Remove all existing event listeners by replacing with clone
-    const newRemarksInput = remarksInput.cloneNode(true);
-    remarksInput.parentNode.replaceChild(newRemarksInput, remarksInput);
-
-    let newProjectNameInput = null;
-    let newProjectDescInput = null;
-
-    if (projectNameInput) {
-        newProjectNameInput = projectNameInput.cloneNode(true);
-        projectNameInput.parentNode.replaceChild(newProjectNameInput, projectNameInput);
-    }
-
-    if (projectDescInput) {
-        newProjectDescInput = projectDescInput.cloneNode(true);
-        projectDescInput.parentNode.replaceChild(newProjectDescInput, projectDescInput);
-    }
-
-    // ✅ FIX: Validation function that ALWAYS gets fresh DOM references
-    const validateFields = () => {
-        // Get CURRENT values from DOM every time this runs
-        const currentRemarks = document.getElementById('remarks');
-        const currentProjectName = document.getElementById('projectName');
-        const currentProjectDesc = document.getElementById('allocProjectDescription');
-        
-        const remarksFilled = currentRemarks && currentRemarks.value.trim() !== '';
-
-        if (newStatus.toLowerCase() === 'onboard') {
-            const projectNameFilled = currentProjectName && currentProjectName.value.trim() !== '';
-            const projectDescFilled = currentProjectDesc && currentProjectDesc.value.trim() !== '';
-
-            if (remarksFilled && projectNameFilled && projectDescFilled) {
-                confirmYesBtn.disabled = false;
-                confirmYesBtn.style.opacity = '1';
-                confirmYesBtn.style.cursor = 'pointer';
-            } else {
-                confirmYesBtn.disabled = true;
-                confirmYesBtn.style.opacity = '0.5';
-                confirmYesBtn.style.cursor = 'not-allowed';
-            }
-        } else {
-            if (remarksFilled) {
-                confirmYesBtn.disabled = false;
-                confirmYesBtn.style.opacity = '1';
-                confirmYesBtn.style.cursor = 'pointer';
-            } else {
-                confirmYesBtn.disabled = true;
-                confirmYesBtn.style.opacity = '0.5';
-                confirmYesBtn.style.cursor = 'not-allowed';
-            }
-        }
-    };
-
-    // Add event listeners to the NEW cloned elements
-    newRemarksInput.addEventListener('input', validateFields);
-    
-    if (newStatus.toLowerCase() === 'onboard') {
-        if (newProjectNameInput) {
-            newProjectNameInput.addEventListener('input', validateFields);
-        }
-        if (newProjectDescInput) {
-            newProjectDescInput.addEventListener('input', validateFields);
-        }
-    }
-
-    // Show modal & disable background scroll
+    // Show modal FIRST so elements are visible in DOM
     document.getElementById('confirmModal').classList.add('show');
     document.body.style.overflow = 'hidden';
+
+    // Use setTimeout to ensure DOM is fully rendered
+    setTimeout(() => {
+        // Get elements AFTER modal is shown
+        const remarksInput = document.getElementById('remarks');
+        const projectNameInput = document.querySelector('#confirmModal #projectName');
+        const projectDescInput = document.getElementById('allocProjectDescription');
+
+        console.log('Elements found:', {
+            remarksInput: !!remarksInput,
+            projectNameInput: !!projectNameInput,
+            projectDescInput: !!projectDescInput,
+            projectNameId: projectNameInput ? projectNameInput.id : 'null',
+            projectNameParent: projectNameInput ? projectNameInput.parentElement.id : 'null',
+            allProjectNameInputs: document.querySelectorAll('#projectName, input[name="projectName"]').length
+        });
+        
+        // Check for duplicate IDs
+        const allProjectInputs = document.querySelectorAll('input[id="projectName"]');
+        if (allProjectInputs.length > 1) {
+            console.warn('⚠️ DUPLICATE IDs FOUND! There are', allProjectInputs.length, 'inputs with id="projectName"');
+            allProjectInputs.forEach((input, idx) => {
+                console.log(`Input ${idx}:`, input, 'Parent:', input.parentElement);
+            });
+        }
+
+        // Clear values
+        if (remarksInput) remarksInput.value = '';
+        if (projectNameInput) projectNameInput.value = '';
+        if (projectDescInput) projectDescInput.value = '';
+
+        // Disable button initially
+        confirmYesBtn.disabled = true;
+        confirmYesBtn.style.opacity = '0.5';
+        confirmYesBtn.style.cursor = 'not-allowed';
+
+        // Validation function
+        const validateFields = () => {
+            const remarksValue = remarksInput ? remarksInput.value.trim() : '';
+            const projectNameValue = projectNameInput ? projectNameInput.value.trim() : '';
+            
+            console.log('Validating fields:', {
+                isOnboard,
+                remarksValue,
+                projectNameValue,
+                remarksInput: !!remarksInput,
+                projectNameInput: !!projectNameInput
+            });
+            
+            let isValid = false;
+
+            if (isOnboard) {
+                // For onboard: both remarks and project name must be filled
+                isValid = remarksValue !== '' && projectNameValue !== '';
+            } else {
+                // For other statuses: only remarks must be filled
+                isValid = remarksValue !== '';
+            }
+
+            console.log('Validation result:', isValid);
+
+            if (isValid) {
+                confirmYesBtn.disabled = false;
+                confirmYesBtn.style.opacity = '1';
+                confirmYesBtn.style.cursor = 'pointer';
+            } else {
+                confirmYesBtn.disabled = true;
+                confirmYesBtn.style.opacity = '0.5';
+                confirmYesBtn.style.cursor = 'not-allowed';
+            }
+        };
+
+        // Attach event listeners
+        if (remarksInput) {
+            remarksInput.addEventListener('input', () => {
+                console.log('Remarks input changed:', remarksInput.value);
+                validateFields();
+            });
+            remarksInput.addEventListener('keyup', validateFields);
+            remarksInput.addEventListener('change', validateFields);
+        }
+        
+        if (isOnboard && projectNameInput) {
+            // Add focus event to confirm we have the right element
+            projectNameInput.addEventListener('focus', () => {
+                console.log('✅ Project Name field FOCUSED - This is the right element!');
+            });
+            
+            projectNameInput.addEventListener('input', (e) => {
+                console.log('Project Name input event fired!');
+                console.log('  - e.target.value:', e.target.value);
+                console.log('  - projectNameInput.value:', projectNameInput.value);
+                console.log('  - Are they the same element?', e.target === projectNameInput);
+                validateFields();
+            });
+            projectNameInput.addEventListener('keyup', (e) => {
+                console.log('Project Name keyup! Value:', e.target.value);
+                validateFields();
+            });
+            projectNameInput.addEventListener('change', validateFields);
+            
+            // Also add event listener for project description (optional)
+            if (projectDescInput) {
+                projectDescInput.addEventListener('input', () => {
+                    console.log('Project Description changed:', projectDescInput.value);
+                });
+            }
+        }
+
+        // Initial validation check
+        validateFields();
+    }, 50);
+}
+
+// Add this method to ClientManager class
+async generateCustomerId() {
+    try {
+        // Fetch the latest customer ID from server
+        const response = await fetch('https://www.fist-o.com/web_crm/fetch_clients.php');
+        const result = await response.json();
+        
+        if (response.ok && result.status === 'success' && result.data.length > 0) {
+            // Filter only FISTOCUS IDs
+            const fistocusClients = result.data.filter(client => 
+                client.customer_id && client.customer_id.startsWith('FISTOCUS')
+            );
+            
+            if (fistocusClients.length > 0) {
+                // Get the last FISTOCUS customer ID
+                const lastClient = fistocusClients[fistocusClients.length - 1];
+                const lastId = lastClient.customer_id;
+                
+                // Extract number from last ID (e.g., "FISTOCUS001" -> 1)
+                const match = lastId.match(/\d+$/);
+                if (match) {
+                    const lastNumber = parseInt(match[0]);
+                    const newNumber = lastNumber + 1;
+                    
+                    // Format with leading zeros (FISTOCUS001, FISTOCUS002, etc.)
+                    const newId = `FISTOCUS${String(newNumber).padStart(3, '0')}`;
+                    return newId;
+                }
+            }
+        }
+        
+        // Default if no FISTOCUS clients exist
+        return 'FISTOCUS001';
+        
+    } catch (err) {
+        console.error('Error generating customer ID:', err);
+        // Fallback to timestamp-based ID
+        return `FISTOCUS${Date.now().toString().slice(-3)}`;
+    }
+}
+
+// Update openForm method
+async openForm() {
+    this.currentEditingIndex = null;
+    
+    // Generate and set customer ID with FISTOCUS prefix
+    const customerId = await this.generateCustomerId();
+    const customerIdInput = document.getElementById('customerId');
+    if (customerIdInput) {
+        customerIdInput.value = customerId;
+        customerIdInput.disabled = true; // Make it readonly
+        customerIdInput.style.backgroundColor = '#f0f0f0'; // Visual feedback
+        customerIdInput.style.cursor = 'not-allowed';
+    }
+    
+    document.getElementById('clientModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+    
+    const submitBtn = document.querySelector('#clientModal .btn-primary');
+    if (submitBtn) submitBtn.textContent = 'Add Client';
 }
 
 
