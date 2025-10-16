@@ -5254,18 +5254,19 @@ ease;
 }
 
 .add-employee-btn {
-  width: 60px;
-  height: 40px;
-  border-radius: 50%;
-  background: black;
-  color: white;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  transition: all 0.3s ease;
+    width: 50%;
+    height: 40px;
+    border-radius: 2vh;
+    background: black;
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    padding: 10px 32px;
+    transition: all 0.3s ease;
 }
 
 .add-employee-btn:hover {

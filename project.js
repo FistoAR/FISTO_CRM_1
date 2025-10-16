@@ -148,75 +148,71 @@ async function loadOnboardedClients() {
 // ============================
 
 function populateClientDropdown() {
-    const clientSelect = document.getElementById('onboardedProjectSelect');
-    if (!clientSelect) {
-        console.error('onboardedProjectSelect dropdown not found!');
-        return;
-    }
+  const clientSelect = document.getElementById('onboardedProjectSelect');
+  if (!clientSelect) {
+    console.error('onboardedProjectSelect dropdown not found!');
+    return;
+  }
 
-    console.log('Populating dropdown with', clientsData.length, 'projects');
-    clientSelect.innerHTML = `<option value="">-- Select Project --</option>`;
+  clientSelect.innerHTML = '<option value="">-- Select Project --</option>';
 
-    if (clientsData.length === 0) {
-        const noDataOption = document.createElement('option');
-        noDataOption.value = '';
-        noDataOption.textContent = '-- No onboarded projects available --';
-        noDataOption.disabled = true;
-        clientSelect.appendChild(noDataOption);
-        console.warn('No projects to populate');
-        return;
-    }
+  if (clientsData.length === 0) {
+    const noDataOption = document.createElement('option');
+    noDataOption.value = '';
+    noDataOption.textContent = '-- No onboarded projects available --';
+    noDataOption.disabled = true;
+    clientSelect.appendChild(noDataOption);
+    console.warn('No projects to populate');
+    return;
+  }
 
-    // ✅ NEW: Filter out clients that already have projects
-    const availableClients = clientsData.filter(client => {
-        // Check if this client already has a project in projectsData
-        const hasProject = projectsData && projectsData.some(project => 
-            project.customerId === client.customerId || 
-            project.customerid === client.customerId
-        );
-        return !hasProject; // Only include clients WITHOUT projects
-    });
+  // Filter clients without projects
+  const availableClients = clientsData.filter(client => {
+    const hasProject = projectsData.some(project => project.customerId === client.customerId);
+    return !hasProject;
+  });
 
-    console.log(`Filtered: ${availableClients.length} available out of ${clientsData.length} total`);
+  if (availableClients.length === 0) {
+    const allAddedOption = document.createElement('option');
+    allAddedOption.value = '';
+    allAddedOption.textContent = '-- All onboarded projects have been added --';
+    allAddedOption.disabled = true;
+    clientSelect.appendChild(allAddedOption);
+    console.warn('All clients already have projects');
+    return;
+  }
 
-    if (availableClients.length === 0) {
-        const noDataOption = document.createElement('option');
-        noDataOption.value = '';
-        noDataOption.textContent = '-- All onboarded projects have been added --';
-        noDataOption.disabled = true;
-        clientSelect.appendChild(noDataOption);
-        console.warn('All clients already have projects');
-        return;
-    }
+  availableClients.forEach(client => {
+    const option = document.createElement('option');
+    const displayText = client.projectName && client.projectName !== 'NA'
+      ? `${client.projectName} (${client.customerId})`
+      : `N/A (${client.customerId})`;
+    option.value = client.customerId;
+    option.textContent = displayText;
+    option.dataset.customerId = client.customerId;
+    option.dataset.projectName = client.projectName;
+    option.dataset.projectDescription = client.projectDescription;
+    option.dataset.companyName = client.companyName;
+    option.dataset.customerName = client.customerName;
+    option.dataset.phone = client.phoneNo;
+    option.dataset.email = client.mailId;
+    option.dataset.contactPerson = client.contactPerson;
+    option.dataset.designation = client.designation;
+    option.dataset.industry = client.industryType;
+    option.dataset.website = client.website;
+    option.dataset.address = client.address;
+    clientSelect.appendChild(option);
+  });
 
-    // Populate with only available clients
-    availableClients.forEach((client, index) => {
-        const option = document.createElement('option');
-        option.value = client.customerId;
-        
-        const displayText = (client.projectName && client.projectName !== 'N/A') 
-            ? `${client.projectName} - ${client.companyName} (${client.customerId})`
-            : `${client.companyName} (${client.customerId})`;
-        
-        option.textContent = displayText;
-        option.dataset.customerId = client.customerId;
-        option.dataset.projectName = client.projectName;
-        option.dataset.projectDescription = client.projectDescription;
-        option.dataset.companyName = client.companyName;
-        option.dataset.customerName = client.customerName;
-        option.dataset.phone = client.phoneNo;
-        option.dataset.email = client.mailId;
-        option.dataset.contactPerson = client.contactPerson;
-        option.dataset.designation = client.designation;
-        option.dataset.industry = client.industryType;
-        option.dataset.website = client.website;
-        option.dataset.address = client.address;
-        
-        clientSelect.appendChild(option);
-    });
+  
+  console.log('Dropdown populated with', availableClients.length, 'available options');
+  console.log("Loaded projects:", projects);
+projects.forEach(p => {
+    console.log("Project ID:", p.projectId, "Project Name:", p.projectName, "Company Name:", p.companyName);
+});
 
-    console.log('Dropdown populated with', availableClients.length, 'available options');
 }
+
 
 // ============================
 // AUTO-FILL ON CLIENT SELECTION
@@ -365,11 +361,10 @@ async function loadProjects() {
 // ============================
 // DISPLAY PROJECTS TABLE
 // ============================
-
 function displayProjectsTable(projects) {
   const tableBody = document.getElementById('projectsListTableBody');
   const projectCount = document.getElementById('projectCount');
-  
+
   if (!tableBody) {
     console.error('❌ Table body element not found');
     return;
@@ -404,13 +399,13 @@ function displayProjectsTable(projects) {
   console.log(`📄 Displaying page ${currentPage}: showing ${paginatedProjects.length} of ${projects.length} projects`);
 
   paginatedProjects.forEach((project, index) => {
-    const projectName = project.projectName || project.project_name || project.name || 'N/A';
-    const companyName = project.companyName || project.company_name || 'N/A';
+    // Use projectName strictly, no fallback to companyName here
+    const projectName = project.projectName || project.projectname || project.name || 'N/A';
     const reportingPerson = project.reportingPerson || project.reporting_person || project.teamHead || project.team_head || 'N/A';
     const startDate = project.startDate || project.start_date || project.date || '';
     const completionDate = project.completionDate || project.completion_date || project.deadline || project.end_date || '';
     const projectId = project.projectId || project.project_id || project.id || index;
-    
+
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>
@@ -443,7 +438,6 @@ function displayProjectsTable(projects) {
 
   updatePaginationControls(projects.length);
 }
-
 // ============================
 // PAGINATION CONTROLS
 // ============================
@@ -576,7 +570,7 @@ function showProjectDetailView(project) {
   
   const breadcrumbName = document.getElementById('breadcrumbProjectName');
   if (breadcrumbName) {
-    breadcrumbName.textContent = project.companyName || 'Project';
+    breadcrumbName.textContent = project.projectName || 'Project';
   }
   
   const projectId = project.projectId || project.project_id || project.id;
@@ -598,7 +592,7 @@ function showProjectDetailView(project) {
 
 function populateProjectDetails(project) {
   const projectNameTitle = document.getElementById('projectNameTitle');
-  if (projectNameTitle) projectNameTitle.textContent = project.companyName || 'N/A';
+  if (projectNameTitle) projectNameTitle.textContent = project.projectName || 'N/A';
   
   const projectDescription = document.getElementById('projectDescription');
   if (projectDescription) projectDescription.textContent = project.projectDescription || 'No description available.';
@@ -793,26 +787,31 @@ function showProjectsList() {
 // ============================
 
 function openProjectForm() {
-  console.log('📝 Opening project form...');
-  
-  const modal = document.getElementById('addProjectModal');
+  console.log("Opening project form...");
+  const modal = document.getElementById("addProjectModal");
   if (modal) {
-    modal.classList.add('show');
-    modal.style.display = 'block';
-    
-    const form = document.getElementById('projectForm');
-    if (form) form.reset();
-    
-    clearContactFields();
-    
-    if (clientsData.length > 0) {
-      populateClientDropdown();
-    } else {
-      console.warn('⚠️ No clients, reloading...');
-      loadOnboardedClients();
-    }
+    // Show the modal
+    modal.classList.add("show");
+    modal.style.display = "block";
   }
+
+  // Reset the form
+  const form = document.getElementById("projectForm");
+  if (form) {
+    form.reset();
+    clearContactFields(); // Reset contact-related fields as well
+  }
+
+  // Always reload the dropdown data to ensure latest clients/projects (even if already loaded)
+  loadOnboardedClients()
+    .then(() => {
+      populateClientDropdown();
+    })
+    .catch(() => {
+      console.warn("Failed to reload onboarded clients for modal.");
+    });
 }
+
 
 function closeProjectForm() {
   const modal = document.getElementById('addProjectModal');
@@ -839,7 +838,7 @@ async function handleProjectFormSubmit(e) {
         customerId: customerId,
         companyName: client?.companyName,
         customerName: client?.customerName,
-        projectname: client?.projectname || client?.projectName,
+        projectName: client?.projectName || client?.projectName,
         projectDescription: document.getElementById('projectDescriptionForm')?.value,
         contactPerson: document.getElementById('contactPersonForm')?.value,
         contactNumber: document.getElementById('contactNumberForm')?.value,
@@ -853,7 +852,7 @@ async function handleProjectFormSubmit(e) {
     };
 
     console.log('Submitting project data:', projectData);
-    console.log('Project name being sent:', projectData.projectname);
+    console.log('Project name being sent:', projectData.projectName);
 
     try {
         showLoadingSpinner();
@@ -1510,12 +1509,17 @@ async function submitAllTasks() {
         if (result.success) {
             showToast(`✅ ${tempTasks.length} task(s) allocated successfully!`, 'success');
             
+            // Clear temporary tasks
             tempTasks = [];
             updateTempTaskTable();
             
+            // Close the modal
             closeTaskAllocationForm();
             
-            console.log('✅ All tasks submitted successfully');
+            // ✅ RELOAD PROJECT TASKS TO UPDATE THE TABLE
+            await loadProjectTasks(projectId);
+            
+            console.log('✅ All tasks submitted and table refreshed');
         } else {
             showToast(result.message || 'Failed to submit tasks', 'error');
             console.error('❌ Server error:', result);

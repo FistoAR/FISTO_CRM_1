@@ -455,6 +455,7 @@ async confirmStatusChange(confirmed) {
                 clientData.createdAt = new Date().toISOString();
                 clientData.updatedAt = new Date().toISOString();
                 this.addClient(clientData);
+                this.loadClients();     
                 this.closeForm();
                 this.showToast('Client Added Successfully', `${clientData.customerName} has been saved.`);
             } else {
@@ -807,25 +808,26 @@ async generateCustomerId() {
         
         if (response.ok && result.status === 'success' && result.data.length > 0) {
             // Filter only FISTOCUS IDs
-            const fistocusClients = result.data.filter(client => 
+           const fistocusClients = result.data.filter(client => 
                 client.customer_id && client.customer_id.startsWith('FISTOCUS')
             );
-            
-            if (fistocusClients.length > 0) {
-                // Get the last FISTOCUS customer ID
-                const lastClient = fistocusClients[fistocusClients.length - 1];
-                const lastId = lastClient.customer_id;
-                
-                // Extract number from last ID (e.g., "FISTOCUS001" -> 1)
-                const match = lastId.match(/\d+$/);
-                if (match) {
-                    const lastNumber = parseInt(match[0]);
-                    const newNumber = lastNumber + 1;
-                    
-                    // Format with leading zeros (FISTOCUS001, FISTOCUS002, etc.)
-                    const newId = `FISTOCUS${String(newNumber).padStart(3, '0')}`;
-                    return newId;
-                }
+
+            // Sort the clients by their numeric suffix ascending
+            fistocusClients.sort((a, b) => {
+                const numA = parseInt(a.customer_id.match(/\d+$/)[0]);
+                const numB = parseInt(b.customer_id.match(/\d+$/)[0]);
+                return numA - numB;
+            });
+
+            const lastClient = fistocusClients[fistocusClients.length - 1];
+            const lastId = lastClient.customer_id;
+
+            const match = lastId.match(/\d+$/);
+            if (match) {
+                const lastNumber = parseInt(match[0]);
+                const newNumber = lastNumber + 1;
+                const newId = `FISTOCUS${String(newNumber).padStart(3, '0')}`;
+                return newId;
             }
         }
         
