@@ -627,7 +627,6 @@
               <div class="project-about">
                 <div class="about-header">
                   <h3>About <span id="projectNameTitle">Project</span></h3>
-                  <span class="priority-badge" id="projectPriority">High</span>
                 </div>
                 <p class="project-description" id="projectDescription">
                   Project description will appear here...
@@ -637,18 +636,19 @@
               <div class="project-meta-grid">
                 <div class="meta-card">
                   <div class="meta-avatar">
-                    <img src="https://via.placeholder.com/40" alt="Initiator" id="initiatorAvatar">
+                    <img src="./assets/Images/profile.webp" alt="Initiator" id="initiatorAvatar">
                   </div>
                   <div class="meta-info">
-                    <span class="meta-name" id="initiatorName">Anisha</span>
+                    <span class="meta-name" id="initiatorName"></span>
                     <span class="meta-role">Initiated By</span>
                   </div>
                 </div>
+                
 
                 <div class="meta-card">
                   <div class="meta-avatar crown">
-                    <i class="fas fa-crown"></i>
-                    <img src="https://via.placeholder.com/40" alt="Team Head" id="teamHeadAvatar">
+                    <!-- <i class="fas fa-crown"></i> -->
+                    <img src="./assets/Images/profile.webp" alt="Team Head" id="teamHeadAvatar">
                   </div>
                   <div class="meta-info">
                     <span class="meta-name" id="teamHeadName">Vignesh Sivan</span>
@@ -764,6 +764,9 @@
                     <option value="">-- Select Project from Client Table --</option>
                   </select>
                 </div>
+
+                 <!-- Initiated by (hidden or read-only) -->
+                <input type="hidden" name="initiated_by" value="<?php echo $_SESSION['employee_name']; ?>">
 
                 <div class="form-group">
                 <label for="projectDescriptionForm">Project Description <span class="required">*</span></label>
@@ -3164,7 +3167,7 @@
   <!-- Enhanced Delete Confirmation Modal -->
   <div id="clientDeleteModal" class="clientmodal" style="display: none;">
     <div class="clientmodal-content-client" style="max-width: 500px;">
-      <div class="clientmodal-header-client" style="text-align: center;">
+      <div class=".clientmodal-header-clientdelete" style="text-align: center;">
         <div style="
                   width: 80px;
                   height: 80px;
@@ -3343,7 +3346,7 @@
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     updateDateTime();
-    setInterval(updateDateTime, 100); // refresh IST clock every second
+    setInterval(updateDateTime, 1000); // refresh IST clock every second
   });
 </script>
 

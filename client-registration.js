@@ -96,11 +96,11 @@ class ClientManager {
         
         contactsContainer.appendChild(contactItem);
         this.showToast('Success', `Contact Person ${this.contactCount} added`);
-        console.log(`✅ Added contact field #${this.contactCount}`);
+        console.log(`âœ… Added contact field #${this.contactCount}`);
     }
 
     /**
-     * ✅ ADD THIS METHOD
+     * âœ… ADD THIS METHOD
      */
     removeContactField(button) {
         const contactItem = button.closest('.contact-item');
@@ -126,7 +126,7 @@ class ClientManager {
     }
 
     /**
-     * ✅ ADD THIS METHOD
+     * âœ… ADD THIS METHOD
      */
     renumberContacts() {
         const contactItems = document.querySelectorAll('#contactsContainer .contact-item');
@@ -141,81 +141,84 @@ class ClientManager {
         this.contactCount = contactItems.length;
     }
 
-    async submitViewClientChanges(index) {
-        const form = document.getElementById('viewClientForm');
-        
-        if (!form.reportValidity()) return;
+  async submitViewClientChanges(index) {
+    const form = document.getElementById('viewClientForm');
 
-        const clientData = {
-            date: document.getElementById('viewDate').value,
-            customer_id: document.getElementById('viewCustomerId').value,
-            company_name: document.getElementById('viewCompanyName').value,
-            customer_name: document.getElementById('viewCustomerName').value,
-            address: document.getElementById('viewAddress').value || 'N/A',
-            industry_type: document.getElementById('viewIndustryType').value || 'N/A',
-            website: document.getElementById('viewWebsite').value || 'N/A',
-            reference: document.getElementById('viewReference').value || 'N/A',
-            remarks: document.getElementById('viewRemarks').value || 'N/A',
-            contact_person: document.getElementById('viewContactPerson').value || 'N/A',
-            phone_number: document.getElementById('viewPhoneNo').value,
-            mail_id: document.getElementById('viewMailId').value,
-            designation: document.getElementById('viewDesignation').value || 'N/A',
-        };
+    if (!form.reportValidity()) return;
 
-        const client = this.clients[index];
-        
-        try {
-            const updateFormData = new FormData();
-            updateFormData.append('customer_id', client.customerId);
-            updateFormData.append('date', clientData.date);
-            updateFormData.append('company_name', clientData.company_name);
-            updateFormData.append('customer_name', clientData.customer_name);
-            updateFormData.append('address', clientData.address);
-            updateFormData.append('industry_type', clientData.industry_type);
-            updateFormData.append('website', clientData.website);
-            updateFormData.append('reference', clientData.reference);
-            updateFormData.append('remarks', clientData.remarks);
-            updateFormData.append('contact_person', clientData.contact_person);
-            updateFormData.append('phone_number', clientData.phone_number);
-            updateFormData.append('mail_id', clientData.mail_id);
-            updateFormData.append('designation', clientData.designation);
+    // Collect client fields - CORRECTED key names to match PHP expectations
+    const clientData = {
+        customer_id: document.getElementById('viewCustomerId').value,
+        Date: document.getElementById('viewDate').value,
+        companyName: document.getElementById('viewCompanyName').value,        // Changed from company_name
+        customerName: document.getElementById('viewCustomerName').value,      // Changed from customer_name
+        address: document.getElementById('viewAddress').value || 'N/A',
+        industryType: document.getElementById('viewIndustryType').value || 'N/A',  // Changed from industry_type
+        website: document.getElementById('viewWebsite').value || 'N/A',
+        reference: document.getElementById('viewReference').value || 'N/A',
+        remarks: document.getElementById('viewRemarks').value || 'N/A',
+        contacts: []
+    };
 
-            const response = await fetch('https://www.fist-o.com/web_crm/update_client.php', {
-                method: 'POST',
-                body: updateFormData
+    // Collect multiple contacts dynamically from inputs with name attributes
+    const contactPersons = Array.from(form.querySelectorAll('input[name="contactPerson"]')).map(i => i.value.trim());
+    const phoneNos = Array.from(form.querySelectorAll('input[name="phoneNo"]')).map(i => i.value.trim());
+    const mailIds = Array.from(form.querySelectorAll('input[name="mailId"]')).map(i => i.value.trim());
+    const designations = Array.from(form.querySelectorAll('input[name="designation"]')).map(i => i.value.trim());
+
+    // Build contacts array
+    for (let i = 0; i < contactPersons.length; i++) {
+        clientData.contacts.push({
+            contactPerson: contactPersons[i] || 'N/A',
+            phoneNo: phoneNos[i] || '',
+            mailId: mailIds[i] || '',
+            designation: designations[i] || 'N/A'
+        });
+    }
+
+    // Debug: log the payload before sending
+    console.log('Sending client data:', clientData);
+
+    try {
+        // Send JSON payload to your update_client.php
+        const response = await fetch('https://www.fist-o.com/web_crm/update_client.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(clientData)
+        });
+
+        const result = await response.json();
+        console.log('Server response:', result);  // Debug: log server response
+
+        if (response.ok && result.status === 'success') {
+            // Update local data for client in this.clients array
+            Object.assign(this.clients[index], {
+                Date: clientData.Date,
+                updatedAt: new Date().toISOString(),
+                customerId: clientData.customer_id,
+                companyName: clientData.companyName,      // Use camelCase here too
+                customerName: clientData.customerName,    // Use camelCase here too
+                address: clientData.address,
+                industryType: clientData.industryType,    // Use camelCase here too
+                website: clientData.website,
+                reference: clientData.reference,
+                remarks: clientData.remarks,
+                contacts: clientData.contacts
             });
 
-            const result = await response.json();
-
-            if (response.ok && result.status === 'success') {
-                Object.assign(this.clients[index], {
-                    Date: clientData.date,
-                    updatedAt: new Date().toISOString(), // Update the timestamp
-                    customerId: clientData.customer_id,
-                    companyName: clientData.company_name,
-                    customerName: clientData.customer_name,
-                    address: clientData.address,
-                    industryType: clientData.industry_type,
-                    website: clientData.website,
-                    reference: clientData.reference,
-                    remarks: clientData.remarks,
-                    contactPerson: clientData.contact_person,
-                    phoneNo: clientData.phone_number,
-                    mailId: clientData.mail_id,
-                    designation: clientData.designation
-                });
-                this.updateTable();
-                this.closeclientViewModal();
-                this.showToast('Client Updated Successfully', `${clientData.customer_name} has been updated.`);
-            } else {
-                this.showToast('Error', result.message || 'Failed to update client');
-                console.error('Server error:', result);
-            }
-        } catch (err) {
-            this.showToast('Error', 'Network error while updating client');
-            console.error('Fetch error:', err);
+            this.updateTable();
+            this.closeclientViewModal();
+            this.showToast('Client Updated Successfully', `${clientData.customerName} has been updated.`);
+        } else {
+            this.showToast('Error', result.message || 'Failed to update client');
+            console.error('Server error:', result);
         }
+    } catch (err) {
+        this.showToast('Error', 'Network error while updating client');
+        console.error('Fetch error:', err);
     }
+}
+
 
 async confirmStatusChange(confirmed) {
     const confirmModal = document.getElementById('confirmModal');
@@ -306,46 +309,56 @@ async confirmStatusChange(confirmed) {
 }
 
     async loadClients() {
-        try {
-            const response = await fetch('https://www.fist-o.com/web_crm/fetch_clients.php', {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-            });
+    try {
+        const response = await fetch('https://www.fist-o.com/web_crm/fetch_clients.php', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
 
-            const result = await response.json();
+        const result = await response.json();
 
-            if (response.ok && result.status === 'success') {
-                this.clients = result.data.map(clientRecord => ({
-                    id: clientRecord.id,
-                    Date: clientRecord.date,
-                    customerId: clientRecord.customer_id,
-                    companyName: clientRecord.company_name,
-                    customerName: clientRecord.customer_name,
-                    address: clientRecord.address || 'N/A',
-                    industryType: clientRecord.industry_type || 'N/A',
-                    website: clientRecord.website || 'N/A',
-                    reference: clientRecord.reference || 'N/A',
-                    remarks: clientRecord.remarks || 'N/A',
+        if (response.ok && result.status === 'success') {
+            // Group clients by customerId and aggregate contacts
+            const clientsMap = new Map();
+            result.data.forEach(clientRecord => {
+                if (!clientsMap.has(clientRecord.customer_id)) {
+                    clientsMap.set(clientRecord.customer_id, {
+                        id: clientRecord.id,
+                        Date: clientRecord.date,
+                        customerId: clientRecord.customer_id,
+                        companyName: clientRecord.company_name,
+                        customerName: clientRecord.customer_name,
+                        address: clientRecord.address || 'N/A',
+                        industryType: clientRecord.industry_type || 'N/A',
+                        website: clientRecord.website || 'N/A',
+                        reference: clientRecord.reference || 'N/A',
+                        remarks: clientRecord.remarks || 'N/A',
+                        status: clientRecord.status || 'none',
+                        createdAt: clientRecord.created_at,
+                        updatedAt: clientRecord.updated_at,
+                        contacts: []
+                    });
+                }
+                // Add each contact detail into the contacts array
+                clientsMap.get(clientRecord.customer_id).contacts.push({
                     contactPerson: clientRecord.contact_person || 'N/A',
                     phoneNo: clientRecord.phone_number || 'N/A',
                     mailId: clientRecord.mail_id || 'N/A',
-                    designation: clientRecord.designation || 'N/A',
-                    status: clientRecord.status || 'none',
-                    createdAt: clientRecord.created_at,
-                    updatedAt: clientRecord.updated_at // Store updated_at
-                }));
-                
-                this.updateTable();
-                this.showToast('Success', `Loaded ${this.clients.length} clients`);
-            } else {
-                console.error('Failed to load clients:', result);
-                this.showToast('Warning', 'Failed to load clients: ' + (result.message || 'Unknown error'));
-            }
-        } catch (err) {
-            console.error('Error loading clients:', err);
-            this.showToast('Warning', 'Network error: ' + err.message);
+                    designation: clientRecord.designation || 'N/A'
+                });
+            });
+            this.clients = Array.from(clientsMap.values());
+            this.updateTable();
+            this.showToast('Success', `Loaded ${this.clients.length} clients`);
+        } else {
+            console.error('Failed to load clients:', result);
+            this.showToast('Warning', 'Failed to load clients: ' + (result.message || 'Unknown error'));
         }
+    } catch (err) {
+        console.error('Error loading clients:', err);
+        this.showToast('Warning', 'Network error: ' + err.message);
     }
+}
 
     openForm() {
         this.currentEditingIndex = null;
@@ -390,12 +403,12 @@ async confirmStatusChange(confirmed) {
 
     const formData = new FormData(form);
 
-    // Collect client data
+    // Make sure to use camelCase keys matching your PHP
     const clientData = {
         Date: formData.get('Date'),
         customerId: formData.get('customerId'),
-        companyName: formData.get('companyName'),
-        customerName: formData.get('customerName'),
+        companyName: formData.get('companyName') || 'N/A',
+        customerName: formData.get('customerName') || 'N/A',
         address: formData.get('address') || 'N/A',
         industryType: formData.get('industryType') || 'N/A',
         website: formData.get('website') || 'N/A',
@@ -410,33 +423,34 @@ async confirmStatusChange(confirmed) {
     const mailIds = formData.getAll('mailId[]');
     const designations = formData.getAll('designation[]');
 
-    // ✅ ADD THIS DEBUG CODE
-    console.log('🔍 DEBUG - Raw form data:');
-    console.log('  contactPersons:', contactPersons);
-    console.log('  phoneNos:', phoneNos);
-    console.log('  mailIds:', mailIds);
-    console.log('  designations:', designations);
-
-    // Build contacts array
     for (let i = 0; i < contactPersons.length; i++) {
         clientData.contacts.push({
             contactPerson: contactPersons[i] || 'N/A',
-            phoneNumber: phoneNos[i],
-            mailId: mailIds[i],
+            phoneNo: phoneNos[i] || '',
+            mailId: mailIds[i] || '',
             designation: designations[i] || 'N/A'
         });
     }
 
-    // ✅ ADD THIS DEBUG CODE
-    console.log('📤 Final clientData being sent:', clientData);
-    console.log('📊 Number of contacts:', clientData.contacts.length);
+    // Send JSON payload
+    const response = await fetch('https://www.fist-o.com/web_crm/client_registration.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(clientData)
+    });
 
-    if (this.currentEditingIndex !== null) {
-        await this.updateClient(clientData);
+    const result = await response.json();
+
+    if (response.ok && result.success) {
+        this.showToast('Client Added Successfully', `${clientData.customerName} has been saved.`);
+        this.loadClients();
+        this.closeForm();
     } else {
-        await this.addNewClient(clientData);
+        this.showToast('Error', result.message || 'Failed to save client');
+        console.error('Server error:', result);
     }
 }
+
 
 
     async addNewClient(clientData) {
@@ -469,46 +483,45 @@ async confirmStatusChange(confirmed) {
     }
 
     async updateClient(clientData) {
-        const client = this.clients[this.currentEditingIndex];
-        
-        try {
-            const updateFormData = new FormData();
-            updateFormData.append('customer_id', client.customerId);
-            updateFormData.append('Date', clientData.Date);
-            updateFormData.append('companyName', clientData.companyName);
-            updateFormData.append('customerName', clientData.customerName);
-            updateFormData.append('address', clientData.address);
-            updateFormData.append('industryType', clientData.industryType);
-            updateFormData.append('website', clientData.website);
-            updateFormData.append('reference', clientData.reference);
-            updateFormData.append('remarks', clientData.remarks);
-            updateFormData.append('contactPerson', clientData.contactPerson);
-            updateFormData.append('phoneNumber', clientData.phoneNumber);
-            updateFormData.append('mailId', clientData.mailId);
-            updateFormData.append('designation', clientData.designation);
+    const client = this.clients[this.currentEditingIndex];
+    try {
+        // Send all data (including contacts array) as JSON
+        const payload = {
+            customer_id: client.customerId,
+            Date: clientData.Date,
+            companyName: clientData.companyName,
+            customerName: clientData.customerName,
+            address: clientData.address,
+            industryType: clientData.industryType,
+            website: clientData.website,
+            reference: clientData.reference,
+            remarks: clientData.remarks,
+            contacts: clientData.contacts // array of contact objects
+        };
 
-            const response = await fetch('https://www.fist-o.com/web_crm/update_client.php', {
-                method: 'POST',
-                body: updateFormData
-            });
+        const response = await fetch('https://www.fist-o.com/web_crm/update_client.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
 
-            const result = await response.json();
+        const result = await response.json();
 
-            if (response.ok && result.status === 'success') {
-                Object.assign(this.clients[this.currentEditingIndex], clientData);
-                this.clients[this.currentEditingIndex].updatedAt = new Date().toISOString();
-                this.updateTable();
-                this.closeForm();
-                this.showToast('Client Updated Successfully', `${clientData.customerName} has been updated.`);
-            } else {
-                this.showToast('Error', result.message || 'Failed to update client');
-                console.error('Server error:', result);
-            }
-        } catch (err) {
-            this.showToast('Error', 'Network error while updating client');
-            console.error('Fetch error:', err);
+        if (response.ok && result.status === 'success') {
+            Object.assign(this.clients[this.currentEditingIndex], clientData);
+            this.clients[this.currentEditingIndex].updatedAt = new Date().toISOString();
+            this.updateTable();
+            this.closeForm();
+            this.showToast('Client Updated Successfully', `${clientData.customerName} has been updated.`);
+        } else {
+            this.showToast('Error', result.message || 'Failed to update client');
+            console.error('Server error:', result);
         }
+    } catch (err) {
+        this.showToast('Error', 'Network error while updating client');
+        console.error('Fetch error:', err);
     }
+}
 
     editClient(index) {
         const client = this.clients[index];
@@ -600,73 +613,75 @@ async confirmStatusChange(confirmed) {
     }
 
     updateTable() {
-        const tbody = document.getElementById('clientTableBody');
-        if (this.clients.length === 0) {
-            tbody.innerHTML = `
-                <tr class="empty-state">
-                    <td colspan="12">
-                        <div class="empty-content">
-                            <i class="fas fa-users"></i>
-                            <p>No clients found</p>
-                            <small>Click "Add Client" to get started</small>
-                        </div>
-                    </td>
-                </tr>`;
-            return;
-        }
-
-        tbody.innerHTML = this.clients.map((client, index) => `
-            <tr>
-                <td>
-                    <select class="status-badge status-${(client.status || 'none').toLowerCase().replace(/\s+/g, '')}" 
-                            onchange="clientManager.updateStatus(${index}, this.value)">
-                        <option value="lead" ${(client.status || '').toLowerCase().replace(/\s+/g, '') === 'lead' ? 'selected' : ''}>Lead</option>
-                        <option value="drop" ${(client.status || '').toLowerCase().replace(/\s+/g, '') === 'drop' ? 'selected' : ''}>Drop</option>
-                        <option value="onboard" ${(client.status || '').toLowerCase().replace(/\s+/g, '') === 'onboard' ? 'selected' : ''}>Onboard</option>
-                        <option value="quotation" ${(client.status || '').toLowerCase().replace(/\s+/g, '') === 'quotation' ? 'selected' : ''}>Quotation</option>
-                        <option value="inprogress" ${(client.status || '').toLowerCase().replace(/\s+/g, '') === 'inprogress' ? 'selected' : ''}>In Progress</option>
-                        <option value="notinterest" ${(client.status || '').toLowerCase().replace(/\s+/g, '') === 'notinterest' ? 'selected' : ''}>Not Interest</option>
-                        <option value="none" ${(client.status || '').toLowerCase().replace(/\s+/g, '') === 'none' ? 'selected' : ''}>None</option>
-                    </select>
+    const tbody = document.getElementById('clientTableBody');
+    if (this.clients.length === 0) {
+        tbody.innerHTML = `
+            <tr class="empty-state">
+                <td colspan="12">
+                    <div class="empty-content">
+                        <i class="fas fa-users"></i>
+                        <p>No clients found</p>
+                        <small>Click "Add Client" to get started</small>
+                    </div>
                 </td>
-                <td>${client.remarks}</td>
-                <td>${this.formatDate(client.Date)}</td>
-                <td>${this.formatDate(client.updatedAt)}</td>
-                <td>${client.customerId}</td>
-                <td>${client.companyName}</td>
-                <td>${client.customerName}</td>
-                <td>${client.phoneNo}</td>
-                <td>${client.mailId}</td>
-                <td>
-                    <button class="view-btn" onclick="clientManager.viewClient(${index})" style="
-                        background: #17a2b8;
-                        color: white;
-                        border: none;
-                        padding: 8px 12px;
-                        border-radius: 4px;
-                        cursor: pointer;
-                        font-size: 12px;
-                        transition: all 0.3s ease;
-                    ">
-                        <i class="fas fa-eye"></i> View
-                    </button>
-                </td>
-                <td>
-                    <button class="delete-btn" onclick="clientManager.deleteClient(${index})" style="
-                        background: #dc3545;
-                        color: white;
-                        border: none;
-                        padding: 8px 12px;
-                        border-radius: 4px;
-                        cursor: pointer;
-                        font-size: 12px;
-                        transition: all 0.3s ease;
-                    ">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </td>
-            </tr>`).join('');
+            </tr>`;
+        return;
     }
+
+    tbody.innerHTML = this.clients.map((client, index) => `
+        <tr>
+            <td>
+                <select class="status-badge status-${(client.status || 'none').toLowerCase().replace(/\s+/g, '')}" 
+                        onchange="clientManager.updateStatus(${index}, this.value)">
+                    <option value="lead" ${(client.status || '').toLowerCase().replace(/\s+/g, '') === 'lead' ? 'selected' : ''}>Lead</option>
+                    <option value="drop" ${(client.status || '').toLowerCase().replace(/\s+/g, '') === 'drop' ? 'selected' : ''}>Drop</option>
+                    <option value="onboard" ${(client.status || '').toLowerCase().replace(/\s+/g, '') === 'onboard' ? 'selected' : ''}>Onboard</option>
+                    <option value="quotation" ${(client.status || '').toLowerCase().replace(/\s+/g, '') === 'quotation' ? 'selected' : ''}>Quotation</option>
+                    <option value="inprogress" ${(client.status || '').toLowerCase().replace(/\s+/g, '') === 'inprogress' ? 'selected' : ''}>In Progress</option>
+                    <option value="notinterest" ${(client.status || '').toLowerCase().replace(/\s+/g, '') === 'notinterest' ? 'selected' : ''}>Not Interest</option>
+                    <option value="none" ${(client.status || '').toLowerCase().replace(/\s+/g, '') === 'none' ? 'selected' : ''}>None</option>
+                </select>
+            </td>
+            <td>${client.remarks}</td>
+            <td>${this.formatDate(client.Date)}</td>
+            <td>${this.formatDate(client.updatedAt)}</td>
+            <td>${client.customerId}</td>
+            <td>${client.companyName}</td>
+            <td>${client.customerName}</td>
+            <td>${client.contacts[0]?.phoneNo || ''}</td>
+            <td>${client.contacts[0]?.mailId || ''}</td>
+
+            <td>
+                <button class="view-btn" onclick="clientManager.viewClient(${index})" style="
+                    background: #17a2b8;
+                    color: white;
+                    border: none;
+                    padding: 8px 12px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 12px;
+                    transition: all 0.3s ease;
+                ">
+                    <i class="fas fa-eye"></i> View
+                </button>
+            </td>
+            <td>
+                <button class="delete-btn" onclick="clientManager.deleteClient(${index})" style="
+                    background: #dc3545;
+                    color: white;
+                    border: none;
+                    padding: 8px 12px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 12px;
+                    transition: all 0.3s ease;
+                ">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </td>
+        </tr>`).join('');
+}
+
  updateStatus(index, newStatus) {
     this.pendingStatusIndex = index;
     this.pendingStatusNewValue = newStatus;
@@ -705,7 +720,7 @@ async confirmStatusChange(confirmed) {
         // Check for duplicate IDs
         const allProjectInputs = document.querySelectorAll('input[id="projectName"]');
         if (allProjectInputs.length > 1) {
-            console.warn('⚠️ DUPLICATE IDs FOUND! There are', allProjectInputs.length, 'inputs with id="projectName"');
+            console.warn('âš ï¸ DUPLICATE IDs FOUND! There are', allProjectInputs.length, 'inputs with id="projectName"');
             allProjectInputs.forEach((input, idx) => {
                 console.log(`Input ${idx}:`, input, 'Parent:', input.parentElement);
             });
@@ -770,7 +785,7 @@ async confirmStatusChange(confirmed) {
         if (isOnboard && projectNameInput) {
             // Add focus event to confirm we have the right element
             projectNameInput.addEventListener('focus', () => {
-                console.log('✅ Project Name field FOCUSED - This is the right element!');
+                console.log('âœ… Project Name field FOCUSED - This is the right element!');
             });
             
             projectNameInput.addEventListener('input', (e) => {
@@ -864,81 +879,142 @@ async openForm() {
 
 
 
-    viewClient(index) {
-        const client = this.clients[index];
-        const clientviewContent = document.getElementById('clientviewContent');
+ viewClient(index) {
+    const client = this.clients[index];
+    const clientviewContent = document.getElementById('clientviewContent');
 
-        clientviewContent.innerHTML = `
-            <form class="clientform-scrollable-container" id="viewClientForm" novalidate>
-                <h3 class="sticky-heading">Client Details</h3>
-                <div class="client-details-grid">
-                    <div class="form-group">
-                        <label for="viewDate">Date *</label>
-                        <input type="date" id="viewDate" name="Date" value="${client.Date ? new Date(client.Date).toISOString().split('T')[0] : ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="viewCustomerId">Customer ID *</label>
-                        <input type="text" id="viewCustomerId" name="customerId" value="${client.customerId || ''}" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label for="viewCompanyName">Company Name *</label>
-                        <input type="text" id="viewCompanyName" name="companyName" value="${client.companyName || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="viewCustomerName">Customer Name *</label>
-                        <input type="text" id="viewCustomerName" name="customerName" value="${client.customerName || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="viewAddress">Address</label>
-                        <textarea id="viewAddress" name="address" rows="3">${client.address || ''}</textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="viewIndustryType">Industry Type</label>
-                        <input type="text" id="viewIndustryType" name="industryType" value="${client.industryType || ''}">
-                    </div>
-                    <div class="form-group">
-                        <label for="viewWebsite">Website</label>
-                        <input type="url" id="viewWebsite" name="website" value="${client.website || ''}">
-                    </div>
-                    <div class="form-group">
-                        <label for="viewReference">Reference</label>
-                        <input type="text" id="viewReference" name="reference" value="${client.reference || ''}">
-                    </div>
-                    <div class="form-group">
-                        <label for="viewRemarks">Remarks *</label>
-                        <input type="text" id="viewRemarks" name="clientremarks" value="${client.remarks || ''}" required>
-                    </div>
-                </div>
+    // Ensure contacts array exists for consistency
+    if (!client.contacts) {
+        client.contacts = [{
+            contactPerson: client.contactPerson,
+            phoneNo: client.phoneNo,
+            mailId: client.mailId,
+            designation: client.designation
+        }];
+    }
 
-                <h3 class="sticky-heading">Contact Details</h3>
-                <div class="content-details-grid">
-                    <div class="form-group">
-                        <label for="viewContactPerson">Contact Person *</label>
-                        <input type="text" id="viewContactPerson" name="contactPerson" value="${client.contactPerson || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="viewPhoneNo">Phone Number *</label>
-                        <input type="tel" id="viewPhoneNo" name="phoneNo" value="${client.phoneNo || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="viewMailId">Mail ID *</label>
-                        <input type="email" id="viewMailId" name="mailId" value="${client.mailId || ''}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="viewDesignation">Designation *</label>
-                        <input type="text" id="viewDesignation" name="designation" value="${client.designation || ''}" required>
-                    </div>
+    // Render contact cards as in the modern UI
+    let contactsHtml = client.contacts.map((contact, idx) => `
+        <div class="contact-item" data-contact-index="${idx}" style="background: #fff; padding: 20px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #dee2e6; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div class="contact-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #4ecdc4;">
+                <h4 style="margin:0; color: #2c3e50; font-size: 18px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-user-circle" style="color: #4ecdc4;"></i>
+                    Contact Person ${idx + 1}
+                </h4>
+                ${client.contacts.length > 1 ? `
+                <button type="button" class="btn-remove-contact" data-index="${idx}"
+                    style="background:#ef4444;color:white;border:none;padding:8px 10px;border-radius:8px;font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px;white-space:nowrap;height:fit-content;cursor:pointer;">
+                    <i class="fas fa-times-circle" style="font-size: 16px;"></i>Remove
+                </button>
+                ` : ''}
+            </div>
+            <div class="content-details-grid" style="display:flex;gap:20px;">
+                <div class="form-group" style="flex:1;">
+                    <label>Contact Person *</label>
+                    <input type="text" name="contactPerson" value="${contact.contactPerson || ''}" placeholder="Enter contact person name" required>
                 </div>
-                 <div class="sticky-submit-container">
+                <div class="form-group" style="flex:1;">
+                    <label>Phone Number *</label>
+                    <input type="tel" name="phoneNo" value="${contact.phoneNo || ''}" placeholder="Enter phone number" required>
+                </div>
+                <div class="form-group" style="flex:1;">
+                    <label>Email *</label>
+                    <input type="email" name="mailId" value="${contact.mailId || ''}" placeholder="example@email.com" required>
+                </div>
+                <div class="form-group" style="flex:1;">
+                    <label>Designation *</label>
+                    <input type="text" name="designation" value="${contact.designation || ''}" placeholder="e.g., Manager, CEO" required>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    // Section with add button and all contacts
+    const contactsSection = `
+        <div class="contact-section" style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0; color: #2c3e50; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-users"></i> Contact Details
+                </h3>
+                <button type="button" class="btn-add-contact"
+                    style="background:#22c55e;color:white;border:none;padding:8px 10px;border-radius:8px;font-size:14px;display:flex;align-items:center;gap:6px;font-weight:600;white-space:nowrap;height:fit-content;cursor:pointer;">
+                    <i class="fas fa-plus-circle"></i> Add More Contact
+                </button>
+            </div>
+            ${contactsHtml}
+        </div>
+    `;
+
+    clientviewContent.innerHTML = `
+        <form class="clientform-scrollable-container" id="viewClientForm" novalidate>
+            <h3 class="sticky-heading">Client Details</h3>
+            <div class="client-details-grid">
+                <div class="form-group">
+                    <label for="viewDate">Date *</label>
+                    <input type="date" id="viewDate" name="Date" value="${this.formatDateForInput(client.Date)}" required>
+                </div>
+                <div class="form-group">
+                    <label for="viewCustomerId">Customer ID *</label>
+                    <input type="text" id="viewCustomerId" name="customerId" value="${client.customerId || ''}" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="viewCompanyName">Company Name *</label>
+                    <input type="text" id="viewCompanyName" name="companyName" value="${client.companyName || ''}" required>
+                </div>
+                <div class="form-group">
+                    <label for="viewCustomerName">Customer Name *</label>
+                    <input type="text" id="viewCustomerName" name="customerName" value="${client.customerName || ''}" required>
+                </div>
+                <div class="form-group">
+                    <label for="viewAddress">Address</label>
+                    <textarea id="viewAddress" name="address" rows="3">${client.address || ''}</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="viewIndustryType">Industry Type</label>
+                    <input type="text" id="viewIndustryType" name="industryType" value="${client.industryType || ''}">
+                </div>
+                <div class="form-group">
+                    <label for="viewWebsite">Website</label>
+                    <input type="text" id="viewWebsite" name="website" value="${client.website || ''}">
+                </div>
+                <div class="form-group">
+                    <label for="viewReference">Reference</label>
+                    <input type="text" id="viewReference" name="reference" value="${client.reference || ''}">
+                </div>
+                <div class="form-group">
+                    <label for="viewRemarks">Remarks *</label>
+                    <input type="text" id="viewRemarks" name="clientremarks" value="${client.remarks || ''}" required>
+                </div>
+            </div>
+            ${contactsSection}
+            <div class="sticky-submit-container" style="margin-top:24px;">
                 <button type="button" class="btn btn-primary" onclick="clientManager.submitViewClientChanges(${index})">Submit</button>
             </div>
-            </form>
+        </form>
+    `;
 
-        `;
+    // Add Contact Handler
+    clientviewContent.querySelector('.btn-add-contact').onclick = () => {
+        client.contacts.push({ contactPerson: '', phoneNo: '', mailId: '', designation: '' });
+        this.viewClient(index);
+    };
 
-        document.getElementById('clientviewModal').classList.add('show');
-        document.body.style.overflow = 'hidden';
-    }
+    // Remove Contact Handler (disable for 1st by logic above)
+    clientviewContent.querySelectorAll('.btn-remove-contact').forEach(btn => {
+        btn.onclick = e => {
+            const idx = parseInt(btn.getAttribute('data-index'), 10);
+            client.contacts.splice(idx, 1);
+            this.viewClient(index);
+        };
+    });
+
+    document.getElementById('clientviewModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+
+
+
 
     formatDate(dateString) {
         if (!dateString) return 'N/A';
@@ -946,26 +1022,24 @@ async openForm() {
         return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     }
 
-    formatDateTime(dateTimeString) {
-        if (!dateTimeString) return 'N/A';
-        const date = new Date(dateTimeString);
-        return date.toLocaleString('en-US', { 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    }
+formatDateForInput(dateString) {
+    if (!dateString) return '';
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return '';  // invalid date
+    return d.toISOString().split('T')[0];
+}
 
-    showToast(title, description) {
-        const toastContainer = document.getElementById('toastContainer');
-        const toast = document.createElement('div');
-        toast.className = 'toast success';
-        toast.innerHTML = `<h4>${title}</h4><p>${description}</p>`;
-        toastContainer.appendChild(toast);
-        setTimeout(() => { toast.remove(); }, 3000);
-    }
+
+   showToast(title, description) {
+    const toastContainer = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = 'toast success';
+    toast.innerHTML = `<h4>${title}</h4><p>${description}</p>`;
+    toastContainer.appendChild(toast);
+    
+    setTimeout(() => { toast.remove(); }, 10000); // ✅ Now 10 seconds!
+}
+
 }
 
 const clientManager = new ClientManager();

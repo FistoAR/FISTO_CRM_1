@@ -206,10 +206,10 @@ function populateClientDropdown() {
 
   
   console.log('Dropdown populated with', availableClients.length, 'available options');
-  console.log("Loaded projects:", projects);
-projects.forEach(p => {
-    console.log("Project ID:", p.projectId, "Project Name:", p.projectName, "Company Name:", p.companyName);
-});
+//   console.log("Loaded projects:", projects);
+// projects.forEach(p => {
+//     console.log("Project ID:", p.projectId, "Project Name:", p.projectName, "Company Name:", p.companyName);
+// });
 
 }
 
@@ -554,37 +554,38 @@ async function viewProject(projectId) {
 // ============================
 
 function showProjectDetailView(project) {
-  const listView = document.getElementById('projects-list-view');
-  const detailView = document.getElementById('project-detail-view');
-  
-  if (listView) listView.style.display = 'none';
-  if (detailView) {
-    detailView.style.display = 'block';
-    
+    const listView = document.getElementById('projects-list-view');
+    const detailView = document.getElementById('project-detail-view');
+    if (listView) listView.style.display = 'none';
+    if (detailView) {
+        detailView.style.display = 'block';
+        const projectId = project.projectId || project.project_id || project.id;
+        if (projectId) {
+            detailView.setAttribute('data-project-id', projectId);
+        }
+    }
+    const breadcrumbName = document.getElementById('breadcrumbProjectName');
+    if (breadcrumbName) {
+        breadcrumbName.textContent = project.projectName || 'Project';
+    }
     const projectId = project.projectId || project.project_id || project.id;
     if (projectId) {
-      detailView.setAttribute('data-project-id', projectId);
-      console.log('✅ Stored project ID in DOM:', projectId);
+      currentProjectId = projectId;
+      window.currentProjectId = projectId;
     }
-  }
-  
-  const breadcrumbName = document.getElementById('breadcrumbProjectName');
-  if (breadcrumbName) {
-    breadcrumbName.textContent = project.projectName || 'Project';
-  }
-  
-  const projectId = project.projectId || project.project_id || project.id;
-  if (projectId) {
-    currentProjectId = projectId;
-    window.currentProjectId = projectId;
-    console.log('✅ Stored project ID in variables:', projectId);
-  }
-  
-  populateProjectDetails(project);
-  setupProjectDetailTabs();
-  
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    populateProjectDetails(project);
+    setupProjectDetailTabs();
+
+    // Set "Initiated By" meta card from project object
+    const initiatorElement = document.getElementById('initiatorName');
+    if (initiatorElement) {
+        initiatorElement.textContent = project.initiated_by || "N/A";
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
 
 // ============================
 // POPULATE PROJECT DETAILS
@@ -831,14 +832,12 @@ async function handleProjectFormSubmit(e) {
     }
 
     const client = clientsData.find(c => c.customerId === customerId);
-    console.log('Client data found:', client);
-    console.log('Project name from client:', client?.projectName);
 
     const projectData = {
         customerId: customerId,
         companyName: client?.companyName,
         customerName: client?.customerName,
-        projectName: client?.projectName || client?.projectName,
+        projectName: client?.projectName,
         projectDescription: document.getElementById('projectDescriptionForm')?.value,
         contactPerson: document.getElementById('contactPersonForm')?.value,
         contactNumber: document.getElementById('contactNumberForm')?.value,
@@ -848,15 +847,13 @@ async function handleProjectFormSubmit(e) {
         completionDate: document.getElementById('deadline')?.value,
         reportingPerson: document.getElementById('reportingPerson')?.value,
         allocatedTeam: document.getElementById('allocatedteam')?.value,
-        remarks: document.getElementById('projectremarks')?.value || 'N/A'
+        remarks: document.getElementById('projectremarks')?.value || 'N/A',
+        // Send initiator from session for this project!
+        initiatedBy: sessionStorage.getItem("employeeName") || "N/A"
     };
-
-    console.log('Submitting project data:', projectData);
-    console.log('Project name being sent:', projectData.projectName);
 
     try {
         showLoadingSpinner();
-        
         const response = await fetch('https://www.fist-o.com/web_crm/add_project.php', {
             method: 'POST',
             headers: {
@@ -872,21 +869,15 @@ async function handleProjectFormSubmit(e) {
         if (response.ok && (result.success === true || result.status === 'success')) {
             showToast('Project created successfully!', 'success');
             closeProjectForm();
-            
-            // ✅ Reload projects data to update the list
             await loadProjects();
-            
-            // ✅ Reload onboarded clients and refresh dropdown
             await loadOnboardedClients();
-            
             const form = document.getElementById('projectForm');
             if (form) {
                 form.reset();
                 clearContactFields();
             }
         } else {
-            const errorMsg = result.message || 'Failed to create project';
-            showToast(errorMsg, 'error');
+            showToast(result.message || 'Failed to create project', 'error');
             console.error('Server error:', result);
         }
     } catch (err) {
@@ -895,6 +886,7 @@ async function handleProjectFormSubmit(e) {
         showToast('Error: ' + err.message, 'error');
     }
 }
+
 
 
 // ============================

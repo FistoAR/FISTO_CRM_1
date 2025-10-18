@@ -3590,7 +3590,7 @@ ease;
 }
 
 /* Sticky modal header */
-.clientmodal-header-client {
+.clientmodal-header-clientdelete {
   padding: 1rem 1.5rem;
   border-bottom: 1px solid #ccc;
   position: sticky;
@@ -3714,6 +3714,8 @@ ease;
   transform: scale(1.002);
   transition: all 0.2s ease;
 } */
+
+
 
 /* Status badge styling */
 .status-badge {
@@ -5212,7 +5214,7 @@ ease;
   position: relative;
 }
 
-.meta-avatar.crown::before {
+/* .meta-avatar.crown::before {
   content: '\f521';
   font-family: 'Font Awesome 5 Free';
   font-weight: 900;
@@ -5223,7 +5225,7 @@ ease;
   color: #FFD700;
   font-size: 20px;
   z-index: 1;
-}
+} */
 
 .meta-avatar img {
   width: 100%;
