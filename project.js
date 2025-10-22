@@ -17,10 +17,10 @@ function storeProjectSession(project) {
     };
     
     sessionStorage.setItem('currentProject', JSON.stringify(projectData));
-    console.log('✅ Project stored in session:', projectData);
+    console.log('âœ… Project stored in session:', projectData);
     return projectData;
   } catch (error) {
-    console.error('❌ Error storing project session:', error);
+    console.error('âŒ Error storing project session:', error);
     showToast('Error storing project data', 'error');
     return null;
   }
@@ -31,12 +31,12 @@ function getProjectSession() {
     const projectData = sessionStorage.getItem('currentProject');
     if (projectData) {
       const project = JSON.parse(projectData);
-      console.log('✅ Retrieved project from session:', project);
+      console.log('âœ… Retrieved project from session:', project);
       return project;
     }
     return null;
   } catch (error) {
-    console.error('❌ Error retrieving project session:', error);
+    console.error('âŒ Error retrieving project session:', error);
     return null;
   }
 }
@@ -49,9 +49,9 @@ function getProjectIdFromSession() {
 function clearProjectSession() {
   try {
     sessionStorage.removeItem('currentProject');
-    console.log('🧹 Project session cleared');
+    console.log('ðŸ§¹ Project session cleared');
   } catch (error) {
-    console.error('❌ Error clearing project session:', error);
+    console.error('âŒ Error clearing project session:', error);
   }
 }
 
@@ -73,17 +73,17 @@ let tempTasks = [];
 // ============================
 
 function initializeProjectDashboard() {
-  console.log('🚀 Initializing Project Dashboard...');
+  console.log('ðŸš€ Initializing Project Dashboard...');
   
   loadOnboardedClients()
     .then(() => loadProjects())
     .then(() => {
       displayProjectsTable(projectsData);
       setupEventListeners();
-      console.log('✅ Dashboard initialized');
+      console.log('âœ… Dashboard initialized');
     })
     .catch(err => {
-      console.error('❌ Error:', err);
+      console.error('âŒ Error:', err);
       showToast('Failed to initialize dashboard', 'error');
     });
 }
@@ -94,7 +94,7 @@ function initializeProjectDashboard() {
 
 async function loadOnboardedClients() {
   try {
-    console.log('📡 Fetching onboarded clients from API...');
+    console.log('ðŸ“¡ Fetching onboarded clients from API...');
     
     const response = await fetch('https://www.fist-o.com/web_crm/fetch_addprojectdetails.php', {
       method: 'GET',
@@ -106,11 +106,11 @@ async function loadOnboardedClients() {
     }
 
     const result = await response.json();
-    console.log('📦 API Response:', result);
+    console.log('ðŸ“¦ API Response:', result);
     
     if (result.status === 'success') {
       const data = result.data || [];
-      console.log(`📊 Total onboarded projects: ${data.length}`);
+      console.log(`ðŸ“Š Total onboarded projects: ${data.length}`);
       
       clientsData = data.map(client => ({
         id: client.client_id,
@@ -129,15 +129,15 @@ async function loadOnboardedClients() {
         status: client.status
       }));
       
-      console.log(`✅ Loaded ${clientsData.length} onboarded clients`);
+      console.log(`âœ… Loaded ${clientsData.length} onboarded clients`);
       populateClientDropdown();
       return clientsData;
     } else {
-      console.warn('⚠️ No clients returned or status not success');
+      console.warn('âš ï¸ No clients returned or status not success');
       return [];
     }
   } catch (err) {
-    console.error('❌ Error loading clients:', err);
+    console.error('âŒ Error loading clients:', err);
     showToast('Failed to load clients: ' + err.message, 'error');
     return [];
   }
@@ -222,15 +222,15 @@ function handleClientSelection() {
   const clientSelect = document.getElementById('onboardedProjectSelect');
   
   if (!clientSelect) {
-    console.error('❌ Dropdown not found!');
+    console.error('âŒ Dropdown not found!');
     return;
   }
 
   const selectedValue = clientSelect.value;
-  console.log('🔍 Selected customer ID:', selectedValue);
+  console.log('ðŸ” Selected customer ID:', selectedValue);
   
   if (!selectedValue) {
-    console.log('🔄 No selection, clearing fields');
+    console.log('ðŸ”„ No selection, clearing fields');
     clearContactFields();
     return;
   }
@@ -246,7 +246,7 @@ function handleClientSelection() {
       fillField('contactEmailForm', selectedOption.dataset.email || '', false);
       fillField('contactDesignationForm', selectedOption.dataset.designation || '', false);
       
-      showToast(`✓ Loaded: ${selectedOption.dataset.projectName}`, 'success');
+      showToast(`âœ“ Loaded: ${selectedOption.dataset.projectName}`, 'success');
     }, 150);
   });
 }
@@ -255,11 +255,11 @@ function fillField(fieldId, value, isReadOnly = false) {
   const field = document.getElementById(fieldId);
   
   if (!field) {
-    console.error(`❌ Field "${fieldId}" not found!`);
+    console.error(`âŒ Field "${fieldId}" not found!`);
     return;
   }
   
-  console.log(`📝 Filling ${fieldId} with: "${value}"`);
+  console.log(`ðŸ“ Filling ${fieldId} with: "${value}"`);
   
   field.removeAttribute('placeholder');
   field.removeAttribute('disabled');
@@ -321,7 +321,7 @@ function clearContactFields() {
     }
   });
   
-  console.log('🧹 Fields cleared');
+  console.log('ðŸ§¹ Fields cleared');
 }
 
 // ============================
@@ -330,13 +330,13 @@ function clearContactFields() {
 
 async function loadProjects() {
   try {
-    console.log('📡 Loading projects...');
+    console.log('ðŸ“¡ Loading projects...');
     const response = await fetch('https://www.fist-o.com/web_crm/fetch_projects.php');
     const result = await response.json();
 
     if (result.success && result.data) {
       projectsData = result.data;
-      console.log(`✅ Loaded ${projectsData.length} projects`);
+      console.log(`âœ… Loaded ${projectsData.length} projects`);
       
       currentPage = 1;
       displayProjectsTable(projectsData);
@@ -349,7 +349,7 @@ async function loadProjects() {
       return [];
     }
   } catch (err) {
-    console.error('❌ Error loading projects:', err);
+    console.error('âŒ Error loading projects:', err);
     projectsData = [];
     currentPage = 1;
     displayProjectsTable([]);
@@ -366,7 +366,7 @@ function displayProjectsTable(projects) {
   const projectCount = document.getElementById('projectCount');
 
   if (!tableBody) {
-    console.error('❌ Table body element not found');
+    console.error('âŒ Table body element not found');
     return;
   }
 
@@ -396,7 +396,7 @@ function displayProjectsTable(projects) {
   const endIndex = startIndex + projectsPerPage;
   const paginatedProjects = projects.slice(startIndex, endIndex);
 
-  console.log(`📄 Displaying page ${currentPage}: showing ${paginatedProjects.length} of ${projects.length} projects`);
+  console.log(`ðŸ“„ Displaying page ${currentPage}: showing ${paginatedProjects.length} of ${projects.length} projects`);
 
   paginatedProjects.forEach((project, index) => {
     // Use projectName strictly, no fallback to companyName here
@@ -449,7 +449,7 @@ function updatePaginationControls(totalProjects) {
   const nextBtn = document.getElementById('nextPage');
 
   if (!paginationNumbers || !prevBtn || !nextBtn) {
-    console.error('❌ Pagination elements not found!');
+    console.error('âŒ Pagination elements not found!');
     return;
   }
 
@@ -471,7 +471,7 @@ function updatePaginationControls(totalProjects) {
   nextBtn.style.opacity = nextBtn.disabled ? '0.5' : '1';
   nextBtn.style.cursor = nextBtn.disabled ? 'not-allowed' : 'pointer';
 
-  console.log(`📊 Pagination: Page ${currentPage} of ${totalPages}`);
+  console.log(`ðŸ“Š Pagination: Page ${currentPage} of ${totalPages}`);
 }
 
 function goToPage(page) {
@@ -480,7 +480,7 @@ function goToPage(page) {
   if (page < 1) page = 1;
   if (page > totalPages) page = totalPages;
   
-  console.log(`🔄 Going to page ${page}`);
+  console.log(`ðŸ”„ Going to page ${page}`);
   currentPage = page;
   displayProjectsTable(projectsData);
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -494,7 +494,7 @@ async function viewProject(projectId) {
   try {
     showLoadingSpinner();
     
-    console.log('🔍 Fetching project with ID:', projectId);
+    console.log('ðŸ” Fetching project with ID:', projectId);
     
     const response = await fetch(`https://www.fist-o.com/web_crm/fetch_projects.php?project_id=${projectId}`);
     const result = await response.json();
@@ -504,12 +504,12 @@ async function viewProject(projectId) {
     if (result.success && result.data && result.data.length > 0) {
       const project = result.data[0];
       
-      console.log('📦 ===== FULL PROJECT DATA =====');
+      console.log('ðŸ“¦ ===== FULL PROJECT DATA =====');
       console.log(JSON.stringify(project, null, 2));
-      console.log('📦 =============================');
+      console.log('ðŸ“¦ =============================');
       
       // Check all possible ID fields
-      console.log('🔍 Checking ID fields:');
+      console.log('ðŸ” Checking ID fields:');
       console.log('  - project.id:', project.id, typeof project.id);
       console.log('  - project.projectId:', project.projectId, typeof project.projectId);
       console.log('  - project.project_id:', project.project_id, typeof project.project_id);
@@ -522,7 +522,7 @@ async function viewProject(projectId) {
       const stringProjectId = project.projectId || project.project_id || projectId;
       
       if (!numericId) {
-        console.error('❌ No numeric ID found in project data');
+        console.error('âŒ No numeric ID found in project data');
         console.error('Available fields:', Object.keys(project));
         showToast('Error: Project structure issue. Check console.', 'error');
         return;
@@ -535,8 +535,8 @@ async function viewProject(projectId) {
       window.currentProjectId = numericId;
       window.projectStringId = stringProjectId;
       
-      console.log('✅ Set currentProjectId (numeric for API):', numericId, typeof numericId);
-      console.log('✅ Set projectStringId (for display):', stringProjectId);
+      console.log('âœ… Set currentProjectId (numeric for API):', numericId, typeof numericId);
+      console.log('âœ… Set projectStringId (for display):', stringProjectId);
       
       showProjectDetailView(project);
     } else {
@@ -611,7 +611,7 @@ function populateProjectDetails(project) {
   if (projectId) {
     currentProjectId = projectId;
     window.currentProjectId = projectId;
-    console.log('✅ Project ID stored from details:', projectId);
+    console.log('âœ… Project ID stored from details:', projectId);
   }
   
   updateProjectStats({
@@ -655,7 +655,7 @@ async function loadProjectTasks(projectId) {
   const tableBody = document.getElementById('projectTasksTableBody');
   
   if (!tableBody) {
-    console.error('❌ Tasks table body not found');
+    console.error('âŒ Tasks table body not found');
     return;
   }
   
@@ -670,7 +670,7 @@ async function loadProjectTasks(projectId) {
   `;
   
   try {
-    console.log('📋 Fetching tasks for project:', projectId);
+    console.log('ðŸ“‹ Fetching tasks for project:', projectId);
     
     const response = await fetch(`https://www.fist-o.com/web_crm/get_project_tasks.php?project_id=${projectId}`);
     
@@ -680,7 +680,7 @@ async function loadProjectTasks(projectId) {
     
     const result = await response.json();
     
-    console.log('📦 Tasks response:', result);
+    console.log('ðŸ“¦ Tasks response:', result);
     
     if (result.success && result.data && result.data.tasks && result.data.tasks.length > 0) {
       const tasks = result.data.tasks;
@@ -721,7 +721,7 @@ async function loadProjectTasks(projectId) {
         </tr>
       `).join('');
       
-      console.log(`✅ Displayed ${tasks.length} tasks`);
+      console.log(`âœ… Displayed ${tasks.length} tasks`);
     } else {
       // No tasks found
       tableBody.innerHTML = `
@@ -736,10 +736,10 @@ async function loadProjectTasks(projectId) {
         </tr>
       `;
       
-      console.log('ℹ️ No tasks found for this project');
+      console.log('â„¹ï¸ No tasks found for this project');
     }
   } catch (error) {
-    console.error('❌ Error loading tasks:', error);
+    console.error('âŒ Error loading tasks:', error);
     
     tableBody.innerHTML = `
       <tr class="error-state">
@@ -939,13 +939,13 @@ async function deleteProject(projectId) {
 // ============================
 
 function setupProjectDetailTabs() {
-  console.log('🔧 Setting up project detail tabs...');
+  console.log('ðŸ”§ Setting up project detail tabs...');
   
   const tabButtons = document.querySelectorAll('.detail-tab');
   const tabPanels = document.querySelectorAll('.tab-panel');
   
   if (tabButtons.length === 0) {
-    console.warn('⚠️ No tab buttons found');
+    console.warn('âš ï¸ No tab buttons found');
     return;
   }
   
@@ -960,7 +960,7 @@ function setupProjectDetailTabs() {
     button.addEventListener('click', function(e) {
       e.preventDefault();
       const targetTab = this.getAttribute('data-tab');
-      console.log(`🔄 Switching to tab: ${targetTab}`);
+      console.log(`ðŸ”„ Switching to tab: ${targetTab}`);
       
       freshTabButtons.forEach(btn => btn.classList.remove('active'));
       this.classList.add('active');
@@ -974,7 +974,7 @@ function setupProjectDetailTabs() {
       if (targetPanel) {
         targetPanel.classList.add('active');
         targetPanel.style.display = 'block';
-        console.log(`✅ Showing ${targetTab} panel`);
+        console.log(`âœ… Showing ${targetTab} panel`);
         
         if (targetTab === 'resources') {
           loadResourcesContent();
@@ -985,7 +985,7 @@ function setupProjectDetailTabs() {
     });
   });
   
-  console.log('✅ Tab switching setup complete');
+  console.log('âœ… Tab switching setup complete');
 }
 
 // ============================
@@ -993,11 +993,11 @@ function setupProjectDetailTabs() {
 // ============================
 
 function loadResourcesContent() {
-  console.log('📦 Loading resources content...');
+  console.log('ðŸ“¦ Loading resources content...');
   
   const resourcesPanel = document.getElementById('resources-panel');
   if (!resourcesPanel) {
-    console.error('❌ Resources panel not found');
+    console.error('âŒ Resources panel not found');
     return;
   }
   
@@ -1017,7 +1017,7 @@ function loadResourcesContent() {
           </div>
           <div class="resource-info">
             <h4>Project Requirements.pdf</h4>
-            <p>Uploaded: Jan 15, 2025 • 2.4 MB</p>
+            <p>Uploaded: Jan 15, 2025 â€¢ 2.4 MB</p>
           </div>
           <div class="resource-actions">
             <button class="btn-icon" title="Download">
@@ -1035,7 +1035,7 @@ function loadResourcesContent() {
           </div>
           <div class="resource-info">
             <h4>Design Specifications.docx</h4>
-            <p>Uploaded: Jan 12, 2025 • 1.8 MB</p>
+            <p>Uploaded: Jan 12, 2025 â€¢ 1.8 MB</p>
           </div>
           <div class="resource-actions">
             <button class="btn-icon" title="Download">
@@ -1068,11 +1068,11 @@ function loadResourcesContent() {
     </div>
   `;
   
-  console.log('✅ Resources content loaded');
+  console.log('âœ… Resources content loaded');
 }
 
 function loadAnalyticsContent() {
-  console.log('📊 Analytics content placeholder');
+  console.log('ðŸ“Š Analytics content placeholder');
 }
 
 // ============================
@@ -1080,20 +1080,20 @@ function loadAnalyticsContent() {
 // ============================
 
 function setupEventListeners() {
-  console.log('🔗 Setting up event listeners...');
+  console.log('ðŸ”— Setting up event listeners...');
   
   const clientSelect = document.getElementById('onboardedProjectSelect');
   if (clientSelect) {
     clientSelect.removeEventListener('change', handleClientSelection);
     clientSelect.addEventListener('change', handleClientSelection);
-    console.log('✅ Client select listener attached');
+    console.log('âœ… Client select listener attached');
   }
   
   const projectForm = document.getElementById('projectForm');
   if (projectForm) {
     projectForm.removeEventListener('submit', handleProjectFormSubmit);
     projectForm.addEventListener('submit', handleProjectFormSubmit);
-    console.log('✅ Form submit listener attached');
+    console.log('âœ… Form submit listener attached');
   }
   
   const searchInput = document.getElementById('projectSearchInput');
@@ -1117,7 +1117,7 @@ function setupEventListeners() {
     });
   }
   
-  console.log('✅ All listeners attached');
+  console.log('âœ… All listeners attached');
 }
 
 // ============================
@@ -1141,7 +1141,7 @@ function filterProjects(searchTerm) {
            customerId.includes(search);
   });
   
-  console.log(`🔍 Filtered ${filtered.length} projects from ${projectsData.length}`);
+  console.log(`ðŸ” Filtered ${filtered.length} projects from ${projectsData.length}`);
   currentPage = 1;
   displayProjectsTable(filtered);
 }
@@ -1173,7 +1173,7 @@ async function openTaskAllocationForm() {
             
             await populateTaskTeamDropdown();
             
-            console.log('✅ Task allocation form opened for project:', sessionProject.project_id);
+            console.log('âœ… Task allocation form opened for project:', sessionProject.project_id);
         } else {
             showToast('Please select a project first', 'error');
             closeTaskAllocationForm();
@@ -1196,12 +1196,12 @@ async function fetchTaskAllocationTeams() {
         const projectId = sessionProject?.project_id;
         
         if (!projectId) {
-            console.error('❌ No project ID in session');
+            console.error('âŒ No project ID in session');
             showToast('Please select a project first', 'error');
             return [];
         }
         
-        console.log('🔍 Fetching teams for project:', projectId);
+        console.log('ðŸ” Fetching teams for project:', projectId);
         
         const response = await fetch(`https://www.fist-o.com/web_crm/fetch_project_teams.php?project_id=${projectId}`, {
             method: 'GET'
@@ -1210,14 +1210,14 @@ async function fetchTaskAllocationTeams() {
         const result = await response.json();
         
         if (result.success && result.data) {
-            console.log('✅ Teams loaded:', result.data);
+            console.log('âœ… Teams loaded:', result.data);
             return result.data;
         } else {
-            console.warn('⚠️ No teams found for this project');
+            console.warn('âš ï¸ No teams found for this project');
             return [];
         }
     } catch (error) {
-        console.error('❌ Error fetching teams:', error);
+        console.error('âŒ Error fetching teams:', error);
         showToast('Failed to load teams', 'error');
         return [];
     }
@@ -1227,7 +1227,7 @@ async function populateTaskTeamDropdown() {
     const teamSelect = document.getElementById('TaskTeamName');
     
     if (!teamSelect) {
-        console.error('❌ TaskTeamName dropdown not found');
+        console.error('âŒ TaskTeamName dropdown not found');
         return;
     }
     
@@ -1253,7 +1253,7 @@ async function populateTaskTeamDropdown() {
     });
     
     teamSelect.disabled = false;
-    console.log(`✅ Populated ${teams.length} teams`);
+    console.log(`âœ… Populated ${teams.length} teams`);
 }
 
 function handleTaskTeamChange() {
@@ -1261,7 +1261,7 @@ function handleTaskTeamChange() {
     const memberSelect = document.getElementById('allocAssignedTo');
     
     if (!teamSelect || !memberSelect) {
-        console.error('❌ Dropdowns not found');
+        console.error('âŒ Dropdowns not found');
         return;
     }
     
@@ -1271,15 +1271,15 @@ function handleTaskTeamChange() {
     const selectedTeam = teamSelect.value;
     
     if (!selectedTeam) {
-        console.log('ℹ️ No team selected');
+        console.log('â„¹ï¸ No team selected');
         return;
     }
     
     const selectedOption = teamSelect.options[teamSelect.selectedIndex];
     const members = JSON.parse(selectedOption.dataset.members || '[]');
     
-    console.log('👥 Team selected:', selectedTeam);
-    console.log('👥 Members:', members);
+    console.log('ðŸ‘¥ Team selected:', selectedTeam);
+    console.log('ðŸ‘¥ Members:', members);
     
     if (members.length === 0) {
         memberSelect.innerHTML = '<option value="">-- No members in this team --</option>';
@@ -1297,7 +1297,7 @@ function handleTaskTeamChange() {
     });
     
     memberSelect.disabled = false;
-    console.log(`✅ Populated ${members.length} members for team: ${selectedTeam}`);
+    console.log(`âœ… Populated ${members.length} members for team: ${selectedTeam}`);
 }
 
 // ============================
@@ -1310,9 +1310,9 @@ function handleAddTaskToTable(event) {
     const taskName = document.getElementById('TaskName')?.value.trim();
     const taskDescription = document.getElementById('ProjectDescription')?.value.trim();
     const startDate = document.getElementById('TaskStartDate')?.value;
-    const startTime = document.getElementById('TaskStartTime')?.value; // ✅ NEW
+    const startTime = document.getElementById('TaskStartTime')?.value; // âœ… NEW
     const endDate = document.getElementById('TaskEndDate')?.value;
-    const endTime = document.getElementById('TaskEndTime')?.value; // ✅ NEW
+    const endTime = document.getElementById('TaskEndTime')?.value; // âœ… NEW
     const teamSelect = document.getElementById('TaskTeamName');
     const memberSelect = document.getElementById('allocAssignedTo');
     const remarks = document.getElementById('taskremarks')?.value.trim();
@@ -1321,63 +1321,63 @@ function handleAddTaskToTable(event) {
     const assignedToEmpId = memberSelect?.value;
     const assignedToName = memberSelect?.options[memberSelect.selectedIndex]?.text || '';
     
-    console.log('📋 Form Values:');
+    console.log('ðŸ“‹ Form Values:');
     console.log('  taskName:', taskName);
     console.log('  startDate:', startDate);
-    console.log('  startTime:', startTime); // ✅ NEW
+    console.log('  startTime:', startTime); // âœ… NEW
     console.log('  endDate:', endDate);
-    console.log('  endTime:', endTime); // ✅ NEW
+    console.log('  endTime:', endTime); // âœ… NEW
     console.log('  teamName:', teamName);
     console.log('  assignedToEmpId:', assignedToEmpId);
     console.log('  remarks:', remarks);
     
     // Validation
     if (!taskName) {
-        showToast('❌ Task Name is required', 'error');
+        showToast('âŒ Task Name is required', 'error');
         return;
     }
     
     if (!startDate) {
-        showToast('❌ Start Date is required', 'error');
+        showToast('âŒ Start Date is required', 'error');
         return;
     }
     
     if (!startTime) {
-        showToast('❌ Start Time is required', 'error');
+        showToast('âŒ Start Time is required', 'error');
         return;
     }
     
     if (!endDate) {
-        showToast('❌ End Date is required', 'error');
+        showToast('âŒ End Date is required', 'error');
         return;
     }
     
     if (!endTime) {
-        showToast('❌ End Time is required', 'error');
+        showToast('âŒ End Time is required', 'error');
         return;
     }
     
     if (!teamName) {
-        showToast('❌ Team Name is required', 'error');
+        showToast('âŒ Team Name is required', 'error');
         return;
     }
     
     if (!assignedToEmpId) {
-        showToast('❌ Assigned To is required', 'error');
+        showToast('âŒ Assigned To is required', 'error');
         return;
     }
     
     if (!remarks) {
-        showToast('❌ Remarks is required', 'error');
+        showToast('âŒ Remarks is required', 'error');
         return;
     }
     
-    // ✅ Validate date-time combination
+    // âœ… Validate date-time combination
     const startDateTime = new Date(`${startDate}T${startTime}`);
     const endDateTime = new Date(`${endDate}T${endTime}`);
     
     if (startDateTime >= endDateTime) {
-        showToast('❌ End date/time must be after start date/time', 'error');
+        showToast('âŒ End date/time must be after start date/time', 'error');
         return;
     }
     
@@ -1386,9 +1386,9 @@ function handleAddTaskToTable(event) {
         taskName: taskName,
         description: taskDescription || '',
         startDate: startDate,
-        startTime: startTime, // ✅ NEW
+        startTime: startTime, // âœ… NEW
         endDate: endDate,
-        endTime: endTime, // ✅ NEW
+        endTime: endTime, // âœ… NEW
         teamName: teamName,
         assignedToEmpId: assignedToEmpId,
         assignedToName: assignedToName,
@@ -1399,8 +1399,8 @@ function handleAddTaskToTable(event) {
     updateTempTaskTable();
     clearTaskFormFields();
     
-    showToast('✅ Task added to list', 'success');
-    console.log('✅ Task added:', task);
+    showToast('âœ… Task added to list', 'success');
+    console.log('âœ… Task added:', task);
 }
 
 
@@ -1408,7 +1408,7 @@ function updateTempTaskTable() {
     const tbody = document.querySelector('#tempTaskTable tbody');
     
     if (!tbody) {
-        console.error('❌ Task table body not found');
+        console.error('âŒ Task table body not found');
         return;
     }
     
@@ -1447,16 +1447,16 @@ function removeTaskFromTable(taskId) {
         const removedTask = tempTasks.splice(taskIndex, 1)[0];
         updateTempTaskTable();
         showToast(`Task "${removedTask.taskName}" removed`, 'info');
-        console.log('🗑️ Remaining tasks:', tempTasks.length);
+        console.log('ðŸ—‘ï¸ Remaining tasks:', tempTasks.length);
     }
 }
 
 function clearTaskFormFields() {
     document.getElementById('TaskName').value = '';
     document.getElementById('TaskStartDate').value = '';
-    document.getElementById('TaskStartTime').value = '09:00'; // ✅ Reset to default
+    document.getElementById('TaskStartTime').value = '09:00'; // âœ… Reset to default
     document.getElementById('TaskEndDate').value = '';
-    document.getElementById('TaskEndTime').value = '18:00'; // ✅ Reset to default
+    document.getElementById('TaskEndTime').value = '18:00'; // âœ… Reset to default
     
     const teamSelect = document.getElementById('TaskTeamName');
     const memberSelect = document.getElementById('allocAssignedTo');
@@ -1472,7 +1472,7 @@ function clearTaskFormFields() {
 
 async function submitAllTasks() {
     if (tempTasks.length === 0) {
-        showToast('❌ Please add at least one task', 'error');
+        showToast('âŒ Please add at least one task', 'error');
         return;
     }
     
@@ -1480,12 +1480,12 @@ async function submitAllTasks() {
     const projectId = sessionProject?.project_id;
     
     if (!projectId) {
-        showToast('❌ No project selected', 'error');
+        showToast('âŒ No project selected', 'error');
         return;
     }
     
     try {
-        console.log('📤 Submitting tasks to database:', tempTasks);
+        console.log('ðŸ“¤ Submitting tasks to database:', tempTasks);
         
         const response = await fetch('https://www.fist-o.com/web_crm/add_task_allocations.php', {
             method: 'POST',
@@ -1499,7 +1499,7 @@ async function submitAllTasks() {
         const result = await response.json();
         
         if (result.success) {
-            showToast(`✅ ${tempTasks.length} task(s) allocated successfully!`, 'success');
+            showToast(`âœ… ${tempTasks.length} task(s) allocated successfully!`, 'success');
             
             // Clear temporary tasks
             tempTasks = [];
@@ -1508,17 +1508,17 @@ async function submitAllTasks() {
             // Close the modal
             closeTaskAllocationForm();
             
-            // ✅ RELOAD PROJECT TASKS TO UPDATE THE TABLE
+            // âœ… RELOAD PROJECT TASKS TO UPDATE THE TABLE
             await loadProjectTasks(projectId);
             
-            console.log('✅ All tasks submitted and table refreshed');
+            console.log('âœ… All tasks submitted and table refreshed');
         } else {
             showToast(result.message || 'Failed to submit tasks', 'error');
-            console.error('❌ Server error:', result);
+            console.error('âŒ Server error:', result);
         }
         
     } catch (error) {
-        console.error('❌ Error submitting tasks:', error);
+        console.error('âŒ Error submitting tasks:', error);
         showToast('Network error while submitting tasks', 'error');
     }
 }
@@ -1534,8 +1534,8 @@ function formatDateDisplay(dateString) {
 // ============================
 
 async function openProjectAllocationForm(projectId = null) {
-  console.log('📝 Opening employee allocation modal...');
-  console.log('📝 Received projectId parameter:', projectId);
+  console.log('ðŸ“ Opening employee allocation modal...');
+  console.log('ðŸ“ Received projectId parameter:', projectId);
   
   let finalProjectId = projectId || 
                        currentProjectId || 
@@ -1546,21 +1546,21 @@ async function openProjectAllocationForm(projectId = null) {
     const detailView = document.getElementById('project-detail-view');
     if (detailView) {
       finalProjectId = detailView.getAttribute('data-project-id');
-      console.log('📝 Got project ID from DOM:', finalProjectId);
+      console.log('ðŸ“ Got project ID from DOM:', finalProjectId);
     }
   }
   
   if (!finalProjectId) {
     showToast('Error: Project ID not found. Please view a project first.', 'error');
-    console.error('❌ No project ID available from any source');
+    console.error('âŒ No project ID available from any source');
     return;
   }
   
-  console.log('✅ Using project ID:', finalProjectId);
+  console.log('âœ… Using project ID:', finalProjectId);
   
   const modal = document.getElementById('addProjectAllocationModal');
   if (!modal) {
-    console.error('❌ Modal not found');
+    console.error('âŒ Modal not found');
     return;
   }
 
@@ -1589,7 +1589,7 @@ async function openProjectAllocationForm(projectId = null) {
 
 async function fetchAndDisplayAllocatedInModal(projectId) {
   try {
-    console.log('📡 Fetching allocated employees for modal display...');
+    console.log('ðŸ“¡ Fetching allocated employees for modal display...');
     
     const response = await fetch(
       `https://www.fist-o.com/web_crm/get_allocated_employees.php?project_id=${projectId}`,
@@ -1604,7 +1604,7 @@ async function fetchAndDisplayAllocatedInModal(projectId) {
     }
 
     const result = await response.json();
-    console.log('📦 Modal allocated employees response:', result);
+    console.log('ðŸ“¦ Modal allocated employees response:', result);
 
     if (result.success && result.data && result.data.employees && result.data.employees.length > 0) {
       displayAllocatedInModal(result.data.employees);
@@ -1612,7 +1612,7 @@ async function fetchAndDisplayAllocatedInModal(projectId) {
       showEmptyStateInModal();
     }
   } catch (error) {
-    console.error('❌ Error fetching allocated employees for modal:', error);
+    console.error('âŒ Error fetching allocated employees for modal:', error);
     showEmptyStateInModal();
   }
 }
@@ -1624,7 +1624,7 @@ function displayAllocatedInModal(allocatedEmployees) {
   const selectedList = document.getElementById('selectedEmployeesList');
   
   if (!selectedList) {
-    console.error('❌ Selected employee list container not found');
+    console.error('âŒ Selected employee list container not found');
     return;
   }
 
@@ -1649,7 +1649,7 @@ function displayAllocatedInModal(allocatedEmployees) {
     </div>
   `).join('');
 
-  console.log(`✅ Displayed ${allocatedEmployees.length} allocated employees`);
+  console.log(`âœ… Displayed ${allocatedEmployees.length} allocated employees`);
   console.log('Employee IDs:', allocatedEmployees.map(e => e.emp_id));
 }
 
@@ -1719,10 +1719,13 @@ function addToSelectedList() {
 
   displayNewSelectionsInModal();
 
+  populateEmployeeDropdown(); // <-- Add this line
+
   selectElement.value = '';
   
   showToast(`${employee.emp_name} added to selection`, 'success');
 }
+
 
 // ============================
 // DISPLAY NEW SELECTIONS IN MODAL - COMBINED WITH ALLOCATED
@@ -1732,7 +1735,7 @@ function displayNewSelectionsInModal() {
   const selectedList = document.getElementById('selectedEmployeesList');
   
   if (!selectedList) {
-    console.error('❌ Selected employees list not found');
+    console.error('âŒ Selected employees list not found');
     return;
   }
 
@@ -1831,7 +1834,7 @@ function displayNewSelectionsInModal() {
 // ============================
 
 async function removeAllocatedEmployee(empId, employeeName) {
-  console.log('🔍 Remove function called with:');
+  console.log('ðŸ” Remove function called with:');
   console.log('  - empId:', empId);
   console.log('  - employeeName:', employeeName);
   
@@ -1870,7 +1873,7 @@ async function removeAllocatedEmployee(empId, employeeName) {
       emp_id: String(empId)
     };
     
-    console.log('📤 Sending remove request:', requestData);
+    console.log('ðŸ“¤ Sending remove request:', requestData);
     
     const response = await fetch('https://www.fist-o.com/web_crm/remove_allocated_employee.php', {
       method: 'POST',
@@ -1884,7 +1887,7 @@ async function removeAllocatedEmployee(empId, employeeName) {
     const result = await response.json();
     hideLoadingSpinner();
     
-    console.log('📦 Remove response:', result);
+    console.log('ðŸ“¦ Remove response:', result);
     
     if (result.success) {
       // Remove the card with animation
@@ -1905,8 +1908,8 @@ async function removeAllocatedEmployee(empId, employeeName) {
       
       showToast(`${employeeName} removed from project successfully`, 'success');
       
-      // ✅ REFRESH THE DROPDOWN TO SHOW THE REMOVED EMPLOYEE
-      console.log('🔄 Refreshing employee dropdown...');
+      // âœ… REFRESH THE DROPDOWN TO SHOW THE REMOVED EMPLOYEE
+      console.log('ðŸ”„ Refreshing employee dropdown...');
       await fetchProjectEmployees(projectId);
       
       // Also refresh the allocated list
@@ -1916,7 +1919,7 @@ async function removeAllocatedEmployee(empId, employeeName) {
       
     } else {
       showToast(result.message || 'Failed to remove employee', 'error');
-      console.error('❌ Server error:', result);
+      console.error('âŒ Server error:', result);
       
       // Re-enable button if failed
       if (cardElement) {
@@ -1931,7 +1934,7 @@ async function removeAllocatedEmployee(empId, employeeName) {
     }
   } catch (error) {
     hideLoadingSpinner();
-    console.error('❌ Error removing employee:', error);
+    console.error('âŒ Error removing employee:', error);
     showToast('Failed to remove employee: ' + error.message, 'error');
     
     // Re-enable button if error
@@ -1956,7 +1959,7 @@ async function removeAllocatedEmployee(empId, employeeName) {
 // ============================
 
 function removeFromNewSelection(empId) {
-  console.log('🗑️ Removing employee from new selection:', empId);
+  console.log('ðŸ—‘ï¸ Removing employee from new selection:', empId);
   
   selectedEmployees = selectedEmployees.filter(emp => emp.emp_id !== empId);
   
@@ -2003,7 +2006,7 @@ function closeProjectAllocationForm() {
       selectElement.value = '';
     }
     
-    console.log('✅ Modal closed and cleaned up');
+    console.log('âœ… Modal closed and cleaned up');
   }, 300);
 }
 
@@ -2013,7 +2016,7 @@ function closeProjectAllocationForm() {
 
 async function fetchProjectEmployees(projectId = null) {
   try {
-    console.log('📡 Fetching employees from add_project_employee.php...');
+    console.log('ðŸ“¡ Fetching employees from add_project_employee.php...');
     
     const url = projectId 
       ? `https://www.fist-o.com/web_crm/add_project_employee.php?project_id=${projectId}`
@@ -2029,7 +2032,7 @@ async function fetchProjectEmployees(projectId = null) {
     }
 
     const result = await response.json();
-    console.log('📦 Employee fetch response:', result);
+    console.log('ðŸ“¦ Employee fetch response:', result);
 
     if (result.success && result.data) {
       employeesData = result.data.map(emp => ({
@@ -2039,9 +2042,9 @@ async function fetchProjectEmployees(projectId = null) {
         designation: emp.designation || 'N/A'
       }));
       
-      console.log('📦 Stored employees data:', employeesData);
+      console.log('ðŸ“¦ Stored employees data:', employeesData);
       populateEmployeeDropdown();
-      console.log(`✅ Loaded ${employeesData.length} employees`);
+      console.log(`âœ… Loaded ${employeesData.length} employees`);
       return employeesData;
     } else {
       employeesData = [];
@@ -2050,7 +2053,7 @@ async function fetchProjectEmployees(projectId = null) {
       return [];
     }
   } catch (error) {
-    console.error('❌ Error fetching employees:', error);
+    console.error('âŒ Error fetching employees:', error);
     employeesData = [];
     populateEmployeeDropdown();
     showToast('Error loading employees: ' + error.message, 'error');
@@ -2079,6 +2082,11 @@ function populateEmployeeDropdown() {
   }
 
   employeesData.forEach(emp => {
+    // Filter out employees that have already been selected
+    if (selectedEmployees.some(selected => selected.emp_id === emp.emp_id)) {
+      return; // Skip already-selected employee
+    }
+
     const option = document.createElement('option');
     option.value = emp.emp_id;
     
@@ -2096,8 +2104,9 @@ function populateEmployeeDropdown() {
     select.appendChild(option);
   });
   
-  console.log(`✅ Dropdown populated with ${employeesData.length} employees`);
+  console.log(`✅ Dropdown populated with ${select.options.length-1} employees`);
 }
+
 
 async function submitEmployees() {
   if (selectedEmployees.length === 0) {
@@ -2118,7 +2127,7 @@ async function submitEmployees() {
   
   if (!projectId) {
     showToast('Error: Project ID not found. Please try again.', 'error');
-    console.error('❌ Project ID missing from all sources');
+    console.error('âŒ Project ID missing from all sources');
     return;
   }
 
@@ -2126,11 +2135,11 @@ async function submitEmployees() {
   
   if (!finalProjectId) {
     showToast('Error: Invalid project ID', 'error');
-    console.error('❌ Invalid project ID. Original:', projectId);
+    console.error('âŒ Invalid project ID. Original:', projectId);
     return;
   }
 
-  console.log('✅ Using project ID for submission:', finalProjectId);
+  console.log('âœ… Using project ID for submission:', finalProjectId);
 
   const allocationData = {
     project_id: finalProjectId,
@@ -2141,7 +2150,7 @@ async function submitEmployees() {
     }))
   };
 
-  console.log('📤 Submitting employee allocation:', JSON.stringify(allocationData, null, 2));
+  console.log('ðŸ“¤ Submitting employee allocation:', JSON.stringify(allocationData, null, 2));
 
   try {
     showLoadingSpinner();
@@ -2156,12 +2165,12 @@ async function submitEmployees() {
     });
 
     const responseText = await response.text();
-    console.log('📦 Raw server response:', responseText);
+    console.log('ðŸ“¦ Raw server response:', responseText);
 
     hideLoadingSpinner();
 
     if (!response.ok) {
-      console.error('❌ HTTP Error:', response.status, responseText);
+      console.error('âŒ HTTP Error:', response.status, responseText);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -2169,12 +2178,12 @@ async function submitEmployees() {
     try {
       result = JSON.parse(responseText);
     } catch (parseError) {
-      console.error('❌ JSON Parse Error:', parseError);
+      console.error('âŒ JSON Parse Error:', parseError);
       console.error('Response text:', responseText);
       throw new Error('Invalid JSON response from server');
     }
 
-    console.log('📦 Parsed allocation response:', result);
+    console.log('ðŸ“¦ Parsed allocation response:', result);
 
     if (result.success) {
       const message = result.message || `${selectedEmployees.length} employee(s) allocated successfully!`;
@@ -2184,7 +2193,7 @@ async function submitEmployees() {
         closeProjectAllocationForm();
         
         if (finalProjectId && typeof viewProject === 'function') {
-          console.log('🔄 Refreshing project view...');
+          console.log('ðŸ”„ Refreshing project view...');
           viewProject(finalProjectId);
         }
       }, 1500);
@@ -2199,7 +2208,7 @@ async function submitEmployees() {
     }
   } catch (error) {
     hideLoadingSpinner();
-    console.error('❌ Error submitting allocation:', error);
+    console.error('âŒ Error submitting allocation:', error);
     showToast('Error: ' + error.message, 'error');
   }
 }
@@ -2273,13 +2282,13 @@ function showToast(message, type = 'success') {
   const container = document.getElementById('projectToastContainer') || document.getElementById('toast-container');
   
   if (!container) {
-    console.log('📢 Toast:', message);
+    console.log('ðŸ“¢ Toast:', message);
     
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     
-    const icon = type === 'success' ? '✓' : 
-                 type === 'error' ? '✕' : '⚠';
+    const icon = type === 'success' ? 'âœ“' : 
+                 type === 'error' ? 'âœ•' : 'âš ';
     
     toast.innerHTML = `
       <span style="font-size: 20px;">${icon}</span>
@@ -2350,28 +2359,28 @@ document.head.appendChild(style);
 // ============================
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('🎬 DOM Loaded - Initializing Project Dashboard...');
+  console.log('ðŸŽ¬ DOM Loaded - Initializing Project Dashboard...');
   initializeProjectDashboard();
   
   // Task team dropdown event listener
   const teamSelect = document.getElementById('TaskTeamName');
   if (teamSelect) {
     teamSelect.addEventListener('change', handleTaskTeamChange);
-    console.log('✅ Team dropdown event listener attached');
+    console.log('âœ… Team dropdown event listener attached');
   }
   
   // Task form event listener
   const taskForm = document.getElementById('TaskAllocationForm');
   if (taskForm) {
     taskForm.addEventListener('submit', handleAddTaskToTable);
-    console.log('✅ Task form listener attached');
+    console.log('âœ… Task form listener attached');
   }
   
   // Submit button event listener
   const submitBtn = document.querySelector('.submit-task-btn');
   if (submitBtn) {
     submitBtn.addEventListener('click', submitAllTasks);
-    console.log('✅ Submit button listener attached');
+    console.log('âœ… Submit button listener attached');
   }
 });
 
@@ -2398,7 +2407,7 @@ window.fetchProjectEmployees = fetchProjectEmployees;
 window.populateEmployeeDropdown = populateEmployeeDropdown;
 window.addToSelectedList = addToSelectedList;
 window.submitEmployees = submitEmployees;
-window.removeAllocatedEmployee = removeAllocatedEmployee; // ❌ THIS IS MISSING!
+window.removeAllocatedEmployee = removeAllocatedEmployee; // âŒ THIS IS MISSING!
 window.fetchTaskAllocationTeams = fetchTaskAllocationTeams;
 window.populateTaskTeamDropdown = populateTaskTeamDropdown;
 window.handleTaskTeamChange = handleTaskTeamChange;
@@ -2414,4 +2423,4 @@ window.displayNewSelectionsInModal = displayNewSelectionsInModal;
 window.removeFromNewSelection = removeFromNewSelection;
 window.getTeamBadgeClass = getTeamBadgeClass;
 
-console.log('✅ Project.js loaded successfully - All functions organized and deduplicated!');
+console.log('âœ… Project.js loaded successfully - All functions organized and deduplicated!');

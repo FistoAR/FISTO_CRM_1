@@ -1,76 +1,3 @@
-// Utility functions and helpers
-// utilities.js
-
-// Utility functions
-// Utility functions and helpers
-// utilities.js
-
-// ---------------------- IST TIME UTILITY ----------------------
-
-/**
- * Returns a Date object adjusted to IST (UTC+5:30),
- * regardless of system time zone.
- */
-function getISTDate() {
-    const now = new Date();
-    const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000); // Convert to UTC
-    const IST_OFFSET = 5.5 * 60 * 60 * 1000; // +5:30 in ms
-    return new Date(utcMs + IST_OFFSET);
-}
-
-/**
- * Returns an IST-formatted string like: "Friday, Sep 13, 2025, 14:42:10"
- */
-function getFormattedISTDate() {
-    const istDate = getISTDate();
-    const options = {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false,
-    };
-    return istDate.toLocaleString('en-IN', options);
-}
-
-// ---------------------- BASIC UTILITIES ----------------------
-
-function formatDate(dateString) {
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
-}
-
-function showNotification(message, type = 'success') {
-    const existingNotifications = document.querySelectorAll('.notification');
-    existingNotifications.forEach(notif => notif.remove());
-
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-        ${message}
-    `;
-
-    document.body.appendChild(notification);
-
-    setTimeout(() => notification.classList.add('show'), 100);
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
-
-// ---------------------- DASHBOARD TIME DISPLAY ----------------------
-
-function updateDateTime() {
-    const dateTimeElement = document.getElementById('dateTimeDisplay');
-    if (!dateTimeElement) return;
-    dateTimeElement.textContent = getFormattedISTDate();
-}
-
 // Animation
 function initializeCardAnimations() {
     const cards = document.querySelectorAll('.dashboard-card');
@@ -267,7 +194,8 @@ if (typeof module !== 'undefined' && module.exports) {
         getDeviceIcon,
         filterByDate,
         showMessage,
-        getCurrentISTDate
+        getISTDate,
+        getFormattedISTDate
     };
 }
 
@@ -284,4 +212,5 @@ window.detectDevice = detectDevice;
 window.getDeviceIcon = getDeviceIcon;
 window.filterByDate = filterByDate;
 window.showMessage = showMessage;
-window.getCurrentISTDate = getCurrentISTDate;
+window.getISTDate = getISTDate;
+window.getFormattedISTDate = getFormattedISTDate;
