@@ -532,10 +532,12 @@ body {
 .reports-table th:nth-child(1), .reports-table td:nth-child(1) { width: 12%; }
 .reports-table th:nth-child(2), .reports-table td:nth-child(2) { width: 15%; }
 .reports-table th:nth-child(3), .reports-table td:nth-child(3) { width: 15%; }
-.reports-table th:nth-child(4), .reports-table td:nth-child(4) { width: 10%; }
-.reports-table th:nth-child(5), .reports-table td:nth-child(5) { width: 8%; }
-.reports-table th:nth-child(6), .reports-table td:nth-child(6) { width: 20%; }
+.reports-table th:nth-child(4), .reports-table td:nth-child(4) { width: 12%; }
+.reports-table th:nth-child(5), .reports-table td:nth-child(5) { width: 12%; }
+.reports-table th:nth-child(6), .reports-table td:nth-child(6) { width: 12%; }
 .reports-table th:nth-child(7), .reports-table td:nth-child(7) { width: 20%; }
+.reports-table th:nth-child(8), .reports-table td:nth-child(8) { width: 15%; }
+.reports-table th:nth-child(9), .reports-table td:nth-child(9) { width: 15%; }
 
 /* --- END OF REPORTS AND SPECIAL PAGE FIXES --- */
 
@@ -972,7 +974,7 @@ body {
     border-radius: 8px;
     display: inline-block;
     font-weight: 500;
-    margin-top: 1rem;
+    /* margin-top: 1rem; */
 }
 
 .status-progress {

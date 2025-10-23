@@ -1946,30 +1946,38 @@
                 </div>
 
 
-                <div id="singleDateGroup" class="form-row hidden">
-                  <div class="form-group">
-                    <label for="singleDateFull">Leave Date *</label>
-                    <input type="date" id="singleDate" />
-                  </div>
+              <!-- For Full Single Day Leave -->
+              <div id="singleDateGroup" class="form-row hidden">
+                <div class="form-group">
+                  <label for="singleDateFull">Leave Date *</label>
+                  <input type="date" id="singleDateFull" name="singleDateFull" />
                 </div>
+              </div>
 
-                <div id="halfDayPeriodGroup" class="form-row hidden">
-                  <div class="form-row">
-                    <div class="form-group">
-                      <label for="singleDateHalf">Leave Date *</label>
-                      <input type="date" id="singleDate" />
-                    </div>
-                    <div class="form-group">
-                      <label>Half Day Period *</label>
-                      <div class="radio-group">
-                        <label><input type="radio" name="halfDayPeriod" value="morning" />
-                          Morning (First Half)</label>
-                        <label><input type="radio" name="halfDayPeriod" value="afternoon" />
-                          Afternoon (Second Half)</label>
-                      </div>
+              <!-- For Half Day Leave -->
+              <div id="halfDayPeriodGroup" class="form-row hidden">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="singleDateHalf">Leave Date *</label>
+                    <input type="date" id="singleDateHalf" name="singleDateHalf" />
+                  </div>
+                  <div class="form-group">
+                    <label>Half Day Period *</label>
+                    <div class="radio-group">
+                      <label>
+                        <input type="radio" id="session" name="session" value="AM" /> 
+                        Morning (First Half)
+                      </label>
+                      <label>
+                        <input type="radio" name="session" value="PM" /> 
+                        Afternoon (Second Half)
+                      </label>
                     </div>
                   </div>
                 </div>
+              </div>
+
+
 
                 <div id="startDateGroup" class="form-row hidden">
                   <div class="form-row">
@@ -2082,11 +2090,11 @@
                 </div>
               </div>
 
-
+              <div class="form-row">
               <div class="form-group">
-                <label for="attendees">Attendees (Employee IDs) *</label>
+                <label for="attendees">Attendees (Employee Names) *</label>
                 <input type="text" id="attendees" class="form-control"
-                  placeholder="Enter employee IDs (e.g., EMP001, EMP002)" required />
+                  placeholder="Enter employee Names (e.g., Ramesh, Suresh, Rajesh)" required />
               </div>
 
 
@@ -2095,6 +2103,7 @@
                 <textarea id="meetingDescription" rows="4"
                   placeholder="Describe the purpose and agenda of the meeting..."></textarea>
               </div>
+            </div>
 
               <button type="submit" class="btn">
                 <i class="fas fa-calendar-check"></i> Schedule Meeting
@@ -2866,67 +2875,13 @@
                     <th>From Date</th>
                     <th>To Date</th>
                     <th>Days</th>
+                    <th>Session</th>
                     <th>Reason</th>
-                    <th>Applied Date</th>
                     <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>FST00725</td>
-                    <td>Harish N</td>
-                    <td>Sick Leave</td>
-                    <td>2025-09-10</td>
-                    <td>2025-09-12</td>
-                    <td>3</td>
-                    <td>Medical appointment</td>
-                    <td>2025-09-08</td>
-                    <td><span class="status-badge status-pending">Pending</span></td>
-                  </tr>
-                  <tr>
-                    <td>FST001223</td>
-                    <td>Sham R</td>
-                    <td>Annual Leave</td>
-                    <td>2025-09-15</td>
-                    <td>2025-09-20</td>
-                    <td>6</td>
-                    <td>Family vacation</td>
-                    <td>2025-09-01</td>
-                    <td><span class="status-badge status-progress">Approved</span></td>
-                  </tr>
-                  <tr>
-                    <td>FST01325</td>
-                    <td>Shafi</td>
-                    <td>Emergency Leave</td>
-                    <td>2025-09-05</td>
-                    <td>2025-09-05</td>
-                    <td>1</td>
-                    <td>Family emergency</td>
-                    <td>2025-09-05</td>
-                    <td><span class="status-badge status-progress">Approved</span></td>
-                  </tr>
-                  <tr>
-                    <td>FST00625</td>
-                    <td>Murugan M</td>
-                    <td>Sick Leave</td>
-                    <td>2025-09-02</td>
-                    <td>2025-09-03</td>
-                    <td>2</td>
-                    <td>Fever and cold</td>
-                    <td>2025-09-01</td>
-                    <td><span class="status-badge status-progress">Approved</span></td>
-                  </tr>
-                  <tr>
-                    <td>FSTIN0925</td>
-                    <td>Priya K</td>
-                    <td>Personal Leave</td>
-                    <td>2025-08-28</td>
-                    <td>2025-08-30</td>
-                    <td>3</td>
-                    <td>Personal work</td>
-                    <td>2025-08-25</td>
-                    <td><span class="status-badge status-completed">Rejected</span></td>
-                  </tr>
+
                 </tbody>
               </table>
             </div>

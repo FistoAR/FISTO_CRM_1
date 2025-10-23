@@ -72,6 +72,32 @@ function clearDailyReportFilter() {
     console.log('Daily report filter cleared');
 }
 
+// Helper function to format date from yyyy-mm-dd to dd/mm/yyyy
+function formatDate(dateString) {
+    if (!dateString) return '';
+    
+    const parts = dateString.split('-');
+    if (parts.length !== 3) return dateString;
+    
+    const year = parts[0];
+    const month = parts[1];
+    const day = parts[2];
+    
+    return `${day}/${month}/${year}`;
+}
+
+// Helper function to get status class
+function getStatusClass(status) {
+    if (!status) return 'status-pending';
+    
+    const statusLower = status.toLowerCase();
+    if (statusLower === 'pending') return 'status-pending';
+    if (statusLower === 'approved') return 'status-approved';
+    if (statusLower === 'rejected') return 'status-rejected';
+    
+    return 'status-pending';
+}
+
 // Load Leave Reports from API
 async function loadLeaveReports() {
     try {
@@ -94,22 +120,24 @@ async function loadLeaveReports() {
         const tbody = document.querySelector("#leaveReportsTable tbody");
         tbody.innerHTML = ''; // Clear existing rows
         
-        if (result.success && result.data && result.data.length > 0) {
+        if (result.data && result.data.length > 0) {
             result.data.forEach((row) => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${row.emp_id || ''}</td>
                     <td>${row.emp_name || ''}</td>
                     <td>${row.leave_type || ''}</td>
-                    <td>${row.from_date || ''}</td>
-                    <td>${row.to_date || ''}</td>
+                    <td>${formatDate(row.from_date)}</td>
+                    <td>${formatDate(row.to_date)}</td>
                     <td>${row.number_of_days || ''}</td>
+                    <td>${row.session || ''}</td>
                     <td>${row.reason || ''}</td>
-                    <td>${row.created_at ? row.created_at.split(' ')[0] : ''}</td>
                     <td><span class="status-badge ${getStatusClass(row.status)}">${row.status || 'Pending'}</span></td>
                 `;
                 tbody.appendChild(tr);
             });
+            
+            console.log(`✅ Successfully loaded ${result.data.length} leave report(s)`);
         } else {
             // Show empty state
             tbody.innerHTML = `
@@ -142,6 +170,38 @@ async function loadLeaveReports() {
     }
 }
 
+// Call this function when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadLeaveReports();
+});
+
+
+// Helper function to format date from yyyy-mm-dd to dd/mm/yyyy
+function formatDate(dateString) {
+    if (!dateString) return '';
+    
+    const parts = dateString.split('-');
+    if (parts.length !== 3) return dateString;
+    
+    const year = parts[0];
+    const month = parts[1];
+    const day = parts[2];
+    
+    return `${day}/${month}/${year}`;
+}
+
+// Helper function to get status class
+function getStatusClass(status) {
+    if (!status) return 'status-pending';
+    
+    const statusLower = status.toLowerCase();
+    if (statusLower === 'pending') return 'status-pending';
+    if (statusLower === 'approved') return 'status-approved';
+    if (statusLower === 'rejected') return 'status-rejected';
+    
+    return 'status-pending';
+}
+
 // Load Permission Reports from API
 async function loadPermissionReports() {
     try {
@@ -164,22 +224,25 @@ async function loadPermissionReports() {
         const tbody = document.querySelector("#permissionReportsTable tbody");
         tbody.innerHTML = ''; // Clear existing rows
         
-        if (result.success && result.data && result.data.length > 0) {
+        // FIX: Check for result.data directly (no result.success in API response)
+        if (result.data && result.data.length > 0) {
             result.data.forEach((row) => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${row.emp_id || ''}</td>
                     <td>${row.employeeName || row.emp_name || ''}</td>
-                    <td>${row.permission_date || ''}</td>
+                    <td>${formatDate(row.permission_date)}</td>
                     <td>${row.from_time ? row.from_time.substring(0, 5) : ''}</td>
                     <td>${row.to_time ? row.to_time.substring(0, 5) : ''}</td>
                     <td>${row.delay_duration || ''}</td>
                     <td>${row.reason || ''}</td>
-                    <td>${row.created_at ? row.created_at.split(' ')[0] : ''}</td>
+                    <td>${row.created_at ? formatDate(row.created_at.split(' ')[0]) : ''}</td>
                     <td><span class="status-badge ${getStatusClass(row.status)}">${row.status || 'Pending'}</span></td>
                 `;
                 tbody.appendChild(tr);
             });
+            
+            console.log(`✅ Successfully loaded ${result.data.length} permission report(s)`);
         } else {
             // Show empty state
             tbody.innerHTML = `
@@ -211,6 +274,13 @@ async function loadPermissionReports() {
         `;
     }
 }
+
+// Make sure to call this when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadLeaveReports();
+    loadPermissionReports();
+});
+
 
 // Helper function to get status CSS class
 function getStatusClass(status) {
