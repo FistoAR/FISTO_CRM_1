@@ -1,7 +1,9 @@
     // Attendance and time tracking functions
     // attendanceManagement.js
 
+    
     let loginTime = null; // Store login time
+    
 
     // Elements
     const modal = document.getElementById('punchModal');
@@ -27,83 +29,119 @@
 
     // ---- UI clock functions ----
 
-    function updateTime() {
-        const now = getServerNow();
-        if (!currentTimeElement) return;
-        const timeString = now.toLocaleString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
-        currentTimeElement.textContent = timeString;
-    }
+function updateTime() {
+    const now = getServerNow();
+    if (!currentTimeElement) return;
 
-    function updateModalClock() {
-        const now = getServerNow();
-        if (!modalClock) return;
-        let hours = now.getHours();
-        const minutes = now.getMinutes().toString().padStart(2, '0');
-        const seconds = now.getSeconds().toString().padStart(2, '0');
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12;
-        hours = hours ? hours : 12;
-        modalClock.textContent = `${hours}:${minutes}:${seconds} ${ampm}`;
-    }
+    const timeString = now.toLocaleTimeString('en-US', {
+        timeZone: 'Asia/Kolkata', // Keep this to show IST time
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+
+    currentTimeElement.textContent = timeString;
+}
+
+
+
+function updateModalClock() {
+    const now = getServerNow();
+    if (!modalClock) return;
+    
+    // Only show time, no date
+    const timeStr = now.toLocaleTimeString('en-US', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+    });
+    modalClock.textContent = timeStr; // Will show: "04:44:08 PM"
+}
+
 
 
     // Set current date and time in modal
 
     // ---- Use for modals/forms (NO fetch) ----
-    function setCurrentDateTime() {
-        const serverNow = getServerNow();
-        if (attendanceDateInput) attendanceDateInput.value = serverNow.toISOString().split('T')[0];
-        if (attendanceTimeInput) attendanceTimeInput.value = serverNow.toLocaleTimeString('en-US', {
+   function setCurrentDateTime() {
+    const serverNow = getServerNow();
+    
+    // ✅ CHANGED: Use IST timezone
+    if (attendanceDateInput) {
+        attendanceDateInput.value = serverNow.toLocaleDateString('en-CA', {
+            timeZone: 'Asia/Kolkata'
+        });
+    }
+    
+    if (attendanceTimeInput) {
+        attendanceTimeInput.value = serverNow.toLocaleTimeString('en-US', {
+            timeZone: 'Asia/Kolkata', // ✅ ADD THIS
             hour: '2-digit',
             minute: '2-digit',
             second: '2-digit',
             hour12: true
         });
-        if (loginTime && loginTimeInput) {
-            loginTimeInput.value = loginTime;
-        } else if (loginTimeInput) {
-            const loginTimeStr = serverNow.toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            });
-            loginTimeInput.value = loginTimeStr;
-        }
     }
+    
+    if (loginTime && loginTimeInput) {
+        loginTimeInput.value = loginTime;
+    } else if (loginTimeInput) {
+        const loginTimeStr = serverNow.toLocaleTimeString('en-US', {
+            timeZone: 'Asia/Kolkata', // ✅ ADD THIS
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+        loginTimeInput.value = loginTimeStr;
+    }
+}
+
 
     // Keep server time offset in ms
     let serverTimeOffset = 0;
 
     // Sync local clock with server clock
-    async function syncServerTime() {
-        try {
-            const res = await fetch("https://www.fist-o.com/web_crm/timedisplay.php");
-            const data = await res.json();
-            const serverDate = new Date(data.time); // ISO8601 string with timezone will be parsed correctly!
-            const localDate = new Date();
+    // async function syncServerTime() {
+    //     try {
+    //         const res = await fetch("https://www.fist-o.com/web_crm/timedisplay.php");
+    //         const data = await res.json();
+    //         const serverDate = new Date(data.time); // ISO8601 string with timezone will be parsed correctly!
+    //         const localDate = new Date();
 
-            serverTimeOffset = serverDate.getTime() - localDate.getTime();
-            console.log("✅ Server time synced:", serverDate, "Offset:", serverTimeOffset);
-        } catch (err) {
-            console.error("❌ Failed to sync server time:", err);
-        }
-    }
+    //         serverTimeOffset = serverDate.getTime() - localDate.getTime();
+    //         console.log("✅ Server time synced:", serverDate, "Offset:", serverTimeOffset);
+    //     } catch (err) {
+    //         console.error("❌ Failed to sync server time:", err);
+    //     }
+    // }
 
     // Locally calculate "server" time using stored offset
-    function getServerNow() {
-        const serverTimeFetched = Number(localStorage.getItem('serverTimeFetched'));
-        const clientTimeFetched = Number(localStorage.getItem('clientTimeFetched'));
-        if (!serverTimeFetched || !clientTimeFetched) return new Date();
-        return new Date(Date.now() + (serverTimeFetched - clientTimeFetched));
+function getServerNow() {
+    // Check if we have a server offset
+    if (serverTimeOffset !== 0) {
+        const now = new Date(Date.now() + serverTimeOffset);
+        console.log("⏰ Using offset-based server time:", now.toISOString());
+        return now;
     }
+    
+    // Check localStorage for cached offset
+    const serverTimeFetched = Number(localStorage.getItem('serverTimeFetched'));
+    const clientTimeFetched = Number(localStorage.getItem('clientTimeFetched'));
+    
+    if (serverTimeFetched && clientTimeFetched) {
+        const offset = serverTimeFetched - clientTimeFetched;
+        const now = new Date(Date.now() + offset);
+        console.log("⏰ Using cached server time:", now.toISOString());
+        return now;
+    }
+    
+    // Fallback to local time (with warning)
+    console.warn("⚠️ No server offset available - using local time!");
+    return new Date();
+}
+
 
 
     // UI clock update (local only; do not fetch!)
@@ -112,60 +150,111 @@
         // ...update UI with "now"...
     }, 1000);
 
-    async function syncServerTime() {
-        try {
-            const res = await fetch("https://www.fist-o.com/web_crm/timedisplay.php");
-            const data = await res.json();
-            const serverDate = new Date(data.time);
-            const localDate = new Date();
-            serverTimeOffset = serverDate.getTime() - localDate.getTime();
-            console.log("✅ Server time synced:", serverDate, "Offset:", serverTimeOffset);
 
-            // Update clocks immediately
-            updateTime();
-            updateModalClock();
-
-            // Restart the interval for updating the clocks
-            if (window.clockInterval) clearInterval(window.clockInterval);
-            window.clockInterval = setInterval(() => {
-                updateTime();
-                updateModalClock();
-            }, 1000);
-        } catch (err) {
-            console.error("❌ Failed to sync server time:", err);
+async function syncServerTime() {
+    try {
+        console.log("⏰ Syncing with server time...");
+        
+        const clientTime = Date.now();
+        
+        const response = await fetch("https://www.fist-o.com/web_crm/timedisplay.php");
+        const data = await response.json();
+        
+        console.log("📥 Server response:", data);
+        
+        // Parse server time (assumes format: "2025-10-24 18:15:30")
+        const serverTimeString = data.time.replace(' ', 'T') + '+05:30';
+        const serverTime = new Date(serverTimeString).getTime();
+        
+        // Calculate offset
+        serverTimeOffset = serverTime - clientTime;
+        
+        // Store in localStorage
+        localStorage.setItem('serverTimeOffset', serverTimeOffset);
+        localStorage.setItem('serverTimeFetched', serverTime);
+        localStorage.setItem('clientTimeFetched', clientTime);
+        
+        console.log("✅ Server time synced successfully");
+        console.log("📊 Server time:", new Date(serverTime).toISOString());
+        console.log("📊 Client time:", new Date(clientTime).toISOString());
+        console.log("📊 Offset (ms):", serverTimeOffset);
+        
+        return true;
+    } catch (error) {
+        console.error("❌ Failed to sync server time:", error);
+        
+        // Try to use cached offset
+        const cachedOffset = localStorage.getItem('serverTimeOffset');
+        if (cachedOffset) {
+            serverTimeOffset = Number(cachedOffset);
+            console.log("📦 Using cached offset:", serverTimeOffset, "ms");
+            return true;
         }
+        
+        return false;
     }
+}
+
 
 
 
     let ticksSinceLastSync = 0;
 
     function updateAttendanceTime() {
-        const now = getServerNow();
-        if (!attendanceTimeInput) return;
-        const timeStr = now.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: true
-        });
-        attendanceTimeInput.value = timeStr;
-    }
+    const now = getServerNow();
+    if (!attendanceTimeInput) return;
+    const timeStr = now.toLocaleTimeString('en-US', {
+        timeZone: 'Asia/Kolkata', // ✅ ADD THIS LINE
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+    });
+    attendanceTimeInput.value = timeStr;
+}
 
-    document.addEventListener("DOMContentLoaded", async () => {
-        // Only FETCH once when there's no saved offset (first login/session)
-        if (!localStorage.getItem('serverTimeFetched')) {
-            await fetchAndStoreServerTime();
-        }
+
+ document.addEventListener("DOMContentLoaded", async () => {
+    // Sync server time ONCE
+    await syncServerTime();
+    
+    // Initialize displays
+    updateTime();
+    updateModalClock();
+    updateAttendanceTime();
+    
+    // Update every second (NO MORE FETCHING)
+    setInterval(() => {
         updateTime();
         updateModalClock();
         updateAttendanceTime();
-        setInterval(() => {
-            updateTime();
-            updateModalClock();
-            updateAttendanceTime();
-        }, 1000); // the above update functions use getServerNow()
-    });
+    }, 1000);
+    
+    // Initialize attendance management
+    if (document.getElementById('punchModal')) {
+        initializeAttendanceManagement();
+    }
+    
+    // Dropdown listener
+    const attendanceTypeDropdown = document.getElementById('attendanceType') || 
+                                   document.querySelector('select[name="attendance_type"]');
+    
+    if (attendanceTypeDropdown) {
+        attendanceTypeDropdown.addEventListener('change', async function() {
+            const selectedType = this.value.toLowerCase();
+            console.log("📋 Attendance type changed to:", selectedType);
+            
+            const empId = sessionStorage.getItem("employeeId");
+            const currentDate = getCurrentDate();
+            
+            if (empId && currentDate) {
+                const attendanceStatus = await checkAttendanceStatus(empId, currentDate);
+                updateRadioStates(attendanceStatus);
+            }
+        });
+    }
+});
+
 
 
     // Update status and radio button availability
@@ -212,11 +301,13 @@ function updateRadioStates(attendanceStatus = null) {
         return;
     }
 
-    // ✅ GET ATTENDANCE TYPE FROM DROPDOWN
-    const attendanceTypeDropdown = document.getElementById('attendanceType') || document.querySelector('select[name="attendance_type"]');
+    const attendanceTypeDropdown = document.getElementById('attendanceType') || 
+                                   document.querySelector('select[name="attendance_type"]');
     const attendanceType = attendanceTypeDropdown ? attendanceTypeDropdown.value.toLowerCase() : 'morning';
 
-    console.log("🔘 Updating radio states with type:", attendanceType, "status:", attendanceStatus);
+    console.log("🔘 === RADIO BUTTON UPDATE ===");
+    console.log("📋 Attendance Type:", attendanceType);
+    console.log("📊 Status:", attendanceStatus);
 
     // Reset states
     radioIn.disabled = false;
@@ -230,8 +321,9 @@ function updateRadioStates(attendanceStatus = null) {
         existingMsg.remove();
     }
 
-    if (!attendanceStatus) {
-        // Default: enable IN only
+    // ✅ Handle null, undefined, or error status
+    if (!attendanceStatus || attendanceStatus.status === 'error' || !attendanceStatus.record_id) {
+        console.log("🆕 No record - enable IN only");
         radioIn.disabled = false;
         radioIn.checked = true;
         radioOut.disabled = true;
@@ -240,50 +332,60 @@ function updateRadioStates(attendanceStatus = null) {
         return;
     }
 
-    // ✅ CHECK BASED ON ATTENDANCE TYPE
+    // ✅ Use boolean flags from backend
     if (attendanceType === 'morning') {
-        // MORNING LOGIC
-        if (attendanceStatus.login_time_morning && !attendanceStatus.logout_time_morning) {
+        // ===== MORNING ATTENDANCE =====
+        console.log("☀️ MORNING:", {
+            login: attendanceStatus.has_login_morning,
+            logout: attendanceStatus.has_logout_morning
+        });
+
+        if (attendanceStatus.has_login_morning && !attendanceStatus.has_logout_morning) {
             // Morning IN done, need OUT
-            console.log("🟡 Morning: IN done, enable OUT");
+            console.log("🟡 Enable OUT (logged in, need logout)");
             radioIn.disabled = true;
             radioOut.disabled = false;
             radioOut.checked = true;
             isLoggedIn = true;
-        } else if (attendanceStatus.login_time_morning && attendanceStatus.logout_time_morning) {
-            // Both morning punches done
-            console.log("🔴 Morning: Both punches complete");
+        } else if (attendanceStatus.has_login_morning && attendanceStatus.has_logout_morning) {
+            // Both morning punches complete
+            console.log("🔴 Both punches complete");
             radioIn.disabled = true;
             radioOut.disabled = true;
             isLoggedIn = false;
             showCompletionMessage();
         } else {
             // Need morning IN
-            console.log("🟢 Morning: Need IN");
+            console.log("🟢 Enable IN (need login)");
             radioIn.disabled = false;
             radioIn.checked = true;
             radioOut.disabled = true;
             isLoggedIn = false;
         }
     } else {
-        // AFTERNOON LOGIC
-        if (attendanceStatus.login_time_afternoon && !attendanceStatus.logout_time_afternoon) {
+        // ===== AFTERNOON ATTENDANCE =====
+        console.log("🌙 AFTERNOON:", {
+            login: attendanceStatus.has_login_afternoon,
+            logout: attendanceStatus.has_logout_afternoon
+        });
+
+        if (attendanceStatus.has_login_afternoon && !attendanceStatus.has_logout_afternoon) {
             // Afternoon IN done, need OUT
-            console.log("🟡 Afternoon: IN done, enable OUT");
+            console.log("🟡 Enable OUT (logged in, need logout)");
             radioIn.disabled = true;
             radioOut.disabled = false;
             radioOut.checked = true;
             isLoggedIn = true;
-        } else if (attendanceStatus.login_time_afternoon && attendanceStatus.logout_time_afternoon) {
-            // Both afternoon punches done
-            console.log("🔴 Afternoon: Both punches complete");
+        } else if (attendanceStatus.has_login_afternoon && attendanceStatus.has_logout_afternoon) {
+            // Both afternoon punches complete
+            console.log("🔴 Both punches complete");
             radioIn.disabled = true;
             radioOut.disabled = true;
             isLoggedIn = false;
             showCompletionMessage();
         } else {
             // Need afternoon IN
-            console.log("🟢 Afternoon: Need IN");
+            console.log("🟢 Enable IN (need login)");
             radioIn.disabled = false;
             radioIn.checked = true;
             radioOut.disabled = true;
@@ -292,8 +394,11 @@ function updateRadioStates(attendanceStatus = null) {
     }
 
     updateStatus();
-    console.log("🔘 Radio states updated. isLoggedIn:", isLoggedIn);
+    console.log("✅ Radio state updated. isLoggedIn:", isLoggedIn);
+    console.log("============================");
 }
+
+
 
 // ✅ ADD THIS: Listen for attendance type dropdown changes
 document.addEventListener("DOMContentLoaded", () => {
@@ -329,27 +434,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-    function showCompletionMessage() {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'attendance-complete-message';
-        messageDiv.style.cssText = `
-            background: #d4edda;
-            color: #155724;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #c3e6cb;
-            border-radius: 4px;
-            text-align: center;
-            font-size: 14px;
-        `;
-        messageDiv.textContent = '✅ Attendance already completed for today.';
+    // function showCompletionMessage() {
+    //     const messageDiv = document.createElement('div');
+    //     messageDiv.className = 'attendance-complete-message';
+    //     messageDiv.style.cssText = `
+    //         background: #d4edda;
+    //         color: #155724;
+    //         padding: 10px;
+    //         margin: 10px 0;
+    //         border: 1px solid #c3e6cb;
+    //         border-radius: 4px;
+    //         text-align: center;
+    //         font-size: 14px;
+    //     `;
+    //     messageDiv.textContent = '✅ Attendance already completed for today.';
         
-        // Insert after radio buttons
-        const radioContainer = document.querySelector('.radio-group') || radioOut.parentNode;
-        if (radioContainer && !radioContainer.querySelector('.attendance-complete-message')) {
-            radioContainer.appendChild(messageDiv);
-        }
-    }
+    //     // Insert after radio buttons
+    //     const radioContainer = document.querySelector('.attendance-radio-group') || radioOut.parentNode;
+    //     if (radioContainer && !radioContainer.querySelector('.attendance-complete-message')) {
+    //         radioContainer.appendChild(messageDiv);
+    //     }
+    // }
     // NEW: Update UI based on attendance stage
     function updateAttendanceUI(attendanceStatus) {
         console.log("🎨 Updating attendance UI with status:", attendanceStatus);
@@ -478,73 +583,95 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    function getCurrentDate() {
-        const today = getServerNow ? getServerNow() : new Date();
-        const dd = String(today.getDate()).padStart(2, '0');
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const yyyy = today.getFullYear();
-        
-        // Return in DD-MM-YYYY format (as your PHP expects)
-        const formattedDate = `${dd}-${mm}-${yyyy}`;
-        console.log("📅 Formatted current date:", formattedDate);
-        return formattedDate;
-    }
+   function getCurrentDate() {
+    const today = getServerNow();
+    
+    const parts = today.toLocaleDateString('en-GB', {
+        timeZone: 'Asia/Kolkata', // ✅ ADD THIS
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    }).split('/');
+    
+    const formattedDate = `${parts[0]}-${parts[1]}-${parts[2]}`;
+    console.log("📅 Formatted current date:", formattedDate);
+    return formattedDate;
+}
+
 
     // Enhanced show modal function with better status checking
-    async function showModal() {
-        console.log("🎭 Opening attendance modal...");
-        
-        const modal = document.getElementById('punchModal');
-        const body = document.body;
+async function showModal() {
+    console.log("🎭 Opening attendance modal...");
+    
+    const modal = document.getElementById('punchModal');
+    const body = document.body;
 
-        if (!modal) {
-            console.error("❌ Modal element not found!");
-            return;
-        }
-
-        modal.classList.add('show');
-        body.classList.add('modal-open');
-
-        // Set current date/time
-        await setCurrentDateTime();
-
-        // Load employee info from sessionStorage
-        const empIdFromSession = sessionStorage.getItem("employeeId");
-        const empNameFromSession = sessionStorage.getItem("employeeName");
-
-        console.log("👤 Session data:", { empIdFromSession, empNameFromSession });
-
-        if (!empIdFromSession || !empNameFromSession) {
-            alert("Session expired or not logged in. Please log in again.");
-            hideModal();
-            return;
-        }
-
-        // Fill input fields
-        if (empIdInput) empIdInput.value = empIdFromSession;
-        if (empNameInput) empNameInput.value = empNameFromSession;
-
-        // Check attendance status with detailed logging
-        const currentDate = getCurrentDate();
-        console.log("🔍 Checking attendance status for modal...");
-        const attendanceStatus = await checkAttendanceStatus(empIdFromSession, currentDate);
-
-        // Update radio states based on attendance status
-        updateRadioStates(attendanceStatus);
-
-        // Store attendance ID if exists
-        if (attendanceStatus && attendanceStatus.record_id) {
-            currentAttendanceId = attendanceStatus.record_id;
-            console.log("💾 Stored attendance ID:", currentAttendanceId);
-        }
-
-        // Start modal clock
-        // updateModalClock();
-        // if (modalClockInterval) {
-        //     clearInterval(modalClockInterval);
-        // }
-        // modalClockInterval = setInterval(updateModalClock, 100);
+    if (!modal) {
+        console.error("❌ Modal element not found!");
+        return;
     }
+
+    modal.classList.add('show');
+    body.classList.add('modal-open');
+
+    await setCurrentDateTime();
+
+    const empIdFromSession = sessionStorage.getItem("employeeId");
+    const empNameFromSession = sessionStorage.getItem("employeeName");
+
+    if (!empIdFromSession || !empNameFromSession) {
+        alert("Session expired or not logged in. Please log in again.");
+        hideModal();
+        return;
+    }
+
+    if (empIdInput) empIdInput.value = empIdFromSession;
+    if (empNameInput) empNameInput.value = empNameFromSession;
+
+    const currentDate = getCurrentDate();
+    const attendanceStatus = await checkAttendanceStatus(empIdFromSession, currentDate);
+
+        // ✅ DEBUG: Log the response
+    console.log("=== API RESPONSE DEBUG ===");
+    console.log("Full response:", JSON.stringify(attendanceStatus, null, 2));
+    console.log("has_login_morning:", attendanceStatus?.has_login_morning);
+    console.log("has_logout_morning:", attendanceStatus?.has_logout_morning);
+    console.log("has_login_afternoon:", attendanceStatus?.has_login_afternoon);
+    console.log("has_logout_afternoon:", attendanceStatus?.has_logout_afternoon);
+    console.log("=========================");
+
+    // ✅ Set login time with 12-hour format
+    if (loginTimeInput && attendanceStatus) {
+        if (attendanceStatus.login_time_display) {
+            // Backend already returns 12-hour format
+            loginTimeInput.value = attendanceStatus.login_time_display;
+        } else {
+            // Current time in 12-hour format
+            const serverNow = getServerNow();
+            const currentLoginTime = serverNow.toLocaleTimeString('en-US', {
+                timeZone: 'Asia/Kolkata',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true // ✅ 12-hour format
+            });
+            loginTimeInput.value = currentLoginTime;
+        }
+    }
+
+    updateRadioStates(attendanceStatus);
+
+    if (attendanceStatus && attendanceStatus.record_id) {
+        currentAttendanceId = attendanceStatus.record_id;
+    }
+
+    updateModalClock();
+    if (modalClockInterval) {
+        clearInterval(modalClockInterval);
+    }
+    modalClockInterval = setInterval(updateModalClock, 1000);
+}
+
+
 
 
     function disableAllPunchOptions() {
@@ -567,29 +694,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Hide modal function
     function hideModal() {
-        const modal = document.getElementById('punchModal');
-        const body = document.body;
+    const modal = document.getElementById('punchModal');
+    const body = document.body;
 
-        if (modal) {
-            // Remove show class from modal
-            modal.classList.remove('show');
+    if (modal) {
+        modal.classList.remove('show');
+        body.classList.remove('modal-open');
 
-            // Allow body scrolling again
-            body.classList.remove('modal-open');
+        const completionMsg = modal.querySelector('.attendance-complete-message');
+        if (completionMsg) {
+            completionMsg.remove();
+        }
 
-            // Clear completion message
-            const completionMsg = modal.querySelector('.attendance-complete-message');
-            if (completionMsg) {
-                completionMsg.remove();
-            }
-
-            // Stop modal updates
-            if (modalClockInterval) {
-                clearInterval(modalClockInterval);
-                modalClockInterval = null;
-            }
+        // ✅ This is correct - stops the modal clock
+        if (modalClockInterval) {
+            clearInterval(modalClockInterval);
+            modalClockInterval = null;
         }
     }
+}
+
 
 
 
@@ -654,28 +778,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Add activity to list
     function addActivity(type) {
-        const now = new Date();
-        const timeString = now.toLocaleString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-        const currentDevice = detectDevice();
+    const now = getServerNow(); // ✅ CHANGE from new Date()
+    const timeString = now.toLocaleString('en-US', {
+        timeZone: 'Asia/Kolkata', // ✅ ADD THIS
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    const currentDevice = detectDevice();
 
-        activities.unshift({
-            type: type,
-            time: `Today - ${timeString}`,
-            device: currentDevice
-        });
+    activities.unshift({
+        type: type,
+        time: `Today - ${timeString}`,
+        device: currentDevice
+    });
 
-        // Keep only last 5 activities
-        if (activities.length > 5) {
-            activities = activities.slice(0, 5);
-        }
-
-        updateActivityList();
+    if (activities.length > 5) {
+        activities = activities.slice(0, 5);
     }
+
+    updateActivityList();
+}
+
 
     // Update activity list
     function updateActivityList() {
@@ -791,7 +916,7 @@ function getFormattedISTDate() {
 
     // ---------------------- DASHBOARD TIME DISPLAY ----------------------
 
-    function updateDateTime() {
+    function attendanceupdateDateTime() {
         const dateTimeElement = document.getElementById('dateTimeDisplay');
         if (!dateTimeElement) return;
         dateTimeElement.textContent = getFormattedISTDate();
@@ -800,82 +925,51 @@ function getFormattedISTDate() {
 
     // Handle form submission
     // Enhanced form submission with better validation
-    // Handle form submission
-    // Enhanced form submission with better validation and time fix
-  async function handleAttendanceSubmission(e) {
+async function handleAttendanceSubmission(e) {
     e.preventDefault();
     console.log("🚀 Starting attendance submission...");
 
     const selectedAction = document.querySelector('input[name="action"]:checked');
     if (!selectedAction) {
-        alert('Please select an action (IN or OUT)');
+        alert('✅ Attendance already completed for today.');
         return;
     }
 
-    const type = selectedAction.value; // 'in' or 'out'
+    const type = selectedAction.value;
     const empId = empIdInput ? empIdInput.value : sessionStorage.getItem("employeeId");
     const empName = empNameInput ? empNameInput.value : sessionStorage.getItem("employeeName");
 
-    // ✅ GET THE ATTENDANCE TYPE FROM DROPDOWN
-    const attendanceTypeDropdown = document.getElementById('attendanceType') || document.querySelector('select[name="attendance_type"]');
-    const attendanceType = attendanceTypeDropdown ? attendanceTypeDropdown.value.toLowerCase() : 'morning'; // 'morning' or 'afternoon'
+    const attendanceTypeDropdown = document.getElementById('attendanceType') || 
+                                   document.querySelector('select[name="attendance_type"]');
+    const attendanceType = attendanceTypeDropdown ? attendanceTypeDropdown.value.toLowerCase() : 'morning';
 
     if (!empId) {
         alert('Employee ID is missing. Please log in again.');
         return;
     }
 
-    const currentDate = getCurrentDate();
-    const latestData = await checkAttendanceStatus(empId, currentDate);
-
-    // Validation based on attendance_stage (keep your existing validation)
-    if (latestData && latestData.attendance_stage) {
-        const stage = latestData.attendance_stage;
-        
-        if (stage === 'waiting_logout_morning' || stage === 'waiting_logout_afternoon') {
-            if (type === 'out') {
-                alert('❌ You need to punch IN first.');
-                return;
-            }
-        } else if (stage === 'waiting_login_afternoon') {
-            if (type === 'in') {
-                alert('❌ You need to punch OUT first.');
-                return;
-            }
-        } else if (stage === 'complete') {
-            alert('✅ All attendance punches are complete for today.');
-            return;
-        }
-    }
-
-    // Fetch fresh server time
-    const serverTimeResp = await fetch("https://www.fist-o.com/web_crm/timedisplay.php");
-    const serverTimeData = await serverTimeResp.json();
-    const now = new Date(serverTimeData.time);
-
-    const punchTimestamp = now.getFullYear() + '-' +
-        String(now.getMonth() + 1).padStart(2, '0') + '-' +
-        String(now.getDate()).padStart(2, '0') + ' ' +
-        String(now.getHours()).padStart(2, '0') + ':' +
-        String(now.getMinutes()).padStart(2, '0') + ':' +
-        String(now.getSeconds()).padStart(2, '0');
-
+    // ✅ USE SERVER-SYNCED TIME (NOT LOCAL TIME)
+    const now = getServerNow();
+    
+    // ✅ CRITICAL: Format as IST timestamp
+    const punchTimestamp = formatToIST(now);
     const punchDate = punchTimestamp.split(' ')[0];
 
-    // ✅ SEND ATTENDANCE TYPE TO BACKEND
+    console.log("📅 Server-synced time:", now);
+    console.log("🕐 IST timestamp for DB:", punchTimestamp);
+    console.log("📆 Date:", punchDate);
+
     const bodyData = new URLSearchParams({
         employee_id: empId,
         employee_name: empName,
         date: punchDate,
-        attendance_type: attendanceType, // 'morning' or 'afternoon'
+        attendance_type: attendanceType,
         [type === 'in' ? 'log_in_time' : 'log_out_time']: punchTimestamp
     });
 
     const endpoint = 'https://www.fist-o.com/web_crm/punch.php';
 
-    console.log("📤 Sending to:", endpoint);
-    console.log("📤 Attendance Type:", attendanceType);
-    console.log("📤 Punch timestamp:", punchTimestamp);
+    console.log("📤 Sending timestamp:", punchTimestamp);
 
     try {
         const response = await fetch(endpoint, {
@@ -892,11 +986,21 @@ function getFormattedISTDate() {
 
             if (type === 'in') {
                 isLoggedIn = true;
-                if (loginTimeInput) loginTimeInput.value = punchTimestamp.split(' ')[1];
+                
+                if (loginTimeInput) {
+                    const time12Hour = now.toLocaleTimeString('en-US', {
+                        timeZone: 'Asia/Kolkata',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                    });
+                    loginTimeInput.value = time12Hour;
+                }
             } else {
                 isLoggedIn = false;
             }
 
+            const currentDate = getCurrentDate();
             const updatedStatus = await checkAttendanceStatus(empId, currentDate);
             updateRadioStates(updatedStatus);
             updateStatus();
@@ -912,6 +1016,19 @@ function getFormattedISTDate() {
     }
 }
 
+// ✅ NEW: Helper function to format Date object as IST timestamp
+function formatToIST(date) {
+    // Ensure the date is in IST
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
 
 
 
@@ -925,34 +1042,53 @@ function getFormattedISTDate() {
 
     // Initialize attendance management
     function initializeAttendanceManagement() {
-        // Check if elements exist before adding listeners
-        if (attendanceBtn) {
-            attendanceBtn.addEventListener("click", showModal);
-        }
-
-        if (closeBtn) {
-            closeBtn.addEventListener("click", hideModal);
-        }
-
-        if (submitBtn) {
-            submitBtn.addEventListener('click', handleAttendanceSubmission);
-        }
-
-        window.addEventListener("click", (event) => {
-            if (event.target === modal) {
-                hideModal();
-            }
+    console.log("🔧 Initializing attendance management...");
+    
+    if (attendanceBtn) {
+        attendanceBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            console.log("🖱️ Attendance button clicked!");
+            showModal();
         });
-
-        // Initialize time updates
-        if (currentTimeElement) {
-            updateTime();
-            setInterval(updateTime, 1000);
-        }
-
-        updateStatus();
-        updateActivityList();
+        console.log("✅ Attendance button listener attached");
+    } else {
+        console.warn("⚠️ Attendance button not found!");
     }
+
+    if (closeBtn) {
+        closeBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            hideModal();
+        });
+    }
+
+    if (submitBtn) {
+        submitBtn.addEventListener('click', handleAttendanceSubmission);
+    }
+
+    window.addEventListener("click", (event) => {
+        if (event.target === modal) {
+            hideModal();
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal && modal.classList.contains('show')) {
+            hideModal();
+        }
+    });
+
+    if (currentTimeElement) {
+        updateTime();
+        setInterval(updateTime, 1000);
+    }
+
+    updateStatus();
+    updateActivityList();
+    
+    console.log("✅ Attendance management initialized");
+}
+
 
     // Initialize when DOM is loaded
     document.addEventListener("DOMContentLoaded", () => {
@@ -980,5 +1116,6 @@ function getFormattedISTDate() {
     window.showGenericModal = showGenericModal;
     window.hideGenericModal = hideGenericModal;
     window.updateModalClock = updateModalClock;
-    window.updateTime = updateTime;
+    window.syncServerTime = syncServerTime;
+    window.getServerNow = getServerNow;
     window.setCurrentDateTime = setCurrentDateTime;

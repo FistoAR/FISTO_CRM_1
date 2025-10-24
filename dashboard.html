@@ -58,7 +58,7 @@
       <header class="header">
         <!-- Left: Day & Time -->
         <div class="header-left">
-          <div id="dateTimeDisplay" class="date-time-header"></div>
+          <div id="dateTimeDisplay" class="date-time-header">Loading...</div>
         </div>
 
         <!-- Center: Logo -->
@@ -445,7 +445,8 @@
                             </div>
                             <div class="form-group">
                               <label>Phone Number *</label>
-                              <input type="tel" name="phoneNo[]" placeholder="Enter phone number" required>
+                              <input type="text" id="phone" name="phone" maxlength="15" placeholder="Enter phone number" required 
+                                oninput="this.value = this.value.replace(/[^0-9+]/g, '');" />
                             </div>
                             <div class="form-group">
                               <label>Email *</label>
@@ -702,8 +703,8 @@
                 <table class="tasks-table">
                   <thead>
                     <tr>
-                      <th>Task</th>
-                      <th>Task Title</th>
+                      <th>S.No</th>
+                      <th>Task Name</th>
                       <th>Assigned By</th>
                       <th>Assigned To</th>
                       <th>Start Date</th>
@@ -935,22 +936,22 @@
                   <textarea id="ProjectDescription" name="ProjectDescription" rows="4"
                     placeholder="Enter project description..."></textarea>
                 </div>
-                <div class="form-group">
-                  <label for="TaskName">Task Name <span class="required">*</span></label>
-                  <input type="text" id="TaskName" name="TaskName" required>
-                </div>
                  <div class="form-group">
-                  <label for="TaskTeamName">Team Name <span class="required">*</span></label>
+                  <label for="TaskTeamName">Team <span class="required">*</span></label>
                   <select id="TaskTeamName" name="TaskTeamName" required>
                       <!-- auto fetched-->
                   </select>
                 </div>
-                <div class="form-group">
+                  <div class="form-group">
                   <label for="allocAssignedTo">Assigned To <span class="required">*</span></label>
                   <select id="allocAssignedTo" name="allocAssignedTo" required>
                     <!-- auto fetched-->
                   </select>
                 </div>   
+                <div class="form-group">
+                  <label for="TaskName">Task Name <span class="required">*</span></label>
+                  <input type="text" id="TaskName" name="TaskName" required>
+                </div>  
                <!-- Start Date & Time Row -->
               <div class="form-row">
                 <div class="form-group">
@@ -3024,10 +3025,10 @@
           </div>
 
           <!-- Current Time -->
-          <div class="form-group">
+          <!-- <div class="form-group">
             <label for="attendanceTime">Current Time:</label>
             <input type="text" id="attendanceTime" readonly />
-          </div>
+          </div> -->
 
           <!-- Login Time -->
           <div class="form-group">
@@ -3044,9 +3045,10 @@
         </div>
 
           <!-- Action (In/Out) -->
+        <div class="form-row">
           <div class="form-group">
             <label>Action:</label>
-            <div class="radio-group">
+            <div class="attendance-radio-group">
               <div class="radio-item">
                 <input type="radio" id="radioIn" name="action" value="in" checked />
                 <label for="radioIn">In</label>
@@ -3057,6 +3059,7 @@
               </div>
             </div>
           </div>
+        </div>
         </form>
       </div>
 
@@ -3297,12 +3300,4 @@
   <!-- Load main SPA controller last -->
   <script src="spaManager.js"></script>
 </body>
-
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    updateDateTime();
-    setInterval(updateDateTime, 1000); // refresh IST clock every second
-  });
-</script>
-
 </html>

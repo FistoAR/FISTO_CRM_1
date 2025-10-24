@@ -1,10 +1,6 @@
 // Utility functions and helpers
 // utilities.js
 
-// Utility functions
-// Utility functions and helpers
-// utilities.js
-
 // ---------------------- IST TIME UTILITY ----------------------
 
 /**
@@ -13,8 +9,8 @@
  */
 function getISTDate() {
     const now = new Date();
-    const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000); // Convert to UTC
-    const IST_OFFSET = 5.5 * 60 * 60 * 1000; // +5:30 in ms
+    const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const IST_OFFSET = 5.5 * 60 * 60 * 1000;
     return new Date(utcMs + IST_OFFSET);
 }
 
@@ -31,7 +27,7 @@ function getFormattedISTDate() {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
-        hour12: false,
+        hour12: true,
     };
     return istDate.toLocaleString('en-IN', options);
 }
@@ -64,45 +60,143 @@ function showNotification(message, type = 'success') {
 }
 
 // ---------------------- DASHBOARD TIME DISPLAY ----------------------
-async function updateDateTime() {
-    const dateTimeElement = document.getElementById('dateTimeDisplay');
-    if (!dateTimeElement) return;
+(function() {
+    // Private variables - won't conflict with other scripts
+    let serverTimeOffset = 0;
+    let clockInitialized = false;
 
-    try {
-        const response = await fetch("https://www.fist-o.com/web_crm/timedisplay.php");
-        const data = await response.json();
-
-        // Convert "YYYY-MM-DD HH:MM:SS" into a valid Date object
-        const serverTime = new Date(data.time.replace(" ", "T"));
-
-        const options = {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: true
-        };
-
-        dateTimeElement.textContent = serverTime.toLocaleString('en-IN', options);
-
-    } catch (error) {
-        console.error("❌ Failed to fetch server time for dashboard:", error);
-        dateTimeElement.textContent = "Error loading time";
+    /**
+     * Fetch server time ONCE and calculate offset
+     */
+     async function initializeServerTime() {
+        try {
+            const response = await fetch("https://www.fist-o.com/web_crm/timedisplay.php");
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log("✅ Server response:", data);
+            
+            // Use timestamp for accurate time
+            const serverTime = new Date(data.timestamp * 1000);
+            const localTime = new Date();
+            
+            serverTimeOffset = serverTime.getTime() - localTime.getTime();
+            clockInitialized = true;
+            
+            console.log("✅ Server time synchronized");
+            
+        } catch (error) {
+            console.error("❌ Failed to sync server time:", error);
+            
+            // Fallback: Calculate IST offset
+            const now = new Date();
+            const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const IST_OFFSET = 5.5 * 60 * 60 * 1000;
+            serverTimeOffset = utcMs + IST_OFFSET - now.getTime();
+            clockInitialized = true;
+            
+            console.warn("⚠️ Using fallback IST calculation");
+        }
     }
+
+//     function displayTime() {
+//     if (!isInitialized) return;
+    
+//     const elapsed = Date.now() - syncTime;
+//     const now = new Date(serverDateTime.getTime() + elapsed);
+    
+//     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+//     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+//     const dayName = days[now.getDay()];
+//     const dayNum = now.getDate();
+//     const monthName = months[now.getMonth()];
+//     const yearNum = now.getFullYear();
+    
+//     // ✅ Convert to 12-hour format
+//     let hr = now.getHours();
+//     const ampm = hr >= 12 ? 'PM' : 'AM';
+//     hr = hr % 12;
+//     hr = hr ? hr : 12; // Convert 0 to 12 for midnight
+//     const hrFormatted = String(hr).padStart(2, '0');
+    
+//     const min = String(now.getMinutes()).padStart(2, '0');
+//     const sec = String(now.getSeconds()).padStart(2, '0');
+    
+//     // ✅ Format: "Friday 24 Oct, 2025, 03:28:15 PM"
+//     const display = `${dayName} ${dayNum} ${monthName}, ${yearNum}, ${hrFormatted}:${min}:${sec} ${ampm}`;
+    
+//     // Update dashboard
+//     const dashElement = document.getElementById('dateTimeDisplay');
+//     if (dashElement) dashElement.textContent = display;
+    
+//     // Update modal
+//     const modalElement = document.getElementById('modalClock');
+//     if (modalElement) modalElement.textContent = display;
+// }
+
+
+    /**
+     * Update time display (runs locally without server calls)
+     */
+    function updateDateTime() {
+    if (!clockInitialized) return;
+    
+    // Calculate current IST time using the pre-calculated offset
+    const currentTime = new Date(new Date().getTime() + serverTimeOffset);
+    
+    // Format the time for DASHBOARD (with full date)
+    const options = {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+        timeZone: 'Asia/Kolkata'
+    };
+    
+    const formattedTime = currentTime.toLocaleString('en-IN', options);
+    
+    // ✅ ONLY update dashboard time display
+    const dateTimeElement = document.getElementById('dateTimeDisplay');
+    if (dateTimeElement) {
+        dateTimeElement.textContent = formattedTime;
+    }
+    
+    // ❌ REMOVE THIS - Let attendanceManagement.js handle modal clock
+    // const modalTimeElement = document.getElementById('modalClock');
+    // if (modalTimeElement) {
+    //     modalTimeElement.textContent = formattedTime;
+    // }
 }
 
-// Initialize when page loads
-document.addEventListener("DOMContentLoaded", () => {
-    updateDateTime(); // show once
-});
 
+    // Initialize on page load
+    document.addEventListener("DOMContentLoaded", async () => {
+        console.log("🚀 Initializing time display...");
+        
+        // Fetch server time ONCE on page load
+        await initializeServerTime();
+        
+        // Update display immediately
+        updateDateTime();
+        
+        // Update display every second (locally, NO server calls)
+        setInterval(updateDateTime, 1);
+        
+        // Re-sync with server every 10 minutes
+        setInterval(initializeServerTime, 600000);
+    });
+})(); // ✅ CLOSE IIFE HERE - AFTER ALL FUNCTIONS
 
+// ---------------------- ANIMATION ----------------------
 
-
-// Animation
 function initializeCardAnimations() {
     const cards = document.querySelectorAll('.dashboard-card');
 
@@ -120,7 +214,8 @@ function initializeCardAnimations() {
     });
 }
 
-// Chart
+// ---------------------- CHART ----------------------
+
 function createPieChart(ctx, labels, data, colors) {
     return new Chart(ctx, {
         type: 'pie',
@@ -149,7 +244,8 @@ function createPieChart(ctx, labels, data, colors) {
     });
 }
 
-// Password Toggle
+// ---------------------- PASSWORD TOGGLE ----------------------
+
 function togglePassword(inputId) {
     const input = document.getElementById(inputId);
     if (!input) return;
@@ -168,7 +264,8 @@ function togglePassword(inputId) {
     }
 }
 
-// File Upload Handling
+// ---------------------- FILE UPLOAD HANDLING ----------------------
+
 function handleFileChange(event, index) {
     const file = event.target.files[0];
     const card = event.target.closest('.upload-card');
@@ -232,7 +329,8 @@ function removeFile(index) {
     uploadIcon.className = defaultIcons[cardType];
 }
 
-// Device detection
+// ---------------------- DEVICE DETECTION ----------------------
+
 function detectDevice() {
     const userAgent = navigator.userAgent.toLowerCase();
     if (userAgent.includes('mobile') || userAgent.includes('android') || userAgent.includes('iphone')) {
@@ -253,7 +351,8 @@ function getDeviceIcon(device) {
     }
 }
 
-// Report Filtering
+// ---------------------- REPORT FILTERING ----------------------
+
 function filterByDate() {
     const inputDate = document.getElementById("reportDate").value;
     const table = document.getElementById("reportsTable");
@@ -272,7 +371,8 @@ function filterByDate() {
     }
 }
 
-// Message display
+// ---------------------- MESSAGE DISPLAY ----------------------
+
 function showMessage(message, type = 'success') {
     const messageArea = document.getElementById('messageArea');
     if (messageArea) {
@@ -283,12 +383,13 @@ function showMessage(message, type = 'success') {
     }
 }
 
+// ---------------------- EXPORTS ----------------------
+
 // Export for CommonJS modules
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         formatDate,
         showNotification,
-        updateDateTime,
         initializeCardAnimations,
         createPieChart,
         togglePassword,
@@ -306,7 +407,6 @@ if (typeof module !== 'undefined' && module.exports) {
 // Make functions globally accessible in browser
 window.formatDate = formatDate;
 window.showNotification = showNotification;
-window.updateDateTime = updateDateTime;
 window.initializeCardAnimations = initializeCardAnimations;
 window.createPieChart = createPieChart;
 window.togglePassword = togglePassword;
