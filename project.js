@@ -553,9 +553,14 @@ async function viewProject(projectId) {
 // SHOW PROJECT DETAIL VIEW
 // ============================
 
-function showProjectDetailView(project) {
+// At the top of your file
+let projectOverviewAllocatedEmployees = [];
+
+// Update your showProjectDetailView function
+async function showProjectDetailView(project) {
     const listView = document.getElementById('projects-list-view');
     const detailView = document.getElementById('project-detail-view');
+
     if (listView) listView.style.display = 'none';
     if (detailView) {
         detailView.style.display = 'block';
@@ -564,20 +569,50 @@ function showProjectDetailView(project) {
             detailView.setAttribute('data-project-id', projectId);
         }
     }
+
     const breadcrumbName = document.getElementById('breadcrumbProjectName');
     if (breadcrumbName) {
         breadcrumbName.textContent = project.projectName || 'Project';
     }
+
     const projectId = project.projectId || project.project_id || project.id;
     if (projectId) {
-      currentProjectId = projectId;
-      window.currentProjectId = projectId;
+        currentProjectId = projectId;
+        window.currentProjectId = projectId;
     }
 
     populateProjectDetails(project);
     setupProjectDetailTabs();
 
-    // Set "Initiated By" meta card from project object
+    // CLEAR OLD DATA
+    projectOverviewAllocatedEmployees = [];
+    
+    // Fetch employees using YOUR PHP endpoint
+    try {
+        const response = await fetch(`https://www.fist-o.com/web_crm/get_allocated_employees.php?project_id=${projectId}`);
+        const data = await response.json();
+        
+        console.log('📥 API Response:', data);
+        
+        // ✅ FIXED: Access data.data.employees (your PHP structure)
+        if (data.success && data.data && Array.isArray(data.data.employees)) {
+            projectOverviewAllocatedEmployees = data.data.employees.map(emp => ({
+                id: emp.emp_id,
+                name: emp.emp_name,
+                avatar: './assets/Images/profile.webp', // Use dummy image
+                initial: emp.emp_name ? emp.emp_name[0].toUpperCase() : 'U'
+            }));
+            console.log('✅ Mapped', projectOverviewAllocatedEmployees.length, 'employees');
+        } else {
+            console.warn('⚠️ No employees found or invalid response');
+        }
+    } catch (error) {
+        console.error('❌ Error fetching employees:', error);
+    }
+
+    // Update UI
+    updateProjectOverviewEmployeeAvatars();
+
     const initiatorElement = document.getElementById('initiatorName');
     if (initiatorElement) {
         initiatorElement.textContent = project.initiated_by || "N/A";
@@ -585,6 +620,63 @@ function showProjectDetailView(project) {
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+// Avatar rendering function
+function updateProjectOverviewEmployeeAvatars() {
+    const container = document.getElementById('projectOverviewEmployeeAvatars');
+    if (!container) {
+        console.error('❌ Container not found');
+        return;
+    }
+    
+    const totalEmployees = projectOverviewAllocatedEmployees?.length || 0;
+    console.log('🎨 Rendering', totalEmployees, 'employee avatars');
+    
+    container.innerHTML = '';
+    
+    if (totalEmployees === 0) {
+        console.log('✅ No employees to show');
+        return;
+    }
+    
+    // Show up to 4 employees, or 3 + "4+" if more than 4
+    if (totalEmployees <= 4) {
+        // Show all employees (1-4)
+        projectOverviewAllocatedEmployees.forEach((emp) => {
+            const avatar = document.createElement('div');
+            avatar.className = 'project-overview-avatar-circle';
+            const img = document.createElement('img');
+            img.src = emp.avatar;
+            img.alt = emp.name;
+            img.className = 'avatar-img';
+            avatar.appendChild(img);
+            container.appendChild(avatar);
+        });
+        console.log(`✅ Showed ${totalEmployees} avatars`);
+    } else {
+        // Show first 3 + "4+" badge
+        projectOverviewAllocatedEmployees.slice(0, 3).forEach((emp) => {
+            const avatar = document.createElement('div');
+            avatar.className = 'project-overview-avatar-circle';
+            const img = document.createElement('img');
+            img.src = emp.avatar;
+            img.alt = emp.name;
+            img.className = 'avatar-img';
+            avatar.appendChild(img);
+            container.appendChild(avatar);
+        });
+        
+        const extraAvatar = document.createElement('div');
+        extraAvatar.className = 'project-overview-avatar-circle project-overview-extra-count';
+        extraAvatar.textContent = '4+';
+        container.appendChild(extraAvatar);
+        console.log('✅ Showed 3 avatars + 4+ badge');
+    }
+}
+
+
+
+
 
 
 // ============================
@@ -2421,6 +2513,7 @@ window.displayAllocatedInModal = displayAllocatedInModal;
 window.showEmptyStateInModal = showEmptyStateInModal;
 window.displayNewSelectionsInModal = displayNewSelectionsInModal;
 window.removeFromNewSelection = removeFromNewSelection;
+window.updateProjectOverviewEmployeeAvatars = updateProjectOverviewEmployeeAvatars;
 window.getTeamBadgeClass = getTeamBadgeClass;
 
 console.log('âœ… Project.js loaded successfully - All functions organized and deduplicated!');
