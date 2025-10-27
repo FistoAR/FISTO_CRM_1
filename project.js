@@ -579,6 +579,9 @@ async function showProjectDetailView(project) {
     if (projectId) {
         currentProjectId = projectId;
         window.currentProjectId = projectId;
+        
+        // ✅ FETCH STATISTICS IMMEDIATELY
+        fetchProjectStatistics(projectId);
     }
 
     populateProjectDetails(project);
@@ -594,12 +597,11 @@ async function showProjectDetailView(project) {
         
         console.log('📥 API Response:', data);
         
-        // ✅ FIXED: Access data.data.employees (your PHP structure)
         if (data.success && data.data && Array.isArray(data.data.employees)) {
             projectOverviewAllocatedEmployees = data.data.employees.map(emp => ({
                 id: emp.emp_id,
                 name: emp.emp_name,
-                avatar: './assets/Images/profile.webp', // Use dummy image
+                avatar: './assets/Images/profile.webp',
                 initial: emp.emp_name ? emp.emp_name[0].toUpperCase() : 'U'
             }));
             console.log('✅ Mapped', projectOverviewAllocatedEmployees.length, 'employees');
@@ -610,7 +612,6 @@ async function showProjectDetailView(project) {
         console.error('❌ Error fetching employees:', error);
     }
 
-    // Update UI
     updateProjectOverviewEmployeeAvatars();
 
     const initiatorElement = document.getElementById('initiatorName');
@@ -620,6 +621,46 @@ async function showProjectDetailView(project) {
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+
+async function fetchProjectStatistics(projectId) {
+    try {
+        console.log('📊 Fetching statistics for project:', projectId);
+        
+        // ✅ REMOVE Content-Type header for GET requests
+        const response = await fetch(
+            `https://www.fist-o.com/web_crm/get_project_statistics.php?project_id=${projectId}`,
+            {
+                method: 'GET'
+                // ❌ Don't add headers for simple GET requests
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('📦 Statistics response:', result);
+
+        if (result.success && result.data) {
+            updateProjectStats(result.data);
+            console.log('✅ Dashboard updated:', result.data);
+        }
+    } catch (error) {
+        console.error('❌ Error fetching statistics:', error);
+        updateProjectStats({
+            assignedEmployees: 0,
+            totalTasks: 0,
+            completedTasks: 0,
+            ongoingTasks: 0,
+            delayedTasks: 0,
+            overdueTasks: 0
+        });
+    }
+}
+
+
 
 // Avatar rendering function
 function updateProjectOverviewEmployeeAvatars() {
@@ -723,19 +764,39 @@ function populateProjectDetails(project) {
 // ============================
 
 function updateProjectStats(stats) {
-  const elements = {
-    assignedEmployeesCount: stats.assignedEmployees || 0,
-    totalTasksCount: stats.totalTasks || 0,
-    completedTasksCount: stats.completedTasks || 0,
-    ongoingTasksCount: stats.ongoingTasks || 0,
-    delayedTasksCount: stats.delayedTasks || 0,
-    overdueTasksCount: stats.overdueTasks || 0
-  };
-  
-  Object.keys(elements).forEach(id => {
-    const element = document.getElementById(id);
-    if (element) element.textContent = elements[id];
-  });
+    console.log('🔄 === UPDATE STATS CALLED ===');
+    console.log('🔄 Stats Received:', stats);
+    
+    const elements = {
+        assignedEmployeesCount: stats.assignedEmployees || 0,
+        totalTasksCount: stats.totalTasks || 0,
+        completedTasksCount: stats.completedTasks || 0,
+        ongoingTasksCount: stats.ongoingTasks || 0,
+        delayedTasksCount: stats.delayedTasks || 0,
+        overdueTasksCount: stats.overdueTasks || 0
+    };
+    
+    console.log('🔄 Elements to Update:', elements);
+    
+    Object.keys(elements).forEach(id => {
+        const element = document.getElementById(id);
+        const value = elements[id];
+        
+        console.log(`🔄 Updating ${id}:`, {
+            found: !!element,
+            value: value,
+            currentText: element?.textContent
+        });
+        
+        if (element) {
+            element.textContent = value;
+            console.log(`✅ ${id} updated to: ${value}`);
+        } else {
+            console.error(`❌ Element NOT FOUND: ${id}`);
+        }
+    });
+    
+    console.log('🔄 === UPDATE STATS COMPLETE ===');
 }
 
 
@@ -1564,56 +1625,51 @@ function clearTaskFormFields() {
 
 async function submitAllTasks() {
     if (tempTasks.length === 0) {
-        showToast('âŒ Please add at least one task', 'error');
+        showToast('Please add at least one task', 'error');
         return;
     }
-    
+
     const sessionProject = getProjectSession();
     const projectId = sessionProject?.project_id;
-    
+
     if (!projectId) {
-        showToast('âŒ No project selected', 'error');
+        showToast('No project selected', 'error');
         return;
     }
-    
+
     try {
-        console.log('ðŸ“¤ Submitting tasks to database:', tempTasks);
-        
+        console.log('Submitting tasks to database:', tempTasks);
         const response = await fetch('https://www.fist-o.com/web_crm/add_task_allocations.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                project_id: projectId,
-                tasks: tempTasks
-            })
+            body: JSON.stringify({ project_id: projectId, tasks: tempTasks })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
-            showToast(`âœ… ${tempTasks.length} task(s) allocated successfully!`, 'success');
+            showToast(`✅ ${tempTasks.length} task(s) allocated successfully!`, 'success');
             
-            // Clear temporary tasks
             tempTasks = [];
             updateTempTaskTable();
-            
-            // Close the modal
             closeTaskAllocationForm();
             
-            // âœ… RELOAD PROJECT TASKS TO UPDATE THE TABLE
             await loadProjectTasks(projectId);
             
-            console.log('âœ… All tasks submitted and table refreshed');
+            // ✅ REFRESH STATISTICS AFTER ADDING TASKS
+            await fetchProjectStatistics(projectId);
+            
+            console.log('✅ Tasks submitted and statistics refreshed');
         } else {
             showToast(result.message || 'Failed to submit tasks', 'error');
-            console.error('âŒ Server error:', result);
+            console.error('Server error:', result);
         }
-        
     } catch (error) {
-        console.error('âŒ Error submitting tasks:', error);
+        console.error('Error submitting tasks:', error);
         showToast('Network error while submitting tasks', 'error');
     }
 }
+
 
 function formatDateDisplay(dateString) {
     if (!dateString) return 'N/A';
@@ -2201,109 +2257,108 @@ function populateEmployeeDropdown() {
 
 
 async function submitEmployees() {
-  if (selectedEmployees.length === 0) {
-    showToast('Please add at least one employee', 'error');
-    return;
-  }
-
-  let projectId = currentProjectId || 
-                  window.currentProjectId || 
-                  getProjectIdFromSession();
-  
-  if (!projectId) {
-    const detailView = document.getElementById('project-detail-view');
-    if (detailView) {
-      projectId = detailView.getAttribute('data-project-id');
-    }
-  }
-  
-  if (!projectId) {
-    showToast('Error: Project ID not found. Please try again.', 'error');
-    console.error('âŒ Project ID missing from all sources');
-    return;
-  }
-
-  const finalProjectId = String(projectId).trim();
-  
-  if (!finalProjectId) {
-    showToast('Error: Invalid project ID', 'error');
-    console.error('âŒ Invalid project ID. Original:', projectId);
-    return;
-  }
-
-  console.log('âœ… Using project ID for submission:', finalProjectId);
-
-  const allocationData = {
-    project_id: finalProjectId,
-    employees: selectedEmployees.map(emp => ({
-      emp_id: emp.emp_id,
-      emp_name: emp.emp_name,
-      designation: emp.designation
-    }))
-  };
-
-  console.log('ðŸ“¤ Submitting employee allocation:', JSON.stringify(allocationData, null, 2));
-
-  try {
-    showLoadingSpinner();
-
-    const response = await fetch('https://www.fist-o.com/web_crm/add_project_employee.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(allocationData)
-    });
-
-    const responseText = await response.text();
-    console.log('ðŸ“¦ Raw server response:', responseText);
-
-    hideLoadingSpinner();
-
-    if (!response.ok) {
-      console.error('âŒ HTTP Error:', response.status, responseText);
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (tempAllocatedEmployees.length === 0) {
+        showToast('Please add at least one employee', 'error');
+        return;
     }
 
-    let result;
+    const sessionProject = getProjectSession();
+    const projectId = sessionProject?.project_id;
+
+    if (!projectId) {
+        showToast('No project selected', 'error');
+        return;
+    }
+
+    const employeeIds = tempAllocatedEmployees.map(emp => emp.id);
+
     try {
-      result = JSON.parse(responseText);
-    } catch (parseError) {
-      console.error('âŒ JSON Parse Error:', parseError);
-      console.error('Response text:', responseText);
-      throw new Error('Invalid JSON response from server');
-    }
-
-    console.log('ðŸ“¦ Parsed allocation response:', result);
-
-    if (result.success) {
-      const message = result.message || `${selectedEmployees.length} employee(s) allocated successfully!`;
-      showToast(message, 'success');
-      
-      setTimeout(() => {
-        closeProjectAllocationForm();
+        console.log('📤 Submitting employees:', employeeIds);
         
-        if (finalProjectId && typeof viewProject === 'function') {
-          console.log('ðŸ”„ Refreshing project view...');
-          viewProject(finalProjectId);
+        const response = await fetch('https://www.fist-o.com/web_crm/add_project_employee.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                project_id: projectId,
+                employee_ids: employeeIds
+            })
+        });
+
+        // ✅ DON'T throw error on 400 - it's a validation response
+        const result = await response.json();
+        console.log('📦 Server response:', result);
+
+        // Handle success case
+        if (result.success) {
+            showToast(result.message || '✅ Employees allocated successfully!', 'success');
+            
+            tempAllocatedEmployees = [];
+            updateTempAllocatedTable();
+            closeProjectAllocationForm();
+            
+            // Refresh statistics
+            await fetchProjectStatistics(projectId);
+            
+            if (typeof viewProject === 'function') {
+                viewProject(projectId);
+            }
+        } 
+        // Handle validation errors (duplicates, etc.)
+        else if (!result.success && result.data?.errors) {
+            const errorMessages = result.data.errors;
+            const inserted = result.data.inserted || 0;
+            const skipped = result.data.skipped || 0;
+            
+            console.warn('⚠️ Validation errors:', errorMessages);
+            
+            // Show appropriate message based on results
+            if (inserted > 0 && skipped > 0) {
+                // Partial success
+                showToast(
+                    `✅ ${inserted} employee(s) allocated successfully. ${skipped} skipped (already assigned).`,
+                    'warning'
+                );
+                
+                // Still refresh and close
+                tempAllocatedEmployees = [];
+                updateTempAllocatedTable();
+                closeProjectAllocationForm();
+                
+                await fetchProjectStatistics(projectId);
+                
+                if (typeof viewProject === 'function') {
+                    viewProject(projectId);
+                }
+            } else if (skipped > 0 && inserted === 0) {
+                // All skipped
+                showToast(
+                    `⚠️ ${errorMessages.join('. ')}`,
+                    'warning'
+                );
+                // Don't close form - user might want to change selection
+            } else {
+                // Other validation error
+                showToast(
+                    result.message || 'Validation error occurred',
+                    'error'
+                );
+            }
+        } 
+        // Handle other errors
+        else {
+            showToast(
+                result.message || 'Failed to allocate employees',
+                'error'
+            );
         }
-      }, 1500);
-    } else {
-      const errorMsg = result.message || 'Failed to allocate employees';
-      showToast(errorMsg, 'error');
-      console.error('Allocation failed:', result);
-      
-      if (result.data && result.data.errors) {
-        console.error('Error details:', result.data.errors);
-      }
+
+    } catch (error) {
+        // Only actual network/parsing errors reach here
+        console.error('❌ Network error:', error);
+        showToast('Network error while submitting employees', 'error');
     }
-  } catch (error) {
-    hideLoadingSpinner();
-    console.error('âŒ Error submitting allocation:', error);
-    showToast('Error: ' + error.message, 'error');
-  }
 }
+
 
 // ============================
 // UTILITY FUNCTIONS

@@ -5150,6 +5150,7 @@ ease;
 }
 
 /* Stats Grid */
+/* Stats Grid */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -5176,13 +5177,13 @@ ease;
 .projectstat-icon {
   width: 48px;
   height: 48px;
-     background: linear-gradient(111deg, #161616 5%, #5f5f5ff2 90%);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-size: 20px;
+  flex-shrink: 0;
 }
 
 .stat-info {
@@ -5193,7 +5194,6 @@ ease;
 .stat-value {
   font-size: 28px;
   font-weight: 700;
-  color: #1a1a1a;
   line-height: 1;
   margin-bottom: 4px;
 }
@@ -5201,7 +5201,63 @@ ease;
 .stat-label {
   font-size: 13px;
   color: #666;
+  font-weight: 500;
 }
+
+/* Card 1: Assigned Employees - Indigo */
+.stat-card:nth-child(1) .projectstat-icon {
+  background: #6B7280;
+}
+
+.stat-card:nth-child(1) .stat-value {
+  color: #6B7280;
+}
+
+/* Card 2: Total Tasks - Teal */
+.stat-card:nth-child(2) .projectstat-icon {
+  background: #14B8A6;
+}
+
+.stat-card:nth-child(2) .stat-value {
+  color: #14B8A6;
+}
+
+/* Card 3: Completed Tasks - Green */
+.stat-card:nth-child(3) .projectstat-icon {
+  background: #10B981;
+}
+
+.stat-card:nth-child(3) .stat-value {
+  color: #10B981;
+}
+
+/* Card 4: Ongoing Tasks - Gray */
+.stat-card:nth-child(4) .projectstat-icon {
+  background: #4F46E5;
+}
+
+.stat-card:nth-child(4) .stat-value {
+  color: #4F46E5;
+}
+
+/* Card 5: Delayed Tasks - Amber */
+.stat-card:nth-child(5) .projectstat-icon {
+  background: #F59E0B;
+}
+
+.stat-card:nth-child(5) .stat-value {
+  color: #F59E0B;
+}
+
+/* Card 6: Overdue Tasks - Red */
+.stat-card:nth-child(6) .projectstat-icon {
+  background: #DC2626;
+}
+
+.stat-card:nth-child(6) .stat-value {
+  color: #DC2626;
+}
+
 
 /* Project Info Section */
 .project-info-section {

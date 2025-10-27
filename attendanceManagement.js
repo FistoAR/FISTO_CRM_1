@@ -148,7 +148,7 @@ function getServerNow() {
     setInterval(() => {
         const now = getServerNow();
         // ...update UI with "now"...
-    }, 1000);
+    }, 60000);
 
 
 async function syncServerTime() {
@@ -353,7 +353,7 @@ function updateRadioStates(attendanceStatus = null) {
             radioIn.disabled = true;
             radioOut.disabled = true;
             isLoggedIn = false;
-            showCompletionMessage();
+            // showCompletionMessage();
         } else {
             // Need morning IN
             console.log("🟢 Enable IN (need login)");
@@ -382,7 +382,7 @@ function updateRadioStates(attendanceStatus = null) {
             radioIn.disabled = true;
             radioOut.disabled = true;
             isLoggedIn = false;
-            showCompletionMessage();
+            // showCompletionMessage();
         } else {
             // Need afternoon IN
             console.log("🟢 Enable IN (need login)");
