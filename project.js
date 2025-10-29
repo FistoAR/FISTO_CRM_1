@@ -1,7 +1,6 @@
 // ============================
 // SESSION STORAGE MANAGEMENT
 // ============================
-
 function storeProjectSession(project) {
   try {
     const projectData = {
@@ -17,10 +16,10 @@ function storeProjectSession(project) {
     };
     
     sessionStorage.setItem('currentProject', JSON.stringify(projectData));
-    console.log('âœ… Project stored in session:', projectData);
+    console.log('Ã¢Å“â€¦ Project stored in session:', projectData);
     return projectData;
   } catch (error) {
-    console.error('âŒ Error storing project session:', error);
+    console.error('Ã¢ÂÅ’ Error storing project session:', error);
     showToast('Error storing project data', 'error');
     return null;
   }
@@ -31,12 +30,12 @@ function getProjectSession() {
     const projectData = sessionStorage.getItem('currentProject');
     if (projectData) {
       const project = JSON.parse(projectData);
-      console.log('âœ… Retrieved project from session:', project);
+      console.log('Ã¢Å“â€¦ Retrieved project from session:', project);
       return project;
     }
     return null;
   } catch (error) {
-    console.error('âŒ Error retrieving project session:', error);
+    console.error('Ã¢ÂÅ’ Error retrieving project session:', error);
     return null;
   }
 }
@@ -49,9 +48,9 @@ function getProjectIdFromSession() {
 function clearProjectSession() {
   try {
     sessionStorage.removeItem('currentProject');
-    console.log('ðŸ§¹ Project session cleared');
+    console.log('Ã°Å¸Â§Â¹ Project session cleared');
   } catch (error) {
-    console.error('âŒ Error clearing project session:', error);
+    console.error('Ã¢ÂÅ’ Error clearing project session:', error);
   }
 }
 
@@ -67,23 +66,26 @@ const projectsPerPage = 5;
 let employeesData = [];
 let selectedEmployees = [];
 let tempTasks = [];
+let employeesToRemove = [];
+let tempAllocatedEmployees = [];
+
 
 // ============================
 // INITIALIZATION
 // ============================
 
 function initializeProjectDashboard() {
-  console.log('ðŸš€ Initializing Project Dashboard...');
+  console.log('Ã°Å¸Å¡â‚¬ Initializing Project Dashboard...');
   
   loadOnboardedClients()
     .then(() => loadProjects())
     .then(() => {
       displayProjectsTable(projectsData);
       setupEventListeners();
-      console.log('âœ… Dashboard initialized');
+      console.log('Ã¢Å“â€¦ Dashboard initialized');
     })
     .catch(err => {
-      console.error('âŒ Error:', err);
+      console.error('Ã¢ÂÅ’ Error:', err);
       showToast('Failed to initialize dashboard', 'error');
     });
 }
@@ -94,7 +96,7 @@ function initializeProjectDashboard() {
 
 async function loadOnboardedClients() {
   try {
-    console.log('ðŸ“¡ Fetching onboarded clients from API...');
+    console.log('Ã°Å¸â€œÂ¡ Fetching onboarded clients from API...');
     
     const response = await fetch('https://www.fist-o.com/web_crm/fetch_addprojectdetails.php', {
       method: 'GET',
@@ -106,11 +108,11 @@ async function loadOnboardedClients() {
     }
 
     const result = await response.json();
-    console.log('ðŸ“¦ API Response:', result);
+    console.log('Ã°Å¸â€œÂ¦ API Response:', result);
     
     if (result.status === 'success') {
       const data = result.data || [];
-      console.log(`ðŸ“Š Total onboarded projects: ${data.length}`);
+      console.log(`Ã°Å¸â€œÅ  Total onboarded projects: ${data.length}`);
       
       clientsData = data.map(client => ({
         id: client.client_id,
@@ -129,15 +131,15 @@ async function loadOnboardedClients() {
         status: client.status
       }));
       
-      console.log(`âœ… Loaded ${clientsData.length} onboarded clients`);
+      console.log(`Ã¢Å“â€¦ Loaded ${clientsData.length} onboarded clients`);
       populateClientDropdown();
       return clientsData;
     } else {
-      console.warn('âš ï¸ No clients returned or status not success');
+      console.warn('Ã¢Å¡ Ã¯Â¸Â No clients returned or status not success');
       return [];
     }
   } catch (err) {
-    console.error('âŒ Error loading clients:', err);
+    console.error('Ã¢ÂÅ’ Error loading clients:', err);
     showToast('Failed to load clients: ' + err.message, 'error');
     return [];
   }
@@ -222,15 +224,15 @@ function handleClientSelection() {
   const clientSelect = document.getElementById('onboardedProjectSelect');
   
   if (!clientSelect) {
-    console.error('âŒ Dropdown not found!');
+    console.error('Ã¢ÂÅ’ Dropdown not found!');
     return;
   }
 
   const selectedValue = clientSelect.value;
-  console.log('ðŸ” Selected customer ID:', selectedValue);
+  console.log('Ã°Å¸â€Â Selected customer ID:', selectedValue);
   
   if (!selectedValue) {
-    console.log('ðŸ”„ No selection, clearing fields');
+    console.log('Ã°Å¸â€â€ž No selection, clearing fields');
     clearContactFields();
     return;
   }
@@ -246,7 +248,7 @@ function handleClientSelection() {
       fillField('contactEmailForm', selectedOption.dataset.email || '', false);
       fillField('contactDesignationForm', selectedOption.dataset.designation || '', false);
       
-      showToast(`âœ“ Loaded: ${selectedOption.dataset.projectName}`, 'success');
+      showToast(`Ã¢Å“â€œ Loaded: ${selectedOption.dataset.projectName}`, 'success');
     }, 150);
   });
 }
@@ -255,11 +257,11 @@ function fillField(fieldId, value, isReadOnly = false) {
   const field = document.getElementById(fieldId);
   
   if (!field) {
-    console.error(`âŒ Field "${fieldId}" not found!`);
+    console.error(`Ã¢ÂÅ’ Field "${fieldId}" not found!`);
     return;
   }
   
-  console.log(`ðŸ“ Filling ${fieldId} with: "${value}"`);
+  console.log(`Ã°Å¸â€œÂ Filling ${fieldId} with: "${value}"`);
   
   field.removeAttribute('placeholder');
   field.removeAttribute('disabled');
@@ -321,7 +323,7 @@ function clearContactFields() {
     }
   });
   
-  console.log('ðŸ§¹ Fields cleared');
+  console.log('Ã°Å¸Â§Â¹ Fields cleared');
 }
 
 // ============================
@@ -330,13 +332,13 @@ function clearContactFields() {
 
 async function loadProjects() {
   try {
-    console.log('ðŸ“¡ Loading projects...');
+    console.log('Ã°Å¸â€œÂ¡ Loading projects...');
     const response = await fetch('https://www.fist-o.com/web_crm/fetch_projects.php');
     const result = await response.json();
 
     if (result.success && result.data) {
       projectsData = result.data;
-      console.log(`âœ… Loaded ${projectsData.length} projects`);
+      console.log(`Ã¢Å“â€¦ Loaded ${projectsData.length} projects`);
       
       currentPage = 1;
       displayProjectsTable(projectsData);
@@ -349,7 +351,7 @@ async function loadProjects() {
       return [];
     }
   } catch (err) {
-    console.error('âŒ Error loading projects:', err);
+    console.error('Ã¢ÂÅ’ Error loading projects:', err);
     projectsData = [];
     currentPage = 1;
     displayProjectsTable([]);
@@ -357,10 +359,389 @@ async function loadProjects() {
     return [];
   }
 }
+async function loadProjectTasksTable() {
+  const tableBody = document.getElementById('projectTasksTableBody');
+  const tableHead = document.getElementById('projectTasksTableHead');
+  
+  if (!tableBody) {
+    console.error('❌ Tasks table body not found');
+    return;
+  }
+
+  // Loading indicator
+  tableBody.innerHTML = `
+    <tr class="loading-state">
+      <td colspan="10" style="text-align: center; padding: 40px;">
+        <i class="fas fa-spinner fa-spin" style="font-size: 32px; color: #5e72e4;"></i>
+        <p style="margin-top: 10px; color: #666;">Loading tasks...</p>
+      </td>
+    </tr>
+  `;
+
+  // ✅ Get project, employee, and role data from session storage
+  const project = JSON.parse(sessionStorage.getItem('currentProject') || '{}');
+  const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+  
+  // ✅ FIX: Check projectId FIRST (camelCase from API)
+  const projectId = project?.projectId || project?.project_id;
+  const employeeId = currentUser?.employeeId || 
+                     currentUser?.emp_id || 
+                     currentUser?.empid || 
+                     sessionStorage.getItem('employeeId');
+  
+  // ✅ Get user role
+  const userRole = currentUser?.role || 
+                   currentUser?.user_role || 
+                   currentUser?.designation ||
+                   sessionStorage.getItem('userRole') || 
+                   'employee';
+
+  console.log('📋 Session Data:', {
+    project: project,
+    currentUser: currentUser,
+    projectId: projectId,
+    employeeId: employeeId,
+    userRole: userRole
+  });
+
+  if (!projectId) {
+    tableBody.innerHTML = `
+      <tr class="error-state">
+        <td colspan="10" style="text-align: center; padding: 40px;">
+          <i class="fas fa-exclamation-circle" style="font-size: 48px; color: #dc3545;"></i>
+          <p style="color: #dc3545;">Missing project ID</p>
+        </td>
+      </tr>
+    `;
+    console.error('❌ Missing projectId');
+    return;
+  }
+
+  // ✅ Check if user is Project Head
+  const isProjectHead = userRole.toLowerCase().includes('project') || 
+                        userRole.toLowerCase().includes('head') || 
+                        userRole.toLowerCase().includes('manager');
+  
+  // ✅ For employees only, require employee_id
+  if (!isProjectHead && !employeeId) {
+    tableBody.innerHTML = `
+      <tr class="error-state">
+        <td colspan="10" style="text-align: center; padding: 40px;">
+          <i class="fas fa-exclamation-circle" style="font-size: 48px; color: #dc3545;"></i>
+          <p style="color: #dc3545;">Missing employee ID</p>
+        </td>
+      </tr>
+    `;
+    console.error('❌ Missing employeeId for employee role');
+    return;
+  }
+
+  try {
+    // ✅ Build API URL based on role
+    let apiUrl = `https://www.fist-o.com/web_crm/get_project_tasks.php?project_id=${projectId}&user_role=${encodeURIComponent(userRole)}`;
+    
+    // Add employee_id only for non-head roles
+    if (!isProjectHead && employeeId) {
+      apiUrl += `&employee_id=${employeeId}`;
+    }
+
+    console.log('🌐 Fetching from:', apiUrl);
+    console.log('👤 View mode:', isProjectHead ? 'PROJECT HEAD - All Tasks' : 'EMPLOYEE - My Tasks');
+
+    const response = await fetch(apiUrl);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('📦 Tasks response:', result);
+
+    if (result.success && result.data && result.data.tasks && result.data.tasks.length > 0) {
+      const tasks = result.data.tasks;
+      
+      // ✅ Update table header based on role
+        if (isProjectHead) {
+  // ✅ PROJECT HEAD VIEW - Show Assigned By and Assigned To
+  
+  // Update table header
+  if (tableHead) {
+    tableHead.innerHTML = `
+      <tr>
+        <th style="text-align: center;">S.No</th>
+        <th>Tasks / Activities</th>
+        <th>Description</th>
+        <th style="text-align: center;">Start Date</th>
+        <th style="text-align: center;">Start Time</th>
+        <th style="text-align: center;">End Date</th>
+        <th style="text-align: center;">End Time</th>
+        <th style="text-align: center;">Reports</th>
+        <th style="text-align: center;">Progress</th>
+        <th style="text-align: center;">Status</th>
+      </tr>
+    `;
+  }
+  
+  // Build table rows
+  tableBody.innerHTML = tasks.map((task, index) => {
+    const progress = parseInt(task.progress) || 0;
+    const statusClass = getStatusClass(task.status);
+    const progressColor = getProgressColor(progress);
+    const reportSubmitted = task.report_submitted || false;
+    
+    // Get assigned by info (who created the task)
+    const assignedBy = task.assigned_by || sessionStorage.getItem('employeeName') || 'Agasthiya';
+    const assignedByInitial = assignedBy.charAt(0).toUpperCase();
+    
+    // Get assigned to info (who the task is for)
+    const assignedToName = task.assigned_to_name || 'Unassigned';
+    const assignedToId = task.assigned_to_emp_id || '';
+    const assignedToInitial = assignedToName.charAt(0).toUpperCase();
+    
+    return `
+      <tr>
+        <td style="text-align: center; padding: 12px;">${index + 1}</td>
+        <td style="padding: 12px;">
+          <strong>${task.task_name}</strong>
+        </td>
+        <td style="padding: 12px;">
+          <span class="task-description-cell">${task.task_description || 'No description'}</span>
+        </td>
+        <td style="text-align: center; padding: 12px;">${formatDateDisplay(task.start_date)}</td>
+        <td style="text-align: center; padding: 12px;">${formatTime(task.start_time)}</td>
+        <td style="text-align: center; padding: 12px;">${formatDateDisplay(task.end_date)}</td>
+        <td style="text-align: center; padding: 12px;">${formatTime(task.end_time)}</td>
+        <td style="text-align: center; padding: 12px;">
+          <button class="view-reports-btn" onclick="handleViewReports('${task.id}', '${task.task_name.replace(/'/g, "\\'")}')">
+            View Reports
+          </button>
+        </td>
+        <td style="text-align: center; padding: 12px;">
+          <span class="progress-percentage">${progress}%</span>
+        </td>
+        <td style="text-align: center; padding: 12px;">
+          <span class="status-badge ${statusClass}">${task.status || 'pending'}</span>
+        </td>
+      </tr>
+    `;
+  }).join('');
+  
+}  else {
+        // EMPLOYEE VIEW
+        tableBody.innerHTML = tasks.map((task, index) => {
+          const progress = parseInt(task.progress) || 0;
+          const statusClass = getStatusClass(task.status);
+          const progressColor = getProgressColor(progress);
+          const reportSubmitted = task.report_submitted || false;
+          
+          const isSubtask = task.is_subtask || task.parent_task_id;
+          const taskNameDisplay = isSubtask 
+            ? `<span class="subtask-indent">└─ ${task.task_name}</span>`
+            : task.task_name;
+          
+          return `
+            <tr class="${isSubtask ? 'subtask-row' : ''}">
+              <td style="text-align: center; padding: 12px;">${isSubtask ? '' : index + 1}</td>
+              <td style="padding: 12px;">
+                <div class="task-name-cell">${taskNameDisplay}</div>
+              </td>
+              <td style="padding: 12px;">
+                <div class="task-description-cell">${task.task_description || 'No description'}</div>
+              </td>
+              <td style="text-align: center; padding: 12px;">${formatDateDisplay(task.start_date)}</td>
+              <td style="text-align: center; padding: 12px;">${formatTime(task.start_time)}</td>
+              <td style="text-align: center; padding: 12px;">${formatDateDisplay(task.end_date)}</td>
+              <td style="text-align: center; padding: 12px;">${formatTime(task.end_time)}</td>
+              <td style="text-align: center; padding: 12px;">
+                <button class="report-btn ${reportSubmitted ? 'report-btn-submitted' : 'report-btn-pending'}" 
+                        onclick="handleAddReport('${task.id}', '${(task.task_name || '').replace(/'/g, "\\'")}')"
+                        ${reportSubmitted ? 'disabled' : ''}>
+                  Add Report
+                </button>
+              </td>
+              <td style="padding: 12px;">
+                <div class="progress-container">
+                  <div class="progress-bar-wrapper">
+                    <div class="progress-bar-fill" style="width: ${progress}%; background-color: ${progressColor};"></div>
+                  </div>
+                  <span class="progress-text">${progress}%</span>
+                </div>
+              </td>
+              <td style="text-align: center; padding: 12px;">
+                <span class="status-badge ${statusClass}">${capitalizeFirst(task.status)}</span>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+      
+      console.log(`✅ Displayed ${tasks.length} tasks for ${isProjectHead ? 'Project Head' : 'Employee'}`);
+      
+    } else {
+      const emptyMessage = isProjectHead 
+        ? 'No tasks allocated in this project yet. Click "Add Task" to assign tasks to team members.'
+        : 'No tasks assigned to you in this project. Contact your project head for task assignments.';
+      
+      tableBody.innerHTML = `
+        <tr class="empty-state">
+          <td colspan="10">
+            <div class="empty-content" style="text-align: center; padding: 40px; color: #666;">
+              <i class="fas fa-tasks" style="font-size: 48px; color: #ccc; margin-bottom: 10px;"></i>
+              <p style="font-size: 16px; margin: 10px 0;">${emptyMessage}</p>
+            </div>
+          </td>
+        </tr>
+      `;
+      console.log(`ℹ️ No tasks found (Role: ${userRole})`);
+    }
+  } catch (error) {
+    tableBody.innerHTML = `
+      <tr class="error-state">
+        <td colspan="10" style="text-align: center; padding: 40px;">
+          <i class="fas fa-exclamation-circle" style="font-size: 48px; color: #dc3545;"></i>
+          <p style="color: #dc3545; font-size: 16px;">Failed to load tasks</p>
+          <small style="color: #999;">${error.message}</small>
+        </td>
+      </tr>
+    `;
+    console.error('❌ Error loading tasks:', error);
+  }
+}
+// Handle View Reports button
+function handleViewReports(taskId, taskName) {
+  console.log('📊 View reports for task:', taskId, taskName);
+
+  // Store context in session if needed for fetching data, etc
+  sessionStorage.setItem('currentTaskId', taskId);
+  sessionStorage.setItem('currentTaskName', taskName);
+
+  // Set task name in modal header
+  document.getElementById('viewReportsTaskName').textContent = taskName;
+
+  // Optionally trigger a function to load dynamic report data for this taskId
+  // loadReportsForTask(taskId);
+
+  // Show View Reports modal
+  document.getElementById('viewReportsModal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  // Toast
+  showToast(`Viewing reports for: ${taskName}`, 'info');
+}
+
+// ✅ Get progress bar color based on percentage
+function getProgressColor(progress) {
+  progress = parseInt(progress) || 0;
+  
+  if (progress >= 100) return '#4CAF50'; // Green - Complete
+  if (progress >= 75) return '#2196F3';  // Blue
+  if (progress >= 50) return '#FF9800';  // Orange
+  if (progress >= 25) return '#FFC107';  // Yellow
+  return '#F44336'; // Red - Low progress
+}
+
+// ✅ Get status badge class based on status
+function getStatusClass(status) {
+  if (!status) return 'status-pending';
+  const statusLower = status.toLowerCase();
+  
+  if (statusLower === 'completed') return 'status-completed';
+  if (statusLower.includes('progress') || statusLower === 'ongoing') return 'status-inprogress';
+  if (statusLower === 'pending') return 'status-pending';
+  if (statusLower === 'delayed' || statusLower === 'overdue') return 'status-delayed';
+  
+  return 'status-pending';
+}
+
+// ✅ Handle Add Report button click
+function handleAddReport(taskId, taskName) {
+  console.log('📝 Add report for task:', taskId, taskName);
+
+  // Store task info in session for report submission
+  sessionStorage.setItem('currentTaskId', taskId);
+  sessionStorage.setItem('currentTaskName', taskName);
+
+  // Set task name in modal
+  document.getElementById('reportTaskName').value = taskName;
+
+  // Optionally clear or set other fields if needed
+  // document.getElementById('reportDate').value = ''; // Or set to today if you want 
+  // document.getElementById('reportProgress').value = '';
+  // document.getElementById('reportStatus').value = '';
+  // document.getElementById('reportDescription').value = '';
+  // document.getElementById('reportAttachment').value = '';
+
+  // Show Add Report modal
+  document.getElementById('addReportModal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  // Toast
+  showToast(`Opening report for: ${taskName}`, 'info');
+}
+
+function openAddReportModal(taskName, desc) {
+  document.getElementById('addReportModal').style.display = 'flex';
+  document.getElementById('reportTaskName').value = taskName || '';
+  document.getElementById('reportTaskDesc').value = desc || '';
+  // You can also set the date/time in the modal header here if desired
+  document.body.style.overflow = 'hidden';
+}
+function closeAddReportModal() {
+  document.getElementById('addReportModal').style.display = 'none';
+  document.body.style.overflow = 'auto';
+}
+function submitAddReport() {
+  // Add validation or submit logic here
+  closeAddReportModal();
+}
+function openTaskHistoryModal() {
+  // Show task report history modal here
+  alert('History clicked');
+}
+
+
+
+function updateTaskAllocationUI() {
+  const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+  const userRole = currentUser?.role || 
+                   currentUser?.user_role || 
+                   currentUser?.designation || 
+                   'employee';
+  
+  const isProjectHead = userRole.toLowerCase().includes('project') || 
+                        userRole.toLowerCase().includes('head') || 
+                        userRole.toLowerCase().includes('manager');
+  
+  // Show/hide "Add Task" button
+  const addTaskBtn = document.getElementById('addTaskBtn');
+  if (addTaskBtn) {
+    addTaskBtn.style.display = isProjectHead ? 'inline-block' : 'none';
+  }
+  
+  console.log('🎭 Role-based UI updated:', { userRole, isProjectHead });
+}
+
+// Helper functions
+function formatDateDisplay(dateStr) {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString();
+}
+function formatTime(timeStr) {
+  return timeStr || '-';
+}
+function capitalizeFirst(str) {
+  return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+}
+
+// Usage
+loadProjectTasksTable();
+
 
 // ============================
-// DISPLAY PROJECTS TABLE
+// UPDATE TABLE DISPLAY FUNCTION
 // ============================
+
 function displayProjectsTable(projects) {
   const tableBody = document.getElementById('projectsListTableBody');
   const projectCount = document.getElementById('projectCount');
@@ -378,7 +759,7 @@ function displayProjectsTable(projects) {
 
   if (projects.length === 0) {
     tableBody.innerHTML = `
-      <tr>
+      <tr class="empty-state">
         <td colspan="5" style="text-align: center; padding: 20px; color: #666;">
           <div class="empty-content">
             <i class="fas fa-project-diagram"></i>
@@ -389,6 +770,7 @@ function displayProjectsTable(projects) {
       </tr>
     `;
     updatePaginationControls(0);
+    configureProjectPageByRole();
     return;
   }
 
@@ -396,24 +778,47 @@ function displayProjectsTable(projects) {
   const endIndex = startIndex + projectsPerPage;
   const paginatedProjects = projects.slice(startIndex, endIndex);
 
-  console.log(`ðŸ“„ Displaying page ${currentPage}: showing ${paginatedProjects.length} of ${projects.length} projects`);
+  console.log(`ðŸ“„ Displaying page ${currentPage}: ${paginatedProjects.length} of ${projects.length} projects`);
+
+  // âœ… Get designation - try both methods
+  let designation = sessionStorage.getItem('designation');
+  if (!designation) {
+    try {
+      const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+      designation = currentUser.designation;
+    } catch (e) {
+      console.error('Error parsing currentUser:', e);
+    }
+  }
+  
+  console.log('ðŸ” Table rendering with designation:', designation);
 
   paginatedProjects.forEach((project, index) => {
-    // Use projectName strictly, no fallback to companyName here
-    const projectName = project.projectName || project.projectname || project.name || 'N/A';
-    const reportingPerson = project.reportingPerson || project.reporting_person || project.teamHead || project.team_head || 'N/A';
-    const startDate = project.startDate || project.start_date || project.date || '';
-    const completionDate = project.completionDate || project.completion_date || project.deadline || project.end_date || '';
+    const projectName = project.projectName || project.project_name || 'N/A';
+    const reportingPerson = project.reportingPerson || project.reporting_person || 'N/A';
+    const startDate = project.startDate || project.start_date || '';
+    const completionDate = project.completionDate || project.completion_date || '';
     const projectId = project.projectId || project.project_id || project.id || index;
+
+    // âœ… Conditionally render delete button only for ProjectHead
+    const deleteButtonHTML = designation === 'ProjectHead' 
+      ? `<button class="action-btn delete-btn" onclick="confirmDeleteProject('${projectId}', '${escapeHtml(projectName)}')" title="Delete Project">
+           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+             <polyline points="3 6 5 6 21 6"></polyline>
+             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+           </svg>
+           Delete
+         </button>`
+      : ''; // âœ… Empty for other designations
 
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>
         <div class="project-name-cell">
-          <span class="project-title">${projectName}</span>
+          <span class="project-title">${escapeHtml(projectName)}</span>
         </div>
       </td>
-      <td>${reportingPerson}</td>
+      <td>${escapeHtml(reportingPerson)}</td>
       <td>${formatDate(startDate)}</td>
       <td>${formatDate(completionDate)}</td>
       <td>
@@ -424,20 +829,16 @@ function displayProjectsTable(projects) {
           </svg>
           View
         </button>
-        <button class="action-btn delete-btn" onclick="confirmDeleteProject('${projectId}', '${escapeHtml(projectName)}')" title="Delete Project">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="3 6 5 6 21 6"></polyline>
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-          </svg>
-          Delete
-        </button>
+        ${deleteButtonHTML}
       </td>
     `;
     tableBody.appendChild(row);
   });
 
   updatePaginationControls(projects.length);
+  configureProjectPageByRole(); // âœ… Apply additional restrictions
 }
+
 // ============================
 // PAGINATION CONTROLS
 // ============================
@@ -449,7 +850,7 @@ function updatePaginationControls(totalProjects) {
   const nextBtn = document.getElementById('nextPage');
 
   if (!paginationNumbers || !prevBtn || !nextBtn) {
-    console.error('âŒ Pagination elements not found!');
+    console.error('Ã¢ÂÅ’ Pagination elements not found!');
     return;
   }
 
@@ -471,7 +872,7 @@ function updatePaginationControls(totalProjects) {
   nextBtn.style.opacity = nextBtn.disabled ? '0.5' : '1';
   nextBtn.style.cursor = nextBtn.disabled ? 'not-allowed' : 'pointer';
 
-  console.log(`ðŸ“Š Pagination: Page ${currentPage} of ${totalPages}`);
+  console.log(`Ã°Å¸â€œÅ  Pagination: Page ${currentPage} of ${totalPages}`);
 }
 
 function goToPage(page) {
@@ -480,7 +881,7 @@ function goToPage(page) {
   if (page < 1) page = 1;
   if (page > totalPages) page = totalPages;
   
-  console.log(`ðŸ”„ Going to page ${page}`);
+  console.log(`Ã°Å¸â€â€ž Going to page ${page}`);
   currentPage = page;
   displayProjectsTable(projectsData);
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -494,7 +895,7 @@ async function viewProject(projectId) {
   try {
     showLoadingSpinner();
     
-    console.log('ðŸ” Fetching project with ID:', projectId);
+    console.log('Ã°Å¸â€Â Fetching project with ID:', projectId);
     
     const response = await fetch(`https://www.fist-o.com/web_crm/fetch_projects.php?project_id=${projectId}`);
     const result = await response.json();
@@ -504,12 +905,12 @@ async function viewProject(projectId) {
     if (result.success && result.data && result.data.length > 0) {
       const project = result.data[0];
       
-      console.log('ðŸ“¦ ===== FULL PROJECT DATA =====');
+      console.log('Ã°Å¸â€œÂ¦ ===== FULL PROJECT DATA =====');
       console.log(JSON.stringify(project, null, 2));
-      console.log('ðŸ“¦ =============================');
+      console.log('Ã°Å¸â€œÂ¦ =============================');
       
       // Check all possible ID fields
-      console.log('ðŸ” Checking ID fields:');
+      console.log('Ã°Å¸â€Â Checking ID fields:');
       console.log('  - project.id:', project.id, typeof project.id);
       console.log('  - project.projectId:', project.projectId, typeof project.projectId);
       console.log('  - project.project_id:', project.project_id, typeof project.project_id);
@@ -522,21 +923,21 @@ async function viewProject(projectId) {
       const stringProjectId = project.projectId || project.project_id || projectId;
       
       if (!numericId) {
-        console.error('âŒ No numeric ID found in project data');
+        console.error('Ã¢ÂÅ’ No numeric ID found in project data');
         console.error('Available fields:', Object.keys(project));
         showToast('Error: Project structure issue. Check console.', 'error');
         return;
       }
        // Load project tasks
-      loadProjectTasks(projectId);
+      loadProjectTasksTable(projectId);
       
       
       currentProjectId = numericId;
       window.currentProjectId = numericId;
       window.projectStringId = stringProjectId;
       
-      console.log('âœ… Set currentProjectId (numeric for API):', numericId, typeof numericId);
-      console.log('âœ… Set projectStringId (for display):', stringProjectId);
+      console.log('Ã¢Å“â€¦ Set currentProjectId (numeric for API):', numericId, typeof numericId);
+      console.log('Ã¢Å“â€¦ Set projectStringId (for display):', stringProjectId);
       
       showProjectDetailView(project);
     } else {
@@ -575,14 +976,20 @@ async function showProjectDetailView(project) {
         breadcrumbName.textContent = project.projectName || 'Project';
     }
 
-    const projectId = project.projectId || project.project_id || project.id;
-    if (projectId) {
-        currentProjectId = projectId;
-        window.currentProjectId = projectId;
-        
-        // ✅ FETCH STATISTICS IMMEDIATELY
-        fetchProjectStatistics(projectId);
-    }
+  const projectId = project.projectId || project.project_id || project.id;
+  if (projectId) {
+    currentProjectId = projectId;
+    window.currentProjectId = projectId;
+    
+    // ✅ Update UI based on role
+  updateTaskAllocationUI();
+  
+  // ✅ Load tasks
+  await loadProjectTasksTable();
+    
+    // ✅ Fetch statistics
+    await fetchProjectStatistics(projectId);
+  }
 
     populateProjectDetails(project);
     setupProjectDetailTabs();
@@ -595,7 +1002,7 @@ async function showProjectDetailView(project) {
         const response = await fetch(`https://www.fist-o.com/web_crm/get_allocated_employees.php?project_id=${projectId}`);
         const data = await response.json();
         
-        console.log('📥 API Response:', data);
+        console.log('ðŸ“¥ API Response:', data);
         
         if (data.success && data.data && Array.isArray(data.data.employees)) {
             projectOverviewAllocatedEmployees = data.data.employees.map(emp => ({
@@ -604,15 +1011,18 @@ async function showProjectDetailView(project) {
                 avatar: './assets/Images/profile.webp',
                 initial: emp.emp_name ? emp.emp_name[0].toUpperCase() : 'U'
             }));
-            console.log('✅ Mapped', projectOverviewAllocatedEmployees.length, 'employees');
+            console.log('âœ… Mapped', projectOverviewAllocatedEmployees.length, 'employees');
         } else {
-            console.warn('⚠️ No employees found or invalid response');
+            console.warn('âš ï¸ No employees found or invalid response');
         }
     } catch (error) {
-        console.error('❌ Error fetching employees:', error);
+        console.error('âŒ Error fetching employees:', error);
     }
 
     updateProjectOverviewEmployeeAvatars();
+      
+  // âœ… ADD THIS LINE AT THE END
+  configureProjectOverviewByRole();
 
     const initiatorElement = document.getElementById('initiatorName');
     if (initiatorElement) {
@@ -624,40 +1034,52 @@ async function showProjectDetailView(project) {
 
 
 async function fetchProjectStatistics(projectId) {
-    try {
-        console.log('📊 Fetching statistics for project:', projectId);
-        
-        // ✅ REMOVE Content-Type header for GET requests
-        const response = await fetch(
-            `https://www.fist-o.com/web_crm/get_project_statistics.php?project_id=${projectId}`,
-            {
-                method: 'GET'
-                // ❌ Don't add headers for simple GET requests
-            }
-        );
+  // ✅ Validate projectId before making the call
+  if (!projectId || projectId === 'undefined' || projectId === 'null') {
+    console.error('❌ Invalid projectId:', projectId);
+    console.error('❌ Cannot fetch statistics without valid project ID');
+    
+    // Don't reset to 0, just return
+    return;
+  }
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+  try {
+    console.log('📊 Fetching statistics for project:', projectId);
+    console.log('🔗 URL:', `https://www.fist-o.com/web_crm/get_project_statistics.php?project_id=${projectId}`);
 
-        const result = await response.json();
-        console.log('📦 Statistics response:', result);
+    const response = await fetch(
+      `https://www.fist-o.com/web_crm/get_project_statistics.php?project_id=${projectId}`,
+      {
+        method: 'GET'
+      }
+    );
 
-        if (result.success && result.data) {
-            updateProjectStats(result.data);
-            console.log('✅ Dashboard updated:', result.data);
-        }
-    } catch (error) {
-        console.error('❌ Error fetching statistics:', error);
-        updateProjectStats({
-            assignedEmployees: 0,
-            totalTasks: 0,
-            completedTasks: 0,
-            ongoingTasks: 0,
-            delayedTasks: 0,
-            overdueTasks: 0
-        });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    const result = await response.json();
+    console.log('📦 Statistics API Full Response:', JSON.stringify(result, null, 2));
+
+    if (result.success && result.data) {
+      console.log('✅ Stats data received:', result.data);
+      
+      // ✅ Pass the data object directly
+      updateProjectStats(result.data);
+      
+    } else {
+      console.error('❌ API returned error:', result.message || 'Unknown error');
+      console.error('❌ Full response:', result);
+      
+      // ❌ DON'T reset to 0 on error - keep previous values
+      // Just log the error
+    }
+  } catch (error) {
+    console.error('❌ Error fetching statistics:', error);
+    console.error('❌ Error stack:', error.stack);
+    
+    // ❌ DON'T reset to 0 on error - keep previous values
+  }
 }
 
 
@@ -666,17 +1088,17 @@ async function fetchProjectStatistics(projectId) {
 function updateProjectOverviewEmployeeAvatars() {
     const container = document.getElementById('projectOverviewEmployeeAvatars');
     if (!container) {
-        console.error('❌ Container not found');
+        console.error('âŒ Container not found');
         return;
     }
     
     const totalEmployees = projectOverviewAllocatedEmployees?.length || 0;
-    console.log('🎨 Rendering', totalEmployees, 'employee avatars');
+    console.log('ðŸŽ¨ Rendering', totalEmployees, 'employee avatars');
     
     container.innerHTML = '';
     
     if (totalEmployees === 0) {
-        console.log('✅ No employees to show');
+        console.log('âœ… No employees to show');
         return;
     }
     
@@ -693,7 +1115,7 @@ function updateProjectOverviewEmployeeAvatars() {
             avatar.appendChild(img);
             container.appendChild(avatar);
         });
-        console.log(`✅ Showed ${totalEmployees} avatars`);
+        console.log(`âœ… Showed ${totalEmployees} avatars`);
     } else {
         // Show first 3 + "4+" badge
         projectOverviewAllocatedEmployees.slice(0, 3).forEach((emp) => {
@@ -711,8 +1133,9 @@ function updateProjectOverviewEmployeeAvatars() {
         extraAvatar.className = 'project-overview-avatar-circle project-overview-extra-count';
         extraAvatar.textContent = '4+';
         container.appendChild(extraAvatar);
-        console.log('✅ Showed 3 avatars + 4+ badge');
+        console.log('âœ… Showed 3 avatars + 4+ badge');
     }
+    
 }
 
 
@@ -744,19 +1167,20 @@ function populateProjectDetails(project) {
   if (projectId) {
     currentProjectId = projectId;
     window.currentProjectId = projectId;
-    console.log('âœ… Project ID stored from details:', projectId);
+    console.log('Ã¢Å“â€¦ Project ID stored from details:', projectId);
   }
   
-  updateProjectStats({
-    assignedEmployees: 0,
-    totalTasks: 0,
-    completedTasks: 0,
-    ongoingTasks: 0,
-    delayedTasks: 0,
-    overdueTasks: 0
-  });
+  // updateProjectStats({
+  //   assignedEmployees: 0,
+  //   totalTasks: 0,
+  //   completedTasks: 0,
+  //   ongoingTasks: 0,
+  //   delayedTasks: 0,
+  //   overdueTasks: 0
+  // });
   
-  loadProjectTasks(projectId);
+  // loadProjectTasksTable(projectId);
+  
 }
 
 // ============================
@@ -764,39 +1188,65 @@ function populateProjectDetails(project) {
 // ============================
 
 function updateProjectStats(stats) {
-    console.log('🔄 === UPDATE STATS CALLED ===');
-    console.log('🔄 Stats Received:', stats);
+  console.log('🔄 UPDATE STATS CALLED');
+  console.log('📊 Stats Received:', stats);
+
+  // Map of element IDs to their stat values
+  const elements = {
+    'assignedEmployeesCount': stats.assignedEmployees || 0,
+    'totalTasksCount': stats.totalTasks || 0,
+    'completedTasksCount': stats.completedTasks || 0,
+    'ongoingTasksCount': stats.ongoingTasks || 0,
+    'delayedTasksCount': stats.delayedTasks || 0,
+    'overdueTasksCount': stats.overdueTasks || 0
+  };
+
+  console.log('🎯 Elements to Update:', elements);
+
+  // Update each stat card
+  Object.keys(elements).forEach(id => {
+    const element = document.getElementById(id);
+    const value = elements[id];
     
-    const elements = {
-        assignedEmployeesCount: stats.assignedEmployees || 0,
-        totalTasksCount: stats.totalTasks || 0,
-        completedTasksCount: stats.completedTasks || 0,
-        ongoingTasksCount: stats.ongoingTasks || 0,
-        delayedTasksCount: stats.delayedTasks || 0,
-        overdueTasksCount: stats.overdueTasks || 0
-    };
-    
-    console.log('🔄 Elements to Update:', elements);
-    
-    Object.keys(elements).forEach(id => {
-        const element = document.getElementById(id);
-        const value = elements[id];
-        
-        console.log(`🔄 Updating ${id}:`, {
-            found: !!element,
-            value: value,
-            currentText: element?.textContent
-        });
-        
-        if (element) {
-            element.textContent = value;
-            console.log(`✅ ${id} updated to: ${value}`);
-        } else {
-            console.error(`❌ Element NOT FOUND: ${id}`);
-        }
+    console.log(`Updating ${id}:`, {
+      found: !!element,
+      value: value,
+      currentText: element?.textContent
     });
-    
-    console.log('🔄 === UPDATE STATS COMPLETE ===');
+
+    if (element) {
+      // Animate the number change
+      const currentValue = parseInt(element.textContent) || 0;
+      animateValue(element, currentValue, value, 500);
+      console.log(`✅ ${id} updated to ${value}`);
+    } else {
+      console.error(`❌ Element NOT FOUND: ${id}`);
+    }
+  });
+
+  console.log('✅ UPDATE STATS COMPLETE');
+}
+
+// Helper function to animate number changes
+function animateValue(element, start, end, duration) {
+  if (start === end) {
+    element.textContent = end;
+    return;
+  }
+
+  const range = end - start;
+  const increment = range / (duration / 16); // 60fps
+  let current = start;
+  
+  const timer = setInterval(() => {
+    current += increment;
+    if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+      element.textContent = end;
+      clearInterval(timer);
+    } else {
+      element.textContent = Math.round(current);
+    }
+  }, 16);
 }
 
 
@@ -804,118 +1254,148 @@ function updateProjectStats(stats) {
 // LOAD PROJECT TASKS
 // ============================
 
-async function loadProjectTasks(projectId) {
-  const tableBody = document.getElementById('projectTasksTableBody');
-  
-  if (!tableBody) {
-    console.error('âŒ Tasks table body not found');
-    return;
-  }
-  
-  // Show loading state
-  tableBody.innerHTML = `
-    <tr class="loading-state">
-      <td colspan="7" style="text-align: center; padding: 40px;">
-        <i class="fas fa-spinner fa-spin" style="font-size: 32px; color: #5e72e4;"></i>
-        <p style="margin-top: 10px; color: #666;">Loading tasks...</p>
-      </td>
-    </tr>
-  `;
-  
-  try {
-    console.log('ðŸ“‹ Fetching tasks for project:', projectId);
-    
-    const response = await fetch(`https://www.fist-o.com/web_crm/get_project_tasks.php?project_id=${projectId}`);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const result = await response.json();
-    
-    console.log('ðŸ“¦ Tasks response:', result);
-    
-    if (result.success && result.data && result.data.tasks && result.data.tasks.length > 0) {
-      const tasks = result.data.tasks;
-      
-      tableBody.innerHTML = tasks.map((task, index) => `
-        <tr>
-          <td>${index + 1}</td>
-          <td>
-            <div class="task-title-cell">
-              <strong>${task.task_name}</strong>
-              <small style="display: block; color: #999; margin-top: 4px;">${task.task_description}</small>
-            </div>
-          </td>
-          <td>
-            <span class="team-badge ${getTeamBadgeClass(task.team_name)}">${task.team_name}</span>
-          </td>
-          <td>
-            <div style="display: flex; flex-direction: column;">
-              <strong>${task.assigned_to_name}</strong>
-              <small style="color: #999;">${task.assigned_to_emp_id}</small>
-            </div>
-          </td>
-          <td>
-            <div style="display: flex; flex-direction: column;">
-              <span>${formatDateDisplay(task.start_date)}</span>
-              <small style="color: #666;">${formatTime(task.start_time)}</small>
-            </div>
-          </td>
-          <td>
-            <div style="display: flex; flex-direction: column;">
-              <span>${formatDateDisplay(task.end_date)}</span>
-              <small style="color: #666;">${formatTime(task.end_time)}</small>
-            </div>
-          </td>
-          <td>
-            <span class="status-badge status-${task.status.toLowerCase()}">${capitalizeFirst(task.status)}</span>
-          </td>
-        </tr>
-      `).join('');
-      
-      console.log(`âœ… Displayed ${tasks.length} tasks`);
-    } else {
-      // No tasks found
-      tableBody.innerHTML = `
-        <tr class="empty-state">
-          <td colspan="7">
-            <div class="empty-content" style="text-align: center; padding: 40px; color: #666;">
-              <i class="fas fa-tasks" style="font-size: 48px; color: #ccc; margin-bottom: 10px; display: block;"></i>
-              <p style="font-size: 16px; margin: 10px 0;">No tasks found</p>
-              <small style="color: #999;">Click "Add Task" to get started</small>
-            </div>
-          </td>
-        </tr>
-      `;
-      
-      console.log('â„¹ï¸ No tasks found for this project');
-    }
-  } catch (error) {
-    console.error('âŒ Error loading tasks:', error);
-    
-    tableBody.innerHTML = `
-      <tr class="error-state">
-        <td colspan="7" style="text-align: center; padding: 40px;">
-          <i class="fas fa-exclamation-circle" style="font-size: 48px; color: #dc3545; margin-bottom: 10px; display: block;"></i>
-          <p style="color: #dc3545; font-size: 16px; margin: 10px 0;">Failed to load tasks</p>
-          <small style="color: #999;">${error.message}</small>
-        </td>
-      </tr>
-    `;
-  }
-}
-// Format time from HH:MM:SS to HH:MM AM/PM
-function formatTime(timeString) {
-  if (!timeString) return '09:00 AM';
-  
-  const [hours, minutes] = timeString.split(':');
-  const hour = parseInt(hours);
-  const ampm = hour >= 12 ? 'PM' : 'AM';
-  const displayHour = hour % 12 || 12;
-  
-  return `${displayHour}:${minutes} ${ampm}`;
-}
+// async function loadProjectTasksTable() {
+//   const tableBody = document.getElementById('projectTasksTableBody');
+//   if (!tableBody) {
+//     console.error('Tasks table body not found');
+//     return;
+//   }
+
+//   // Show loading state
+//   tableBody.innerHTML = `
+//     <tr class="loading-state">
+//       <td colspan="7" style="text-align: center; padding: 40px;">
+//         <i class="fas fa-spinner fa-spin" style="font-size: 32px; color: #5e72e4;"></i>
+//         <p style="margin-top: 10px; color: #666;">Loading tasks...</p>
+//       </td>
+//     </tr>
+//   `;
+
+//   // Parse session storage for project and current user
+//   const projectData = JSON.parse(sessionStorage.getItem('currentProject'));
+//   const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+
+//   // The correct field for your project ID (see your session example)
+//   const projectId = projectData?.project_id || projectData?.projectid;
+//   // The correct field for your employee ID (see your session example)
+//   const employeeId = currentUser?.employeeid || currentUser?.empid;
+
+//   if (!projectId || !employeeId) {
+//     tableBody.innerHTML = `
+//       <tr class="error-state">
+//         <td colspan="7" style="text-align: center; padding: 40px;">
+//           <i class="fas fa-exclamation-circle" style="font-size: 48px; color: #dc3545; margin-bottom: 10px; display: block;"></i>
+//           <p style="color: #dc3545; font-size: 16px; margin: 10px 0;">Missing project or employee ID</p>
+//           <small style="color: #999;">Cannot fetch tasks</small>
+//         </td>
+//       </tr>
+//     `;
+//     console.error('Missing projectId or employeeId from session storage');
+//     return;
+//   }
+
+//   try {
+//     // Call the backend endpoint with correct parameter names
+//     const response = await fetch(
+//       `https://www.fist-o.com/web_crm/get_project_tasks.php?project_id=${projectId}&employee_id=${employeeId}`
+//     );
+
+//     if (!response.ok) {
+//       throw new Error(`HTTP error! status: ${response.status}`);
+//     }
+
+//     const result = await response.json();
+//     console.log('Tasks response:', result);
+
+//     if (
+//       result.success &&
+//       result.data &&
+//       result.data.tasks &&
+//       result.data.tasks.length > 0
+//     ) {
+//       const tasks = result.data.tasks;
+//       tableBody.innerHTML = tasks
+//         .map((task, index) => `
+//           <tr>
+//             <td>${index + 1}</td>
+//             <td>
+//               <div class="task-title-cell">
+//                 <strong>${task.task_name}</strong>
+//                 <small style="display: block; color: #999; margin-top: 4px;">${task.task_description}</small>
+//               </div>
+//             </td>
+//             <td>
+//               <span class="team-badge">${task.team_name}</span>
+//             </td>
+//             <td>
+//               <div style="display: flex; flex-direction: column;">
+//                 <strong>${task.assigned_to_name}</strong>
+//                 <small style="color: #999;">${task.assigned_to_emp_id}</small>
+//               </div>
+//             </td>
+//             <td>
+//               <div style="display: flex; flex-direction: column;">
+//                 <span>${formatDateDisplay(task.start_date)}</span>
+//                 <small style="color: #666;">${formatTime(task.start_time)}</small>
+//               </div>
+//             </td>
+//             <td>
+//               <div style="display: flex; flex-direction: column;">
+//                 <span>${formatDateDisplay(task.end_date)}</span>
+//                 <small style="color: #666;">${formatTime(task.end_time)}</small>
+//               </div>
+//             </td>
+//             <td>
+//               <span class="status-badge status-${task.status?.toLowerCase() || ''}">${capitalizeFirst(task.status)}</span>
+//             </td>
+//           </tr>
+//         `)
+//         .join('');
+//       console.log(`Displayed ${tasks.length} tasks`);
+//     } else {
+//       tableBody.innerHTML = `
+//         <tr class="empty-state">
+//           <td colspan="7">
+//             <div class="empty-content" style="text-align: center; padding: 40px; color: #666;">
+//               <i class="fas fa-tasks" style="font-size: 48px; color: #ccc; margin-bottom: 10px; display: block;"></i>
+//               <p style="font-size: 16px; margin: 10px 0;">No tasks found</p>
+//               <small style="color: #999;">Click "Add Task" to get started</small>
+//             </div>
+//           </td>
+//         </tr>
+//       `;
+//       console.log('No tasks found for this project');
+//     }
+//   } catch (error) {
+//     tableBody.innerHTML = `
+//       <tr class="error-state">
+//         <td colspan="7" style="text-align: center; padding: 40px;">
+//           <i class="fas fa-exclamation-circle" style="font-size: 48px; color: #dc3545; margin-bottom: 10px; display: block;"></i>
+//           <p style="color: #dc3545; font-size: 16px; margin: 10px 0;">Failed to load tasks</p>
+//           <small style="color: #999;">${error.message}</small>
+//         </td>
+//       </tr>
+//     `;
+//     console.error('Error loading tasks:', error);
+//   }
+// }
+
+// // Helpers (reuse or adjust as per your app)
+// function formatDateDisplay(dateStr) {
+//   if (!dateStr) return '-';
+//   const d = new Date(dateStr);
+//   return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString();
+// }
+// function formatTime(timeStr) {
+//   return timeStr ? timeStr : '-';
+// }
+// function capitalizeFirst(str) {
+//   return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+// }
+
+// // Usage: call this on detail view load, etc.
+// loadProjectTasksTable();
+
 
 
 // Capitalize first letter
@@ -1092,13 +1572,13 @@ async function deleteProject(projectId) {
 // ============================
 
 function setupProjectDetailTabs() {
-  console.log('ðŸ”§ Setting up project detail tabs...');
+  console.log('Ã°Å¸â€Â§ Setting up project detail tabs...');
   
   const tabButtons = document.querySelectorAll('.detail-tab');
   const tabPanels = document.querySelectorAll('.tab-panel');
   
   if (tabButtons.length === 0) {
-    console.warn('âš ï¸ No tab buttons found');
+    console.warn('Ã¢Å¡ Ã¯Â¸Â No tab buttons found');
     return;
   }
   
@@ -1113,7 +1593,7 @@ function setupProjectDetailTabs() {
     button.addEventListener('click', function(e) {
       e.preventDefault();
       const targetTab = this.getAttribute('data-tab');
-      console.log(`ðŸ”„ Switching to tab: ${targetTab}`);
+      console.log(`Ã°Å¸â€â€ž Switching to tab: ${targetTab}`);
       
       freshTabButtons.forEach(btn => btn.classList.remove('active'));
       this.classList.add('active');
@@ -1127,7 +1607,7 @@ function setupProjectDetailTabs() {
       if (targetPanel) {
         targetPanel.classList.add('active');
         targetPanel.style.display = 'block';
-        console.log(`âœ… Showing ${targetTab} panel`);
+        console.log(`Ã¢Å“â€¦ Showing ${targetTab} panel`);
         
         if (targetTab === 'resources') {
           loadResourcesContent();
@@ -1138,7 +1618,7 @@ function setupProjectDetailTabs() {
     });
   });
   
-  console.log('âœ… Tab switching setup complete');
+  console.log('Ã¢Å“â€¦ Tab switching setup complete');
 }
 
 // ============================
@@ -1146,11 +1626,11 @@ function setupProjectDetailTabs() {
 // ============================
 
 function loadResourcesContent() {
-  console.log('ðŸ“¦ Loading resources content...');
+  console.log('Ã°Å¸â€œÂ¦ Loading resources content...');
   
   const resourcesPanel = document.getElementById('resources-panel');
   if (!resourcesPanel) {
-    console.error('âŒ Resources panel not found');
+    console.error('Ã¢ÂÅ’ Resources panel not found');
     return;
   }
   
@@ -1170,7 +1650,7 @@ function loadResourcesContent() {
           </div>
           <div class="resource-info">
             <h4>Project Requirements.pdf</h4>
-            <p>Uploaded: Jan 15, 2025 â€¢ 2.4 MB</p>
+            <p>Uploaded: Jan 15, 2025 Ã¢â‚¬Â¢ 2.4 MB</p>
           </div>
           <div class="resource-actions">
             <button class="btn-icon" title="Download">
@@ -1188,7 +1668,7 @@ function loadResourcesContent() {
           </div>
           <div class="resource-info">
             <h4>Design Specifications.docx</h4>
-            <p>Uploaded: Jan 12, 2025 â€¢ 1.8 MB</p>
+            <p>Uploaded: Jan 12, 2025 Ã¢â‚¬Â¢ 1.8 MB</p>
           </div>
           <div class="resource-actions">
             <button class="btn-icon" title="Download">
@@ -1221,11 +1701,11 @@ function loadResourcesContent() {
     </div>
   `;
   
-  console.log('âœ… Resources content loaded');
+  console.log('Ã¢Å“â€¦ Resources content loaded');
 }
 
 function loadAnalyticsContent() {
-  console.log('ðŸ“Š Analytics content placeholder');
+  console.log('Ã°Å¸â€œÅ  Analytics content placeholder');
 }
 
 // ============================
@@ -1233,20 +1713,20 @@ function loadAnalyticsContent() {
 // ============================
 
 function setupEventListeners() {
-  console.log('ðŸ”— Setting up event listeners...');
+  console.log('Ã°Å¸â€â€” Setting up event listeners...');
   
   const clientSelect = document.getElementById('onboardedProjectSelect');
   if (clientSelect) {
     clientSelect.removeEventListener('change', handleClientSelection);
     clientSelect.addEventListener('change', handleClientSelection);
-    console.log('âœ… Client select listener attached');
+    console.log('Ã¢Å“â€¦ Client select listener attached');
   }
   
   const projectForm = document.getElementById('projectForm');
   if (projectForm) {
     projectForm.removeEventListener('submit', handleProjectFormSubmit);
     projectForm.addEventListener('submit', handleProjectFormSubmit);
-    console.log('âœ… Form submit listener attached');
+    console.log('Ã¢Å“â€¦ Form submit listener attached');
   }
   
   const searchInput = document.getElementById('projectSearchInput');
@@ -1270,7 +1750,7 @@ function setupEventListeners() {
     });
   }
   
-  console.log('âœ… All listeners attached');
+  console.log('Ã¢Å“â€¦ All listeners attached');
 }
 
 // ============================
@@ -1294,7 +1774,7 @@ function filterProjects(searchTerm) {
            customerId.includes(search);
   });
   
-  console.log(`ðŸ” Filtered ${filtered.length} projects from ${projectsData.length}`);
+  console.log(`Ã°Å¸â€Â Filtered ${filtered.length} projects from ${projectsData.length}`);
   currentPage = 1;
   displayProjectsTable(filtered);
 }
@@ -1326,7 +1806,7 @@ async function openTaskAllocationForm() {
             
             await populateTaskTeamDropdown();
             
-            console.log('âœ… Task allocation form opened for project:', sessionProject.project_id);
+            console.log('Ã¢Å“â€¦ Task allocation form opened for project:', sessionProject.project_id);
         } else {
             showToast('Please select a project first', 'error');
             closeTaskAllocationForm();
@@ -1349,12 +1829,12 @@ async function fetchTaskAllocationTeams() {
         const projectId = sessionProject?.project_id;
         
         if (!projectId) {
-            console.error('âŒ No project ID in session');
+            console.error('Ã¢ÂÅ’ No project ID in session');
             showToast('Please select a project first', 'error');
             return [];
         }
         
-        console.log('ðŸ” Fetching teams for project:', projectId);
+        console.log('Ã°Å¸â€Â Fetching teams for project:', projectId);
         
         const response = await fetch(`https://www.fist-o.com/web_crm/fetch_project_teams.php?project_id=${projectId}`, {
             method: 'GET'
@@ -1363,14 +1843,14 @@ async function fetchTaskAllocationTeams() {
         const result = await response.json();
         
         if (result.success && result.data) {
-            console.log('âœ… Teams loaded:', result.data);
+            console.log('Ã¢Å“â€¦ Teams loaded:', result.data);
             return result.data;
         } else {
-            console.warn('âš ï¸ No teams found for this project');
+            console.warn('Ã¢Å¡ Ã¯Â¸Â No teams found for this project');
             return [];
         }
     } catch (error) {
-        console.error('âŒ Error fetching teams:', error);
+        console.error('Ã¢ÂÅ’ Error fetching teams:', error);
         showToast('Failed to load teams', 'error');
         return [];
     }
@@ -1380,7 +1860,7 @@ async function populateTaskTeamDropdown() {
     const teamSelect = document.getElementById('TaskTeamName');
     
     if (!teamSelect) {
-        console.error('âŒ TaskTeamName dropdown not found');
+        console.error('Ã¢ÂÅ’ TaskTeamName dropdown not found');
         return;
     }
     
@@ -1406,7 +1886,7 @@ async function populateTaskTeamDropdown() {
     });
     
     teamSelect.disabled = false;
-    console.log(`âœ… Populated ${teams.length} teams`);
+    console.log(`Ã¢Å“â€¦ Populated ${teams.length} teams`);
 }
 
 function handleTaskTeamChange() {
@@ -1414,7 +1894,7 @@ function handleTaskTeamChange() {
     const memberSelect = document.getElementById('allocAssignedTo');
     
     if (!teamSelect || !memberSelect) {
-        console.error('âŒ Dropdowns not found');
+        console.error('Ã¢ÂÅ’ Dropdowns not found');
         return;
     }
     
@@ -1424,15 +1904,15 @@ function handleTaskTeamChange() {
     const selectedTeam = teamSelect.value;
     
     if (!selectedTeam) {
-        console.log('â„¹ï¸ No team selected');
+        console.log('Ã¢â€žÂ¹Ã¯Â¸Â No team selected');
         return;
     }
     
     const selectedOption = teamSelect.options[teamSelect.selectedIndex];
     const members = JSON.parse(selectedOption.dataset.members || '[]');
     
-    console.log('ðŸ‘¥ Team selected:', selectedTeam);
-    console.log('ðŸ‘¥ Members:', members);
+    console.log('Ã°Å¸â€˜Â¥ Team selected:', selectedTeam);
+    console.log('Ã°Å¸â€˜Â¥ Members:', members);
     
     if (members.length === 0) {
         memberSelect.innerHTML = '<option value="">-- No members in this team --</option>';
@@ -1450,7 +1930,7 @@ function handleTaskTeamChange() {
     });
     
     memberSelect.disabled = false;
-    console.log(`âœ… Populated ${members.length} members for team: ${selectedTeam}`);
+    console.log(`Ã¢Å“â€¦ Populated ${members.length} members for team: ${selectedTeam}`);
 }
 
 // ============================
@@ -1463,9 +1943,9 @@ function handleAddTaskToTable(event) {
     const taskName = document.getElementById('TaskName')?.value.trim();
     const taskDescription = document.getElementById('ProjectDescription')?.value.trim();
     const startDate = document.getElementById('TaskStartDate')?.value;
-    const startTime = document.getElementById('TaskStartTime')?.value; // âœ… NEW
+    const startTime = document.getElementById('TaskStartTime')?.value; // Ã¢Å“â€¦ NEW
     const endDate = document.getElementById('TaskEndDate')?.value;
-    const endTime = document.getElementById('TaskEndTime')?.value; // âœ… NEW
+    const endTime = document.getElementById('TaskEndTime')?.value; // Ã¢Å“â€¦ NEW
     const teamSelect = document.getElementById('TaskTeamName');
     const memberSelect = document.getElementById('allocAssignedTo');
     const remarks = document.getElementById('taskremarks')?.value.trim();
@@ -1474,63 +1954,63 @@ function handleAddTaskToTable(event) {
     const assignedToEmpId = memberSelect?.value;
     const assignedToName = memberSelect?.options[memberSelect.selectedIndex]?.text || '';
     
-    console.log('ðŸ“‹ Form Values:');
+    console.log('Ã°Å¸â€œâ€¹ Form Values:');
     console.log('  taskName:', taskName);
     console.log('  startDate:', startDate);
-    console.log('  startTime:', startTime); // âœ… NEW
+    console.log('  startTime:', startTime); // Ã¢Å“â€¦ NEW
     console.log('  endDate:', endDate);
-    console.log('  endTime:', endTime); // âœ… NEW
+    console.log('  endTime:', endTime); // Ã¢Å“â€¦ NEW
     console.log('  teamName:', teamName);
     console.log('  assignedToEmpId:', assignedToEmpId);
     console.log('  remarks:', remarks);
     
     // Validation
     if (!taskName) {
-        showToast('âŒ Task Name is required', 'error');
+        showToast('Ã¢ÂÅ’ Task Name is required', 'error');
         return;
     }
     
     if (!startDate) {
-        showToast('âŒ Start Date is required', 'error');
+        showToast('Ã¢ÂÅ’ Start Date is required', 'error');
         return;
     }
     
     if (!startTime) {
-        showToast('âŒ Start Time is required', 'error');
+        showToast('Ã¢ÂÅ’ Start Time is required', 'error');
         return;
     }
     
     if (!endDate) {
-        showToast('âŒ End Date is required', 'error');
+        showToast('Ã¢ÂÅ’ End Date is required', 'error');
         return;
     }
     
     if (!endTime) {
-        showToast('âŒ End Time is required', 'error');
+        showToast('Ã¢ÂÅ’ End Time is required', 'error');
         return;
     }
     
     if (!teamName) {
-        showToast('âŒ Team Name is required', 'error');
+        showToast('Ã¢ÂÅ’ Team Name is required', 'error');
         return;
     }
     
     if (!assignedToEmpId) {
-        showToast('âŒ Assigned To is required', 'error');
+        showToast('Ã¢ÂÅ’ Assigned To is required', 'error');
         return;
     }
     
     if (!remarks) {
-        showToast('âŒ Remarks is required', 'error');
+        showToast('Ã¢ÂÅ’ Remarks is required', 'error');
         return;
     }
     
-    // âœ… Validate date-time combination
+    // Ã¢Å“â€¦ Validate date-time combination
     const startDateTime = new Date(`${startDate}T${startTime}`);
     const endDateTime = new Date(`${endDate}T${endTime}`);
     
     if (startDateTime >= endDateTime) {
-        showToast('âŒ End date/time must be after start date/time', 'error');
+        showToast('Ã¢ÂÅ’ End date/time must be after start date/time', 'error');
         return;
     }
     
@@ -1539,9 +2019,9 @@ function handleAddTaskToTable(event) {
         taskName: taskName,
         description: taskDescription || '',
         startDate: startDate,
-        startTime: startTime, // âœ… NEW
+        startTime: startTime, // Ã¢Å“â€¦ NEW
         endDate: endDate,
-        endTime: endTime, // âœ… NEW
+        endTime: endTime, // Ã¢Å“â€¦ NEW
         teamName: teamName,
         assignedToEmpId: assignedToEmpId,
         assignedToName: assignedToName,
@@ -1552,8 +2032,8 @@ function handleAddTaskToTable(event) {
     updateTempTaskTable();
     clearTaskFormFields();
     
-    showToast('âœ… Task added to list', 'success');
-    console.log('âœ… Task added:', task);
+    showToast('Ã¢Å“â€¦ Task added to list', 'success');
+    console.log('Ã¢Å“â€¦ Task added:', task);
 }
 
 
@@ -1561,7 +2041,7 @@ function updateTempTaskTable() {
     const tbody = document.querySelector('#tempTaskTable tbody');
     
     if (!tbody) {
-        console.error('âŒ Task table body not found');
+        console.error('Ã¢ÂÅ’ Task table body not found');
         return;
     }
     
@@ -1600,16 +2080,16 @@ function removeTaskFromTable(taskId) {
         const removedTask = tempTasks.splice(taskIndex, 1)[0];
         updateTempTaskTable();
         showToast(`Task "${removedTask.taskName}" removed`, 'info');
-        console.log('ðŸ—‘ï¸ Remaining tasks:', tempTasks.length);
+        console.log('Ã°Å¸â€”â€˜Ã¯Â¸Â Remaining tasks:', tempTasks.length);
     }
 }
 
 function clearTaskFormFields() {
     document.getElementById('TaskName').value = '';
     document.getElementById('TaskStartDate').value = '';
-    document.getElementById('TaskStartTime').value = '09:00'; // âœ… Reset to default
+    document.getElementById('TaskStartTime').value = '09:00'; // Ã¢Å“â€¦ Reset to default
     document.getElementById('TaskEndDate').value = '';
-    document.getElementById('TaskEndTime').value = '18:00'; // âœ… Reset to default
+    document.getElementById('TaskEndTime').value = '18:00'; // Ã¢Å“â€¦ Reset to default
     
     const teamSelect = document.getElementById('TaskTeamName');
     const memberSelect = document.getElementById('allocAssignedTo');
@@ -1648,18 +2128,18 @@ async function submitAllTasks() {
         const result = await response.json();
 
         if (result.success) {
-            showToast(`✅ ${tempTasks.length} task(s) allocated successfully!`, 'success');
+            showToast(`âœ… ${tempTasks.length} task(s) allocated successfully!`, 'success');
             
             tempTasks = [];
             updateTempTaskTable();
             closeTaskAllocationForm();
             
-            await loadProjectTasks(projectId);
+            await loadProjectTasksTable(projectId);
             
-            // ✅ REFRESH STATISTICS AFTER ADDING TASKS
+            // âœ… REFRESH STATISTICS AFTER ADDING TASKS
             await fetchProjectStatistics(projectId);
             
-            console.log('✅ Tasks submitted and statistics refreshed');
+            console.log('âœ… Tasks submitted and statistics refreshed');
         } else {
             showToast(result.message || 'Failed to submit tasks', 'error');
             console.error('Server error:', result);
@@ -1682,8 +2162,8 @@ function formatDateDisplay(dateString) {
 // ============================
 
 async function openProjectAllocationForm(projectId = null) {
-  console.log('ðŸ“ Opening employee allocation modal...');
-  console.log('ðŸ“ Received projectId parameter:', projectId);
+  console.log('Ã°Å¸â€œÂ Opening employee allocation modal...');
+  console.log('Ã°Å¸â€œÂ Received projectId parameter:', projectId);
   
   let finalProjectId = projectId || 
                        currentProjectId || 
@@ -1694,21 +2174,21 @@ async function openProjectAllocationForm(projectId = null) {
     const detailView = document.getElementById('project-detail-view');
     if (detailView) {
       finalProjectId = detailView.getAttribute('data-project-id');
-      console.log('ðŸ“ Got project ID from DOM:', finalProjectId);
+      console.log('Ã°Å¸â€œÂ Got project ID from DOM:', finalProjectId);
     }
   }
   
   if (!finalProjectId) {
     showToast('Error: Project ID not found. Please view a project first.', 'error');
-    console.error('âŒ No project ID available from any source');
+    console.error('Ã¢ÂÅ’ No project ID available from any source');
     return;
   }
   
-  console.log('âœ… Using project ID:', finalProjectId);
+  console.log('Ã¢Å“â€¦ Using project ID:', finalProjectId);
   
   const modal = document.getElementById('addProjectAllocationModal');
   if (!modal) {
-    console.error('âŒ Modal not found');
+    console.error('Ã¢ÂÅ’ Modal not found');
     return;
   }
 
@@ -1737,7 +2217,7 @@ async function openProjectAllocationForm(projectId = null) {
 
 async function fetchAndDisplayAllocatedInModal(projectId) {
   try {
-    console.log('ðŸ“¡ Fetching allocated employees for modal display...');
+    console.log('Ã°Å¸â€œÂ¡ Fetching allocated employees for modal display...');
     
     const response = await fetch(
       `https://www.fist-o.com/web_crm/get_allocated_employees.php?project_id=${projectId}`,
@@ -1752,7 +2232,7 @@ async function fetchAndDisplayAllocatedInModal(projectId) {
     }
 
     const result = await response.json();
-    console.log('ðŸ“¦ Modal allocated employees response:', result);
+    console.log('Ã°Å¸â€œÂ¦ Modal allocated employees response:', result);
 
     if (result.success && result.data && result.data.employees && result.data.employees.length > 0) {
       displayAllocatedInModal(result.data.employees);
@@ -1760,7 +2240,7 @@ async function fetchAndDisplayAllocatedInModal(projectId) {
       showEmptyStateInModal();
     }
   } catch (error) {
-    console.error('âŒ Error fetching allocated employees for modal:', error);
+    console.error('Ã¢ÂÅ’ Error fetching allocated employees for modal:', error);
     showEmptyStateInModal();
   }
 }
@@ -1772,7 +2252,7 @@ function displayAllocatedInModal(allocatedEmployees) {
   const selectedList = document.getElementById('selectedEmployeesList');
   
   if (!selectedList) {
-    console.error('âŒ Selected employee list container not found');
+    console.error('Ã¢ÂÅ’ Selected employee list container not found');
     return;
   }
 
@@ -1797,7 +2277,7 @@ function displayAllocatedInModal(allocatedEmployees) {
     </div>
   `).join('');
 
-  console.log(`âœ… Displayed ${allocatedEmployees.length} allocated employees`);
+  console.log(`Ã¢Å“â€¦ Displayed ${allocatedEmployees.length} allocated employees`);
   console.log('Employee IDs:', allocatedEmployees.map(e => e.emp_id));
 }
 
@@ -1836,7 +2316,7 @@ function addToSelectedList() {
   const selectElement = document.getElementById('employeeSelect');
   
   if (!selectElement) {
-    console.error('❌ Employee select element not found');
+    console.error('âŒ Employee select element not found');
     return;
   }
 
@@ -1862,7 +2342,7 @@ function addToSelectedList() {
 
   selectedEmployees.push(employee);
   
-  console.log('✅ Added employee to selection:', employee);
+  console.log('âœ… Added employee to selection:', employee);
   console.log('Current selections:', selectedEmployees);
 
   displayNewSelectionsInModal();
@@ -1883,7 +2363,7 @@ function displayNewSelectionsInModal() {
   const selectedList = document.getElementById('selectedEmployeesList');
   
   if (!selectedList) {
-    console.error('âŒ Selected employees list not found');
+    console.error('Ã¢ÂÅ’ Selected employees list not found');
     return;
   }
 
@@ -1982,7 +2462,7 @@ function displayNewSelectionsInModal() {
 // ============================
 
 async function removeAllocatedEmployee(empId, employeeName) {
-  console.log('ðŸ” Remove function called with:');
+  console.log('Ã°Å¸â€Â Remove function called with:');
   console.log('  - empId:', empId);
   console.log('  - employeeName:', employeeName);
   
@@ -2021,7 +2501,7 @@ async function removeAllocatedEmployee(empId, employeeName) {
       emp_id: String(empId)
     };
     
-    console.log('ðŸ“¤ Sending remove request:', requestData);
+    console.log('Ã°Å¸â€œÂ¤ Sending remove request:', requestData);
     
     const response = await fetch('https://www.fist-o.com/web_crm/remove_allocated_employee.php', {
       method: 'POST',
@@ -2035,7 +2515,7 @@ async function removeAllocatedEmployee(empId, employeeName) {
     const result = await response.json();
     hideLoadingSpinner();
     
-    console.log('ðŸ“¦ Remove response:', result);
+    console.log('Ã°Å¸â€œÂ¦ Remove response:', result);
     
     if (result.success) {
       // Remove the card with animation
@@ -2056,8 +2536,8 @@ async function removeAllocatedEmployee(empId, employeeName) {
       
       showToast(`${employeeName} removed from project successfully`, 'success');
       
-      // âœ… REFRESH THE DROPDOWN TO SHOW THE REMOVED EMPLOYEE
-      console.log('ðŸ”„ Refreshing employee dropdown...');
+      // Ã¢Å“â€¦ REFRESH THE DROPDOWN TO SHOW THE REMOVED EMPLOYEE
+      console.log('Ã°Å¸â€â€ž Refreshing employee dropdown...');
       await fetchProjectEmployees(projectId);
       
       // Also refresh the allocated list
@@ -2067,7 +2547,7 @@ async function removeAllocatedEmployee(empId, employeeName) {
       
     } else {
       showToast(result.message || 'Failed to remove employee', 'error');
-      console.error('âŒ Server error:', result);
+      console.error('Ã¢ÂÅ’ Server error:', result);
       
       // Re-enable button if failed
       if (cardElement) {
@@ -2082,7 +2562,7 @@ async function removeAllocatedEmployee(empId, employeeName) {
     }
   } catch (error) {
     hideLoadingSpinner();
-    console.error('âŒ Error removing employee:', error);
+    console.error('Ã¢ÂÅ’ Error removing employee:', error);
     showToast('Failed to remove employee: ' + error.message, 'error');
     
     // Re-enable button if error
@@ -2107,56 +2587,67 @@ async function removeAllocatedEmployee(empId, employeeName) {
 // ============================
 
 function removeFromNewSelection(empId) {
-  console.log('ðŸ—‘ï¸ Removing employee from new selection:', empId);
-  
-  selectedEmployees = selectedEmployees.filter(emp => emp.emp_id !== empId);
-  
-  console.log('Updated selections:', selectedEmployees);
-  
-  displayNewSelectionsInModal();
-  
-  showToast('Employee removed from selection', 'info');
+    selectedEmployees = selectedEmployees.filter(emp => emp.emp_id !== empId);
+    displayNewSelectionsInModal(); // re-renders selected employee list
+    updateAllocatedCount(); // update count display
+    showToast('Employee removed from selection', 'info');
 }
+
+function updateAllocatedCount() {
+    const countElement = document.getElementById('allocatedCount');
+    if (!countElement) return;
+    const count = selectedEmployees.length; // or the array holding current allocated employees count
+    countElement.textContent = count;
+}
+
+
 
 // ============================
 // ADD escapeHtml HELPER FUNCTION
 // ============================
 
+// Helper function to escape HTML
 function escapeHtml(text) {
-  const map = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;'
-  };
-  return text.replace(/[&<>"']/g, m => map[m]);
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 function closeProjectAllocationForm() {
   const modal = document.getElementById('addProjectAllocationModal');
   if (!modal) return;
-  
   modal.style.animation = 'fadeOut 0.3s ease';
-  
   setTimeout(() => {
     modal.style.display = 'none';
-    
     selectedEmployees = [];
-    
     const list = document.getElementById('selectedEmployeesList');
-    if (list) {
-      list.innerHTML = '';
-    }
-    
+    if (list) list.innerHTML = '';
     const selectElement = document.getElementById('employeeSelect');
-    if (selectElement) {
-      selectElement.value = '';
+    if (selectElement) selectElement.value = '';
+    console.log('Modal closed and cleaned up');
+    // ✅ Add this line:
+    const sessionProject = getProjectSession();
+    if(sessionProject && sessionProject.projectid) {
+      fetchProjectStatistics(sessionProject.projectid);
     }
-    
-    console.log('âœ… Modal closed and cleaned up');
   }, 300);
 }
+
+// When DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('ðŸš€ Initializing Project Dashboard...');
+  
+  // Load projects and configure UI
+  loadProjects()
+    .then(() => {
+      displayProjectsTable(projectsData);
+      configureProjectPageByRole(); // Configure UI based on role
+      console.log('âœ… Dashboard initialized');
+    })
+    .catch(err => {
+      console.error('âŒ Error:', err);
+    });
+});
 
 // ============================
 // FETCH AND POPULATE EMPLOYEES
@@ -2164,7 +2655,7 @@ function closeProjectAllocationForm() {
 
 async function fetchProjectEmployees(projectId = null) {
   try {
-    console.log('ðŸ“¡ Fetching employees from add_project_employee.php...');
+    console.log('Ã°Å¸â€œÂ¡ Fetching employees from add_project_employee.php...');
     
     const url = projectId 
       ? `https://www.fist-o.com/web_crm/add_project_employee.php?project_id=${projectId}`
@@ -2180,7 +2671,7 @@ async function fetchProjectEmployees(projectId = null) {
     }
 
     const result = await response.json();
-    console.log('ðŸ“¦ Employee fetch response:', result);
+    console.log('Ã°Å¸â€œÂ¦ Employee fetch response:', result);
 
     if (result.success && result.data) {
       employeesData = result.data.map(emp => ({
@@ -2190,9 +2681,9 @@ async function fetchProjectEmployees(projectId = null) {
         designation: emp.designation || 'N/A'
       }));
       
-      console.log('ðŸ“¦ Stored employees data:', employeesData);
+      console.log('Ã°Å¸â€œÂ¦ Stored employees data:', employeesData);
       populateEmployeeDropdown();
-      console.log(`âœ… Loaded ${employeesData.length} employees`);
+      console.log(`Ã¢Å“â€¦ Loaded ${employeesData.length} employees`);
       return employeesData;
     } else {
       employeesData = [];
@@ -2201,7 +2692,7 @@ async function fetchProjectEmployees(projectId = null) {
       return [];
     }
   } catch (error) {
-    console.error('âŒ Error fetching employees:', error);
+    console.error('Ã¢ÂÅ’ Error fetching employees:', error);
     employeesData = [];
     populateEmployeeDropdown();
     showToast('Error loading employees: ' + error.message, 'error');
@@ -2213,7 +2704,7 @@ function populateEmployeeDropdown() {
   const select = document.getElementById('employeeSelect');
   
   if (!select) {
-    console.error('❌ employeeSelect dropdown not found');
+    console.error('âŒ employeeSelect dropdown not found');
     return;
   }
 
@@ -2225,7 +2716,7 @@ function populateEmployeeDropdown() {
     noDataOption.textContent = '-- No employees available --';
     noDataOption.disabled = true;
     select.appendChild(noDataOption);
-    console.warn('⚠️ No employees to display');
+    console.warn('âš ï¸ No employees to display');
     return;
   }
 
@@ -2252,112 +2743,122 @@ function populateEmployeeDropdown() {
     select.appendChild(option);
   });
   
-  console.log(`✅ Dropdown populated with ${select.options.length-1} employees`);
+  console.log(`âœ… Dropdown populated with ${select.options.length-1} employees`);
 }
 
-
 async function submitEmployees() {
-    if (tempAllocatedEmployees.length === 0) {
+    if (selectedEmployees.length === 0) {
         showToast('Please add at least one employee', 'error');
         return;
     }
-
     const sessionProject = getProjectSession();
     const projectId = sessionProject?.project_id;
-
     if (!projectId) {
         showToast('No project selected', 'error');
         return;
     }
 
-    const employeeIds = tempAllocatedEmployees.map(emp => emp.id);
+    // Send employees as array of objects with emp_id, emp_name, designation
+    const employeesData = selectedEmployees.map(emp => ({
+      emp_id: emp.emp_id,
+      emp_name: emp.emp_name,
+      designation: emp.designation || ''
+    }));
 
     try {
-        console.log('📤 Submitting employees:', employeeIds);
-        
         const response = await fetch('https://www.fist-o.com/web_crm/add_project_employee.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 project_id: projectId,
-                employee_ids: employeeIds
+                employees: employeesData
             })
         });
-
-        // ✅ DON'T throw error on 400 - it's a validation response
         const result = await response.json();
-        console.log('📦 Server response:', result);
-
-        // Handle success case
         if (result.success) {
-            showToast(result.message || '✅ Employees allocated successfully!', 'success');
-            
-            tempAllocatedEmployees = [];
-            updateTempAllocatedTable();
-            closeProjectAllocationForm();
-            
-            // Refresh statistics
-            await fetchProjectStatistics(projectId);
-            
-            if (typeof viewProject === 'function') {
-                viewProject(projectId);
-            }
-        } 
-        // Handle validation errors (duplicates, etc.)
-        else if (!result.success && result.data?.errors) {
-            const errorMessages = result.data.errors;
-            const inserted = result.data.inserted || 0;
-            const skipped = result.data.skipped || 0;
-            
-            console.warn('⚠️ Validation errors:', errorMessages);
-            
-            // Show appropriate message based on results
-            if (inserted > 0 && skipped > 0) {
-                // Partial success
-                showToast(
-                    `✅ ${inserted} employee(s) allocated successfully. ${skipped} skipped (already assigned).`,
-                    'warning'
-                );
-                
-                // Still refresh and close
-                tempAllocatedEmployees = [];
-                updateTempAllocatedTable();
-                closeProjectAllocationForm();
-                
-                await fetchProjectStatistics(projectId);
-                
-                if (typeof viewProject === 'function') {
-                    viewProject(projectId);
-                }
-            } else if (skipped > 0 && inserted === 0) {
-                // All skipped
-                showToast(
-                    `⚠️ ${errorMessages.join('. ')}`,
-                    'warning'
-                );
-                // Don't close form - user might want to change selection
-            } else {
-                // Other validation error
-                showToast(
-                    result.message || 'Validation error occurred',
-                    'error'
-                );
-            }
-        } 
-        // Handle other errors
-        else {
-            showToast(
-                result.message || 'Failed to allocate employees',
-                'error'
-            );
-        }
+            showToast(result.message || 'Employees allocated successfully!', 'success');
+            selectedEmployees = [];
+           setTimeout(() => {
+              closeProjectAllocationForm();
+              const sessionProject = getProjectSession();
+              if (sessionProject && typeof viewProject === 'function') {
+                viewProject(sessionProject.project_id);
+              } else {
+                // fallback: reload the whole page if needed
+                // location.reload();
+              }
+          }, 1000);
 
+            // Refresh data as needed
+        } else {
+            showToast(result.message || 'Failed to allocate employees', 'error');
+        }
     } catch (error) {
-        // Only actual network/parsing errors reach here
-        console.error('❌ Network error:', error);
         showToast('Network error while submitting employees', 'error');
     }
 }
+
+async function submitChanges() {
+  const sessionProject = getProjectSession();
+  const projectId = sessionProject?.project_id;
+  if (!projectId) {
+    showToast('No project selected', 'error');
+    return;
+  }
+
+  try {
+    // Process removals first, if any
+    if (employeesToRemove.length > 0) {
+      for (const empId of employeesToRemove) {
+        const resRemove = await fetch('https://www.fist-o.com/web_crm/remove_allocated_employee.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project_id: projectId, emp_id: empId })
+        });
+        const resultRemove = await resRemove.json();
+        if (!resultRemove.success) {
+          showToast(`Failed to remove employee ID ${empId}: ${resultRemove.message}`, 'error');
+          return;
+        }
+      }
+    }
+
+    // Then process additions, if any
+    if (selectedEmployees.length > 0) {
+      const employeesPayload = selectedEmployees.map(emp => ({
+        emp_id: emp.emp_id,
+        emp_name: emp.emp_name,
+        designation: emp.designation || ''
+      }));
+      const resAdd = await fetch('https://www.fist-o.com/web_crm/add_project_employee.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project_id: projectId, employees: employeesPayload })
+      });
+      const resultAdd = await resAdd.json();
+      if (!resultAdd.success) {
+        showToast(resultAdd.message || 'Failed to add employees', 'error');
+        return;
+      }
+    }
+
+    // Clear temporary arrays after success
+    employeesToRemove = [];
+    selectedEmployees = [];
+
+    showToast('Project employees updated successfully', 'success');
+    closeProjectAllocationForm();
+
+    if (typeof viewProject === 'function') {
+      viewProject(projectId);
+    } else {
+      location.reload();
+    }
+  } catch (error) {
+    showToast('Network error updating project employees', 'error');
+  }
+}
+
 
 
 // ============================
@@ -2429,13 +2930,13 @@ function showToast(message, type = 'success') {
   const container = document.getElementById('projectToastContainer') || document.getElementById('toast-container');
   
   if (!container) {
-    console.log('ðŸ“¢ Toast:', message);
+    console.log('Ã°Å¸â€œÂ¢ Toast:', message);
     
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     
-    const icon = type === 'success' ? 'âœ“' : 
-                 type === 'error' ? 'âœ•' : 'âš ';
+    const icon = type === 'success' ? 'Ã¢Å“â€œ' : 
+                 type === 'error' ? 'Ã¢Å“â€¢' : 'Ã¢Å¡ ';
     
     toast.innerHTML = `
       <span style="font-size: 20px;">${icon}</span>
@@ -2506,30 +3007,356 @@ document.head.appendChild(style);
 // ============================
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('ðŸŽ¬ DOM Loaded - Initializing Project Dashboard...');
+  console.log('Ã°Å¸Å½Â¬ DOM Loaded - Initializing Project Dashboard...');
   initializeProjectDashboard();
   
   // Task team dropdown event listener
   const teamSelect = document.getElementById('TaskTeamName');
   if (teamSelect) {
     teamSelect.addEventListener('change', handleTaskTeamChange);
-    console.log('âœ… Team dropdown event listener attached');
+    console.log('Ã¢Å“â€¦ Team dropdown event listener attached');
   }
   
   // Task form event listener
   const taskForm = document.getElementById('TaskAllocationForm');
   if (taskForm) {
     taskForm.addEventListener('submit', handleAddTaskToTable);
-    console.log('âœ… Task form listener attached');
+    console.log('Ã¢Å“â€¦ Task form listener attached');
   }
   
   // Submit button event listener
   const submitBtn = document.querySelector('.submit-task-btn');
   if (submitBtn) {
     submitBtn.addEventListener('click', submitAllTasks);
-    console.log('âœ… Submit button listener attached');
+    console.log('Ã¢Å“â€¦ Submit button listener attached');
   }
 });
+// ============================
+// ROLE-BASED UI CONFIGURATION
+// ============================
+
+function configureProjectPageByRole() {
+  const designation = sessionStorage.getItem('designation') || '';
+  
+  console.log('ðŸ” Configuring project page for designation:', designation);
+  
+  // Only ProjectHead gets full access
+  if (designation === 'ProjectHead') {
+    console.log('âœ… ProjectHead - Full access granted');
+    return; // Exit - no restrictions needed
+  }
+  
+  // ALL OTHER DESIGNATIONS - Apply restrictions
+  console.log('âš ï¸ Limited access for:', designation);
+  
+  // 1. Hide "New Project" button
+  const newProjectBtn = document.querySelector('.add-btn.primary-btn');
+  if (newProjectBtn) {
+    const btnText = newProjectBtn.textContent || newProjectBtn.innerText;
+    if (btnText.includes('New Project')) {
+      newProjectBtn.style.display = 'none';
+      console.log('ðŸš« New Project button hidden');
+    }
+  }
+  
+  // 2. Remove delete buttons from already rendered rows
+  const deleteButtons = document.querySelectorAll('.delete-btn');
+  deleteButtons.forEach(btn => {
+    btn.remove(); // Completely remove instead of just hiding
+    console.log('ðŸš« Delete button removed');
+  });
+}
+
+// ============================
+// PROJECT OVERVIEW ROLE-BASED CONFIGURATION
+// ============================
+
+function configureProjectOverviewByRole() {
+  const designation = sessionStorage.getItem('designation') || 
+                     JSON.parse(sessionStorage.getItem('currentUser') || '{}').designation;
+  
+  console.log('ðŸ” Configuring project overview for designation:', designation);
+  
+  // Get button elements
+  const addEmployeeBtn = document.querySelector('button[onclick*="openProjectAllocationForm"]');
+  const addTaskBtn = document.querySelector('button[onclick*="openTaskAllocationForm"]');
+  
+  // âœ… Check if view button already exists to prevent duplicates
+  const existingViewBtn = document.querySelector('.view-employee-btn');
+  
+  if (designation === 'ProjectHead') {
+    // ProjectHead: Keep all buttons as-is
+    console.log('âœ… ProjectHead - Full access to overview page');
+    if (addEmployeeBtn) addEmployeeBtn.style.display = 'inline-flex';
+    if (addTaskBtn) addTaskBtn.style.display = 'inline-flex';
+    
+    // Remove view button if it exists (in case role changed)
+    if (existingViewBtn) existingViewBtn.remove();
+    
+    return;
+  }
+  
+  // ALL OTHER DESIGNATIONS - Apply restrictions
+  console.log('âš ï¸ Employee view mode for:', designation);
+  
+  // 1. Replace "Add Employee" with "View Employees"
+  if (addEmployeeBtn) {
+    // Hide original Add Employee button
+    addEmployeeBtn.style.display = 'none';
+    
+    // âœ… Only create View Employees button if it doesn't exist
+    if (!existingViewBtn) {
+      const viewEmployeeBtn = document.createElement('button');
+      viewEmployeeBtn.className = addEmployeeBtn.className.replace('add-employee-btn', '') + ' view-employee-btn'; // Add unique class
+      viewEmployeeBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        View 
+      `;
+      viewEmployeeBtn.onclick = openViewEmployeesModal;
+      
+      // Insert after the hidden button
+      addEmployeeBtn.parentNode.insertBefore(viewEmployeeBtn, addEmployeeBtn.nextSibling);
+      console.log('âœ… Added "View Employees" button');
+    } else {
+      // Button already exists, just make sure it's visible
+      existingViewBtn.style.display = 'inline-flex';
+      console.log('âœ… "View Employees" button already exists');
+    }
+  }
+  
+  // 2. Hide "Add Task" button completely
+  if (addTaskBtn) {
+    addTaskBtn.style.display = 'none';
+    console.log('ðŸš« "Add Task" button hidden');
+  }
+  
+  // 3. Make task table read-only (disable edit/delete in tasks table)
+  document.querySelectorAll('.task-edit-btn, .task-delete-btn').forEach(btn => {
+    btn.style.display = 'none';
+  });
+}
+
+
+
+// ============================
+// VIEW EMPLOYEES MODAL FUNCTIONS
+// ============================
+
+async function openViewEmployeesModal() {
+  const modal = document.getElementById('viewEmployeesModal');
+  const projectId = currentProjectId || window.currentProjectId || getProjectIdFromSession();
+  
+  if (!projectId) {
+    showToast('Project not found', 'error');
+    return;
+  }
+  
+  console.log('ðŸ“‹ Opening view employees modal for project:', projectId);
+  
+  // âœ… Update modal title with actual project name
+  const projectName = sessionStorage.getItem('currentProjectName') || 
+                     JSON.parse(sessionStorage.getItem('currentProject') || '{}').project_name || 
+                     'Project';
+  const modalTitle = modal.querySelector('.modal-header h2');
+  if (modalTitle) {
+    modalTitle.textContent = `Manage Employees (${projectName})`;
+  }
+  
+  // Show modal
+  if (modal) {
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // Prevent background scroll
+  }
+  
+  // Load allocated employees
+  await loadAllocatedEmployeesView(projectId);
+}
+
+function closeViewEmployeesModal() {
+  const modal = document.getElementById('viewEmployeesModal');
+  if (modal) {
+    modal.style.display = 'none';
+    document.body.style.overflow = ''; // Restore scroll
+  }
+  
+  // Clear search
+  const searchInput = document.getElementById('viewEmployeeSearch');
+  if (searchInput) searchInput.value = '';
+}
+async function loadAllocatedEmployeesView(projectId) {
+  try {
+   const url = `https://www.fist-o.com/web_crm/get_allocated_employees.php?project_id=${projectId}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    let employees = [];
+    if (data.success && data.data && Array.isArray(data.data.employees)) {
+      employees = data.data.employees;
+    }
+    
+    const countElement = document.getElementById('viewAllocatedCount');
+    if (countElement) {
+      countElement.textContent = employees.length;
+    }
+    
+    displayAllocatedEmployeesView(employees);
+    
+  } catch (error) {
+    console.error('âŒ ERROR:', error);
+    showToast('Failed to load employees', 'error');
+  }
+}
+
+
+function displayAllocatedEmployeesView(employees) {
+  console.log('ðŸ”µ === DISPLAYING EMPLOYEES ===');
+  console.log('ðŸ“‹ Employees array:', employees);
+  console.log('ðŸ“‹ Array length:', employees ? employees.length : 'null/undefined');
+  
+  const container = document.getElementById('viewAllocatedEmployeesList');
+  
+  if (!container) {
+    console.error('âŒ Container #viewAllocatedEmployeesList NOT FOUND!');
+    alert('Error: Container element is missing from HTML!');
+    return;
+  }
+  
+  console.log('âœ… Container found');
+  
+  // Clear container
+  container.innerHTML = '';
+  
+  // Check if empty
+  if (!employees || employees.length === 0) {
+    console.log('âš ï¸ No employees to display');
+    container.innerHTML = `
+      <div style="text-align: center; padding: 60px 20px; color: #888;">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.3; margin-bottom: 16px;">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        <p style="margin: 0; font-size: 16px;">No employees allocated to this project</p>
+      </div>
+    `;
+    return;
+  }
+  
+  console.log(`ðŸ“‹ Creating ${employees.length} employee cards...`);
+  
+  // Create employee cards
+  employees.forEach((employee, index) => {
+    console.log(`ðŸ‘¤ Employee ${index + 1}:`, employee);
+    
+    const employeeCard = document.createElement('div');
+    employeeCard.style.cssText = 'display: flex; align-items: center; padding: 14px 16px; border: 1px solid #e5e7eb; border-radius: 8px; background: #ffffff; margin-bottom: 10px; transition: all 0.2s;';
+    employeeCard.onmouseover = function() { this.style.background = '#f9fafb'; };
+    employeeCard.onmouseout = function() { this.style.background = '#ffffff'; };
+    
+    // Get data - match your PHP response structure
+    const name = employee.emp_name || employee.empname || 'Unknown';
+    const empId = employee.emp_id || employee.empid || 'N/A';
+    const designation = employee.designation || '';
+    const teamName = employee.team_name || '';
+    
+    const initials = getEmployeeInitials(name);
+    const avatarColor = getAvatarColor(empId);
+    
+    employeeCard.innerHTML = `
+      <div style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: ${avatarColor}; color: white; font-weight: 600; font-size: 16px; margin-right: 14px; flex-shrink: 0; text-transform: uppercase;">
+        ${initials}
+      </div>
+      <div style="flex: 1; min-width: 0;">
+        <div style="font-weight: 600; font-size: 15px; color: #1f2937; margin-bottom: 2px;">${name}</div>
+        ${designation ? `<div style="font-size: 13px; color: #6b7280;">${designation}</div>` : ''}
+        ${teamName ? `<div style="font-size: 12px; color: #9ca3af; margin-top: 2px;">Team: ${teamName}</div>` : ''}
+      </div>
+    `;
+    
+    container.appendChild(employeeCard);
+    console.log(`  âœ… Card ${index + 1} added for ${name}`);
+  });
+  
+  console.log(`âœ… Successfully displayed ${employees.length} employees`);
+}
+
+// Helper functions
+function getEmployeeInitials(name) {
+  if (!name || name === 'Unknown') return '?';
+  const cleaned = name.trim().toUpperCase();
+  const parts = cleaned.split(' ');
+  if (parts.length >= 2) {
+    return parts[0][0] + parts[parts.length - 1][0];
+  }
+  return cleaned.substring(0, 1);
+}
+
+function getAvatarColor(id) {
+  const colors = ['#3498db', '#e67e22', '#2ecc71', '#9b59b6', '#f39c12', '#1abc9c', '#e74c3c'];
+  if (!id) return colors[0];
+  const hash = id.toString().split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return colors[hash % colors.length];
+}
+
+
+
+
+function switchViewTab(tab) {
+  // For view-only mode, only one tab is shown
+  console.log('ðŸ“‹ Viewing:', tab);
+}
+
+// Helper functions
+function getEmployeeInitials(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(' ');
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  return name.substring(0, 2).toUpperCase();
+}
+
+function getAvatarColor(id) {
+  const colors = ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22'];
+  const index = (id || '').toString().charCodeAt(0) % colors.length;
+  return colors[index];
+}
+
+// Search functionality for view modal
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('viewEmployeeSearch');
+  if (searchInput) {
+    searchInput.addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase();
+      const employeeCards = document.querySelectorAll('#viewAllocatedEmployeesList .employee-card-view');
+      
+      employeeCards.forEach(card => {
+        const name = card.querySelector('.employee-name').textContent.toLowerCase();
+        const id = card.querySelector('.employee-id').textContent.toLowerCase();
+        const designation = card.querySelector('.employee-designation').textContent.toLowerCase();
+        
+        if (name.includes(searchTerm) || id.includes(searchTerm) || designation.includes(searchTerm)) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
+  }
+});
+
+
+
+
 
 // ============================
 // GLOBAL EXPORTS
@@ -2554,7 +3381,7 @@ window.fetchProjectEmployees = fetchProjectEmployees;
 window.populateEmployeeDropdown = populateEmployeeDropdown;
 window.addToSelectedList = addToSelectedList;
 window.submitEmployees = submitEmployees;
-window.removeAllocatedEmployee = removeAllocatedEmployee; // âŒ THIS IS MISSING!
+window.removeAllocatedEmployee = removeAllocatedEmployee; // Ã¢ÂÅ’ THIS IS MISSING!
 window.fetchTaskAllocationTeams = fetchTaskAllocationTeams;
 window.populateTaskTeamDropdown = populateTaskTeamDropdown;
 window.handleTaskTeamChange = handleTaskTeamChange;
@@ -2570,5 +3397,22 @@ window.displayNewSelectionsInModal = displayNewSelectionsInModal;
 window.removeFromNewSelection = removeFromNewSelection;
 window.updateProjectOverviewEmployeeAvatars = updateProjectOverviewEmployeeAvatars;
 window.getTeamBadgeClass = getTeamBadgeClass;
+window.configureProjectOverviewByRole = configureProjectOverviewByRole;
+window.openViewEmployeesModal = openViewEmployeesModal;
+window.closeViewEmployeesModal = closeViewEmployeesModal;
+window.loadAllocatedEmployeesView = loadAllocatedEmployeesView;
+window.displayAllocatedEmployeesView = displayAllocatedEmployeesView;
+window.getEmployeeInitials = getEmployeeInitials;
+window.getAvatarColor = getAvatarColor;
+window.openViewEmployeesModal = openViewEmployeesModal;
+window.closeViewEmployeesModal = closeViewEmployeesModal;
+window.displayAllocatedEmployeesView = displayAllocatedEmployeesView;
+window.switchViewTab = switchViewTab;
+window.getEmployeeInitials = getEmployeeInitials;
+window.getAvatarColor = getAvatarColor;
+window.configureProjectOverviewByRole = configureProjectOverviewByRole;
+window.handleAddReport = handleAddReport;
+window.handleViewReports = handleViewReports;
 
-console.log('âœ… Project.js loaded successfully - All functions organized and deduplicated!');
+
+console.log('Ã¢Å“â€¦ Project.js loaded successfully - All functions organized and deduplicated!');

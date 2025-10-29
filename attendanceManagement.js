@@ -122,7 +122,7 @@ function getServerNow() {
     // Check if we have a server offset
     if (serverTimeOffset !== 0) {
         const now = new Date(Date.now() + serverTimeOffset);
-        console.log("⏰ Using offset-based server time:", now.toISOString());
+        // console.log("⏰ Using offset-based server time:", now.toISOString());
         return now;
     }
     
@@ -1114,7 +1114,6 @@ function formatToIST(date) {
     window.handleAttendanceSubmission = handleAttendanceSubmission;
     window.initializeAttendanceManagement = initializeAttendanceManagement;
     window.showGenericModal = showGenericModal;
-    window.hideGenericModal = hideGenericModal;
     window.updateModalClock = updateModalClock;
     window.syncServerTime = syncServerTime;
     window.getServerNow = getServerNow;

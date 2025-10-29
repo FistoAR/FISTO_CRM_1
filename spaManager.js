@@ -256,7 +256,7 @@ class DashboardSPA {
                 // canViewBudget: true,
                 canManageSpecialDays: false,
                 canAccessAnalysis: true,
-                canManageProjects: true,
+                canManageProjects: false,
                 canViewMarketing: false,
                 // canManageClients: true,
                 // canRegisterEmployees: true,
@@ -464,6 +464,8 @@ class DashboardSPA {
     // Ensure dashboard content is visible and active
     this.showContentSection('dashboard');
 }
+
+
 
     // FIXED: Validate user session with consistent key checking
     validateUserSession() {
@@ -1242,6 +1244,46 @@ class DashboardSPA {
         
         console.log('Dashboard SPA destroyed');
     }
+    configureProjectPageButtons() {
+  const permissions = this.currentUser.permissions;
+
+  if (permissions.canManageProjects) {
+    // Show all management related buttons for project head and authorized roles
+    document.querySelectorAll('.add-btn.primary-btn, .delete-btn, .edit-btn').forEach(btn => {
+      btn.style.display = 'inline-block';
+      btn.disabled = false;
+      btn.classList.remove('disabled-btn');
+    });
+  } else {
+    // Hide "New Project" button for employees and others without project management permission
+    document.querySelectorAll('.add-btn.primary-btn').forEach(btn => {
+      btn.style.display = 'none';
+    });
+
+    // Hide delete buttons in the project table for unauthorized users
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.style.display = 'none';
+    });
+
+    // Disable "Add Task" buttons with proper visual styling
+    document.querySelectorAll('.primary-btn').forEach(btn => {
+      if (btn.textContent.includes('Add Task')) {
+        btn.disabled = true;
+        btn.classList.add('disabled-btn');
+      }
+    });
+
+    // Swap "Add Employee" button to "View Employees"
+    const addEmpBtn = document.querySelector('.add-employee-btn');
+    if (addEmpBtn) {
+      addEmpBtn.innerHTML = '<i class="fas fa-users"></i> View';
+      addEmpBtn.onclick = openViewEmployeeModal; // Ensure this global function is implemented elsewhere to open the appropriate modal.
+      addEmpBtn.classList.remove('add-employee-btn');
+      addEmpBtn.classList.add('view-employee-btn');
+    }
+  }
+}
+
 }
 
 // Configuration object for easy customization
@@ -1426,6 +1468,7 @@ function switchTab(tabName) {
   }
 }
 
+
 // function loadSidebarMenu() {
 //     const sidebarItems = [
 //         { name: 'Dashboard', id: 'dashboard', icon: 'icon-home' },
@@ -1514,6 +1557,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2000);
     }
 });
+
+
 
 
 
