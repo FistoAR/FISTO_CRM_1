@@ -68,6 +68,8 @@ let selectedEmployees = [];
 let tempTasks = [];
 let employeesToRemove = [];
 let tempAllocatedEmployees = [];
+// ✅ Store minimum allowed progress (from latest report)
+let minimumProgress = 0;
 
 
 // ============================
@@ -460,8 +462,7 @@ async function loadProjectTasksTable() {
     if (result.success && result.data && result.data.tasks && result.data.tasks.length > 0) {
       const tasks = result.data.tasks;
       
-      // ✅ Update table header based on role
-        if (isProjectHead) {
+ if (isProjectHead) {
   // ✅ PROJECT HEAD VIEW - Show Assigned By and Assigned To
   
   // Update table header
@@ -489,15 +490,6 @@ async function loadProjectTasksTable() {
     const progressColor = getProgressColor(progress);
     const reportSubmitted = task.report_submitted || false;
     
-    // Get assigned by info (who created the task)
-    const assignedBy = task.assigned_by || sessionStorage.getItem('employeeName') || 'Agasthiya';
-    const assignedByInitial = assignedBy.charAt(0).toUpperCase();
-    
-    // Get assigned to info (who the task is for)
-    const assignedToName = task.assigned_to_name || 'Unassigned';
-    const assignedToId = task.assigned_to_emp_id || '';
-    const assignedToInitial = assignedToName.charAt(0).toUpperCase();
-    
     return `
       <tr>
         <td style="text-align: center; padding: 12px;">${index + 1}</td>
@@ -512,68 +504,82 @@ async function loadProjectTasksTable() {
         <td style="text-align: center; padding: 12px;">${formatDateDisplay(task.end_date)}</td>
         <td style="text-align: center; padding: 12px;">${formatTime(task.end_time)}</td>
         <td style="text-align: center; padding: 12px;">
-          <button class="view-reports-btn" onclick="handleViewReports('${task.id}', '${task.task_name.replace(/'/g, "\\'")}')">
+          <button class="view-reports-btn" onclick="handleViewReports('${task.id}', '${task.task_name.replace(/'/g, "\\'")}')" style="background: #2196F3; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: 500;">
             View Reports
           </button>
         </td>
-        <td style="text-align: center; padding: 12px;">
-          <span class="progress-percentage">${progress}%</span>
+        <!-- ✅ FIXED PROGRESS BAR FOR PROJECT HEAD -->
+        <td style="text-align: center; padding: 12px; min-width: 160px;">
+          <div class="progress-container" style="display: flex; align-items: center; gap: 8px; justify-content: center;">
+            <div class="progress-bar-wrapper" style="width: 80px; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; flex-shrink: 0;">
+              <div class="progress-bar-fill" style="width: ${progress}%; height: 100%; background-color: ${progressColor}; transition: all 0.3s ease;"></div>
+            </div>
+            <span class="progress-text" style="font-weight: 600; color: ${progressColor}; font-size: 14px; min-width: 45px; text-align: right;">${progress}%</span>
+          </div>
         </td>
         <td style="text-align: center; padding: 12px;">
-          <span class="status-badge ${statusClass}">${task.status || 'pending'}</span>
+          <span class="status-badge ${statusClass}" style="padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">${task.status || 'pending'}</span>
         </td>
       </tr>
     `;
   }).join('');
   
-}  else {
-        // EMPLOYEE VIEW
-        tableBody.innerHTML = tasks.map((task, index) => {
-          const progress = parseInt(task.progress) || 0;
-          const statusClass = getStatusClass(task.status);
-          const progressColor = getProgressColor(progress);
-          const reportSubmitted = task.report_submitted || false;
-          
-          const isSubtask = task.is_subtask || task.parent_task_id;
-          const taskNameDisplay = isSubtask 
-            ? `<span class="subtask-indent">└─ ${task.task_name}</span>`
-            : task.task_name;
-          
-          return `
-            <tr class="${isSubtask ? 'subtask-row' : ''}">
-              <td style="text-align: center; padding: 12px;">${isSubtask ? '' : index + 1}</td>
-              <td style="padding: 12px;">
-                <div class="task-name-cell">${taskNameDisplay}</div>
-              </td>
-              <td style="padding: 12px;">
-                <div class="task-description-cell">${task.task_description || 'No description'}</div>
-              </td>
-              <td style="text-align: center; padding: 12px;">${formatDateDisplay(task.start_date)}</td>
-              <td style="text-align: center; padding: 12px;">${formatTime(task.start_time)}</td>
-              <td style="text-align: center; padding: 12px;">${formatDateDisplay(task.end_date)}</td>
-              <td style="text-align: center; padding: 12px;">${formatTime(task.end_time)}</td>
-              <td style="text-align: center; padding: 12px;">
-                <button class="report-btn ${reportSubmitted ? 'report-btn-submitted' : 'report-btn-pending'}" 
-                        onclick="handleAddReport('${task.id}', '${(task.task_name || '').replace(/'/g, "\\'")}')"
-                        ${reportSubmitted ? 'disabled' : ''}>
-                  Add Report
-                </button>
-              </td>
-              <td style="padding: 12px;">
-                <div class="progress-container">
-                  <div class="progress-bar-wrapper">
-                    <div class="progress-bar-fill" style="width: ${progress}%; background-color: ${progressColor};"></div>
-                  </div>
-                  <span class="progress-text">${progress}%</span>
-                </div>
-              </td>
-              <td style="text-align: center; padding: 12px;">
-                <span class="status-badge ${statusClass}">${capitalizeFirst(task.status)}</span>
-              </td>
-            </tr>
-          `;
-        }).join('');
-      }
+} else {
+  // ✅ EMPLOYEE VIEW - SIMPLE S.No ALWAYS SHOWS
+  if (tableHead) {
+    tableHead.innerHTML = `
+      <tr>
+        <th style="text-align: center;">S.No</th>
+        <th>Tasks / Activities</th>
+        <th>Description</th>
+        <th style="text-align: center;">Start Date</th>
+        <th style="text-align: center;">Start Time</th>
+        <th style="text-align: center;">End Date</th>
+        <th style="text-align: center;">End Time</th>
+        <th style="text-align: center;">Report</th>
+        <th style="text-align: center;">Progress</th>
+        <th style="text-align: center;">Status</th>
+      </tr>
+    `;
+  }
+  
+  tableBody.innerHTML = tasks.map((task, index) => {
+    const progress = parseInt(task.progress) || 0;
+    const statusClass = getStatusClass(task.status);
+    
+    return `
+      <tr>
+        <td style="text-align: center; padding: 12px;"><strong>${index + 1}</strong></td>
+        <td style="padding: 12px;"><strong>${task.task_name}</strong></td>
+        <td style="padding: 12px;">${task.task_description || 'No description'}</td>
+        <td style="text-align: center; padding: 12px;">${formatDateDisplay(task.start_date)}</td>
+        <td style="text-align: center; padding: 12px;">${formatTime(task.start_time)}</td>
+        <td style="text-align: center; padding: 12px;">${formatDateDisplay(task.end_date)}</td>
+        <td style="text-align: center; padding: 12px;">${formatTime(task.end_time)}</td>
+        <td style="text-align: center; padding: 12px;">
+          <button onclick="handleAddReport('${task.id}', '${task.task_name.replace(/'/g, "\\'")}')"
+                  style="background: #e74c3c; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: 500;">
+            Add Report
+          </button>
+        </td>
+        <td style="text-align: center; padding: 12px; min-width: 160px;">
+          <div style="display: flex; align-items: center; gap: 8px; justify-content: center;">
+            <div style="width: 100px; height: 6px; background: #e8e8e8; border-radius: 3px; overflow: hidden;">
+              <div style="height: 100%; width: ${progress}%; background: linear-gradient(90deg, #007bff 0%, #0056b3 100%); transition: width 0.3s ease;"></div>
+            </div>
+            <span style="font-weight: 600; color: #333; font-size: 14px; min-width: 45px; text-align: right;">${progress}%</span>
+          </div>
+        </td>
+        <td style="text-align: center; padding: 12px;">
+          <span class="status-badge ${statusClass}" style="padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">${capitalizeFirst(task.status)}</span>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+
+
       
       console.log(`✅ Displayed ${tasks.length} tasks for ${isProjectHead ? 'Project Head' : 'Employee'}`);
       
@@ -607,27 +613,6 @@ async function loadProjectTasksTable() {
     console.error('❌ Error loading tasks:', error);
   }
 }
-// Handle View Reports button
-function handleViewReports(taskId, taskName) {
-  console.log('📊 View reports for task:', taskId, taskName);
-
-  // Store context in session if needed for fetching data, etc
-  sessionStorage.setItem('currentTaskId', taskId);
-  sessionStorage.setItem('currentTaskName', taskName);
-
-  // Set task name in modal header
-  document.getElementById('viewReportsTaskName').textContent = taskName;
-
-  // Optionally trigger a function to load dynamic report data for this taskId
-  // loadReportsForTask(taskId);
-
-  // Show View Reports modal
-  document.getElementById('viewReportsModal').style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-
-  // Toast
-  showToast(`Viewing reports for: ${taskName}`, 'info');
-}
 
 // ✅ Get progress bar color based on percentage
 function getProgressColor(progress) {
@@ -653,51 +638,613 @@ function getStatusClass(status) {
   return 'status-pending';
 }
 
-// ✅ Handle Add Report button click
-function handleAddReport(taskId, taskName) {
+// ============================================
+// HANDLE ADD REPORT - FETCH DESCRIPTION FROM SESSION
+// ============================================
+async function handleAddReport(taskId, taskName) {
   console.log('📝 Add report for task:', taskId, taskName);
-
-  // Store task info in session for report submission
+  
   sessionStorage.setItem('currentTaskId', taskId);
   sessionStorage.setItem('currentTaskName', taskName);
-
-  // Set task name in modal
+  sessionStorage.setItem('modalMode', 'add');
+  
+  const projectData = getProjectSession();
+  const projectName = projectData?.project_name || projectData?.projectName || 'Project';
+  const projectDescription = projectData?.project_description || projectData?.projectDescription || projectData?.description || '';
+  
+  sessionStorage.setItem('projectDescription', projectDescription);
+  
+  // Current date and time
+  const now = new Date();
+  const currentDate = now.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  });
+  const currentTime = now.toLocaleTimeString('en-US', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
+  const dateTimeDisplay = `${currentDate} | ${currentTime}`;
+  
+  // Set form fields
   document.getElementById('reportTaskName').value = taskName;
+  document.getElementById('reportTaskDesc').value = projectDescription;
+  
+  // ✅ FETCH LATEST PROGRESS
+  try {
+    const response = await fetch(`https://www.fist-o.com/web_crm/get-task-reports.php?taskId=${taskId}`);
+    const data = await response.json();
+    
+    if (data.success && data.reports && data.reports.length > 0) {
+      // Get the latest report (first one)
+      const latestReport = data.reports[0];
+      const latestProgress = latestReport.progress || 0;
+      
+      // ✅ SET MINIMUM PROGRESS (can't go below this)
+      minimumProgress = latestProgress;
 
-  // Optionally clear or set other fields if needed
-  // document.getElementById('reportDate').value = ''; // Or set to today if you want 
-  // document.getElementById('reportProgress').value = '';
-  // document.getElementById('reportStatus').value = '';
-  // document.getElementById('reportDescription').value = '';
-  // document.getElementById('reportAttachment').value = '';
-
-  // Show Add Report modal
-  document.getElementById('addReportModal').style.display = 'flex';
+      // ✅ PRE-FILL PROGRESS WITH LATEST VALUE
+      document.getElementById('reportProgress').value = latestProgress;
+      console.log('✅ Pre-filled progress with latest value:', latestProgress);
+    } else {
+      // No previous reports, start from 0
+      document.getElementById('reportProgress').value = 0;
+    }
+  } catch (error) {
+    console.error('Error fetching latest progress:', error);
+    document.getElementById('reportProgress').value = 0;
+  }
+  
+  // Set project title and date/time
+  document.getElementById('addReportProjectTitle').textContent = projectName;
+  const dateElement = document.getElementById('addReportDate');
+  if (dateElement) {
+    dateElement.textContent = dateTimeDisplay;
+  }
+  
+  // Show form, hide history
+  document.getElementById('reportFormView').style.display = 'block';
+  document.getElementById('reportHistoryView').style.display = 'none';
+  
+  // Open modal
+  const modal = document.getElementById('addReportModal');
+  modal.setAttribute('style', 'display: flex !important; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 999999; align-items: center; justify-content: center;');
   document.body.style.overflow = 'hidden';
-
-  // Toast
-  showToast(`Opening report for: ${taskName}`, 'info');
+  
+  console.log('✅ Modal opened with project:', projectName, 'and time:', dateTimeDisplay);
 }
 
-function openAddReportModal(taskName, desc) {
-  document.getElementById('addReportModal').style.display = 'flex';
-  document.getElementById('reportTaskName').value = taskName || '';
-  document.getElementById('reportTaskDesc').value = desc || '';
-  // You can also set the date/time in the modal header here if desired
-  document.body.style.overflow = 'hidden';
+// ✅ VALIDATE PROGRESS ON CHANGE
+function validateProgressOnChange() {
+  const progressInput = document.getElementById('reportProgress');
+  const currentValue = parseInt(progressInput.value) || 0;
+  const decreaseError = document.getElementById('progressDecreaseError');
+  const minProgressValue = document.getElementById('minProgressValue');
+  
+  // Hide error initially
+  decreaseError.style.display = 'none';
+  
+  // ✅ CHECK IF USER TRIED TO DECREASE PROGRESS
+  if (currentValue < minimumProgress) {
+    // ❌ PREVENT DECREASE - RESET TO MINIMUM
+    progressInput.value = minimumProgress;
+    minProgressValue.textContent = minimumProgress;
+    decreaseError.style.display = 'block';
+    
+    console.warn(`❌ User tried to decrease progress from ${minimumProgress}% to ${currentValue}%`);
+    showToast(`Progress cannot decrease! Minimum is ${minimumProgress}%`, 'warning');
+    return false;
+  }
+  
+  // ✅ Allow increase
+  console.log(`✅ Progress valid: ${currentValue}%`);
+  return true;
 }
+
+
+
+// ============================================
+// HANDLE VIEW REPORTS
+// ============================================
+function handleViewReports(taskId, taskName) {
+  console.log('📊 View reports for task:', taskId, taskName);
+  
+  sessionStorage.setItem('currentTaskId', taskId);
+  sessionStorage.setItem('currentTaskName', taskName);
+  
+  const projectData = getProjectSession();
+  const projectName = projectData?.project_name || projectData?.projectName || 'Project';
+  
+  // Get current date and time
+  const now = new Date();
+  const currentDate = now.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  });
+  const currentTime = now.toLocaleTimeString('en-US', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
+  const dateTimeDisplay = `${currentDate} | ${currentTime}`;
+  
+  // Set modal header
+  const titleElement = document.getElementById('viewReportProjectTitle');
+  const dateElement = document.getElementById('viewReportDate');
+  const taskNameElement = document.getElementById('viewReportTaskName');
+  
+  if (titleElement) titleElement.textContent = projectName;
+  if (dateElement) dateElement.textContent = dateTimeDisplay;
+  if (taskNameElement) taskNameElement.textContent = taskName;
+  
+  loadViewReportHistory(taskId, taskName);
+  
+  const modal = document.getElementById('viewReportModal');
+  if (modal) {
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+
+// ============================================
+// CLOSE MODALS
+// ============================================
 function closeAddReportModal() {
-  document.getElementById('addReportModal').style.display = 'none';
+  const modal = document.getElementById('addReportModal');
+  if (modal) modal.style.display = 'none';
   document.body.style.overflow = 'auto';
 }
+
+
+function closeViewReportModal() {
+  const modal = document.getElementById('viewReportModal');
+  if (modal) modal.style.display = 'none';
+  document.body.style.overflow = 'auto';
+}
+
+// ============================================
+// TOGGLE HISTORY VIEW
+// ============================================
+function toggleHistoryView() {
+  const formView = document.getElementById('reportFormView');
+  const historyView = document.getElementById('reportHistoryView');
+  const historyBtnText = document.getElementById('historyBtnText');
+  const submitBtn = document.querySelector('.submit-btn');
+  
+  if (!formView || !historyView) {
+    console.error('❌ Modal elements not found');
+    return;
+  }
+  
+  if (formView.style.display === 'none') {
+    // Show form, hide history
+    formView.style.display = 'block';
+    historyView.style.display = 'none';
+    if (historyBtnText) historyBtnText.textContent = 'History';
+    if (submitBtn) submitBtn.style.display = 'inline-block';
+  } else {
+    // Show history, hide form
+    formView.style.display = 'none';
+    historyView.style.display = 'block';
+    if (historyBtnText) historyBtnText.textContent = 'Back to Form';
+    if (submitBtn) submitBtn.style.display = 'none';
+    loadTaskHistory(sessionStorage.getItem('currentTaskId'), sessionStorage.getItem('currentTaskName'));
+  }
+}
+
+// ============================================
+// SUBMIT REPORT - WITH ERROR HANDLING & DEBUG
+// ============================================
 function submitAddReport() {
-  // Add validation or submit logic here
-  closeAddReportModal();
+  const taskId = sessionStorage.getItem('currentTaskId');
+  const taskName = sessionStorage.getItem('currentTaskName');
+  const projectDescription = sessionStorage.getItem('projectDescription');
+  let progress = document.getElementById('reportProgress')?.value;
+  let status = document.getElementById('reportStatus')?.value;
+  const comments = document.getElementById('comments')?.value;
+  const empId = sessionStorage.getItem('employeeId');
+  
+  // Get error message elements
+  const progressError = document.getElementById('progressError');
+  const statusError = document.getElementById('statusError');
+  const commentsError = document.getElementById('commentsError');
+  
+  // Hide all errors initially
+  if (progressError) progressError.style.display = 'none';
+  if (statusError) statusError.style.display = 'none';
+  if (commentsError) commentsError.style.display = 'none';
+  
+  let hasErrors = false;
+  
+    // ✅ VALIDATE PROGRESS
+  if (!progress || progress === '') {
+    if (progressError) progressError.style.display = 'block';
+    hasErrors = true;
+  }
+  
+  progress = parseInt(progress) || 0;
+  
+  // ✅ CHECK IF TRYING TO DECREASE
+  if (progress < minimumProgress) {
+    if (decreaseError) {
+      document.getElementById('minProgressValue').textContent = minimumProgress;
+      decreaseError.style.display = 'block';
+    }
+    hasErrors = true;
+  }
+  
+  // ✅ VALIDATE STATUS
+  if (!status || status === '') {
+    if (statusError) statusError.style.display = 'block';
+    hasErrors = true;
+  }
+  
+  // ✅ VALIDATE COMMENTS
+  if (!comments || !comments.trim()) {
+    if (commentsError) commentsError.style.display = 'block';
+    hasErrors = true;
+  }
+  
+  // ✅ STOP IF ERRORS
+  if (hasErrors) {
+    showToast('Please fill all required fields', 'error');
+    return;
+  }
+  
+  if (!taskId || !taskName) {
+    showToast('Task information missing', 'error');
+    return;
+  }
+  
+  if (!empId) {
+    showToast('Employee ID not found in session', 'error');
+    return;
+  }
+  
+  progress = parseInt(progress);
+  
+  // ✅ AUTO-CHANGE STATUS TO COMPLETED IF PROGRESS IS 100%
+  if (progress === 100) {
+    status = 'Completed';
+    document.getElementById('reportStatus').value = 'Completed';
+    console.log('✅ Progress is 100%, auto-changing status to Completed');
+  }
+  
+  const reportData = {
+    taskId: parseInt(taskId),
+    taskName: taskName,
+    projectDescription: projectDescription,
+    progress: progress,
+    status: status,
+    comments: comments,
+    empId: empId
+  };
+  
+  console.log('📋 Final data to send:', reportData);
+  
+  const submitBtn = document.querySelector('.submit-btn');
+  const originalText = submitBtn?.textContent || 'Submit';
+  if (submitBtn) {
+    submitBtn.textContent = 'Submitting...';
+    submitBtn.disabled = true;
+  }
+  
+  fetch('https://www.fist-o.com/web_crm/submit-report.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(reportData)
+  })
+  .then(response => response.text().then(text => ({ status: response.status, text: text })))
+  .then(({ status, text }) => {
+    console.log('📨 Response status:', status);
+    console.log('📨 Raw response:', text);
+    
+    try {
+      const data = JSON.parse(text);
+      console.log('✅ Parsed JSON:', data);
+      
+      if (data.success || data.status === 'success') {
+        showToast('Report submitted successfully!', 'success');
+        
+        // Clear form
+        document.getElementById('reportProgress').value = '';
+        document.getElementById('reportStatus').value = '';
+        document.getElementById('comments').value = '';
+        
+        // Hide errors
+        if (progressError) progressError.style.display = 'none';
+        if (statusError) statusError.style.display = 'none';
+        if (commentsError) commentsError.style.display = 'none';
+        
+        // Close modal
+        closeAddReportModal();
+        
+        // Update table
+        console.log('🔄 Updating table row with new progress and status...');
+        updateTaskProgressInTable(parseInt(taskId), progress, status);
+        
+        // Reload table
+        setTimeout(() => {
+          console.log('🔄 Reloading tasks table...');
+          loadProjectTasksTable();
+        }, 1000);
+        
+      } else {
+        console.error('❌ Error from server:', data.message || data.errors);
+        showToast(data.message || 'Failed to submit', 'error');
+      }
+    } catch (parseError) {
+      console.error('❌ Failed to parse response as JSON');
+      console.error('❌ Error:', parseError.message);
+      console.error('❌ Response text:', text);
+      showToast('Server returned invalid response. Check PHP syntax!', 'error');
+    }
+  })
+  .catch(error => {
+    console.error('❌ Network error:', error);
+    showToast('Network error: ' + error.message, 'error');
+  })
+  .finally(() => {
+    if (submitBtn) {
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
+    }
+  });
 }
-function openTaskHistoryModal() {
-  // Show task report history modal here
-  alert('History clicked');
+
+
+// ============================================
+// UPDATE TASK PROGRESS IN TABLE ROW
+// ============================================
+function updateTaskProgressInTable(taskId, newProgress, newStatus) {
+  try {
+    // ✅ VALIDATE inputs
+    if (!taskId || newProgress === undefined || newProgress === null) {
+      console.error('❌ Invalid parameters:', { taskId, newProgress, newStatus });
+      return;
+    }
+    
+    // ✅ Ensure newProgress is a number
+    newProgress = parseInt(newProgress) || 0;
+    
+    // ✅ Ensure newStatus is a string (default to empty if not provided)
+    if (newStatus === null || newStatus === undefined) {
+      newStatus = '';
+      console.warn('⚠️ Status is null/undefined, using empty string');
+    }
+    
+    // ✅ Convert to string if it's not already
+    newStatus = String(newStatus).trim();
+    
+    const progressColor = getProgressColor(newProgress);
+    
+    // Find all rows in the table
+    const rows = document.querySelectorAll('tbody tr');
+    
+    console.log(`🔄 Updating table with progress: ${newProgress}%, status: ${newStatus}`);
+    
+    rows.forEach((row, index) => {
+      // Look for the progress bar in this row
+      const progressContainer = row.querySelector('.progress-container');
+      
+      if (progressContainer) {
+        // Find the progress bar fill and text
+        const progressBarFill = progressContainer.querySelector('.progress-bar-fill');
+        const progressText = progressContainer.querySelector('.progress-text');
+        
+        if (progressBarFill) {
+          // ✅ UPDATE PROGRESS BAR WIDTH
+          progressBarFill.style.width = newProgress + '%';
+          progressBarFill.style.backgroundColor = progressColor;
+          progressBarFill.style.transition = 'all 0.5s ease';
+          
+          console.log(`✅ Updated progress bar to ${newProgress}%`);
+        }
+        
+        if (progressText) {
+          // ✅ UPDATE PROGRESS PERCENTAGE TEXT
+          progressText.textContent = newProgress + '%';
+          progressText.style.color = progressColor;
+          
+          console.log(`✅ Updated progress text to ${newProgress}%`);
+        }
+      }
+      
+      // Also update status badge if present
+      const statusBadge = row.querySelector('.status-badge');
+      if (statusBadge && newStatus) {
+        // ✅ SAFELY get status class
+        let statusClass = 'status-pending'; // Default
+        
+        if (newStatus && typeof newStatus === 'string') {
+          const statusLower = newStatus.toLowerCase();
+          
+          if (statusLower === 'completed') {
+            statusClass = 'status-completed';
+          } else if (statusLower.includes('progress') || statusLower === 'ongoing') {
+            statusClass = 'status-inprogress';
+          } else if (statusLower === 'pending') {
+            statusClass = 'status-pending';
+          } else if (statusLower === 'delayed' || statusLower === 'overdue') {
+            statusClass = 'status-delayed';
+          }
+        }
+        
+        // ✅ Update the status badge
+        statusBadge.className = 'status-badge ' + statusClass;
+        statusBadge.textContent = capitalizeFirst(newStatus);
+        
+        console.log(`✅ Updated status to ${newStatus} with class ${statusClass}`);
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error updating table row:', error);
+    console.error('Stack:', error.stack);
+  }
 }
+
+// ============================================
+// LOAD TASK HISTORY
+// ============================================
+function loadTaskHistory(taskId, taskName) {
+  const tableBody = document.getElementById('historyTableBody');
+  
+  if (!tableBody) {
+    console.error('❌ historyTableBody not found');
+    return;
+  }
+  
+  if (!taskId || taskId === 'undefined' || taskId === 'null') {
+    console.error('❌ Invalid taskId:', taskId);
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align: center; padding: 20px; color: #dc3545;">
+          <i class="fas fa-exclamation-circle"></i> 
+          Error: Task ID is invalid
+        </td>
+      </tr>
+    `;
+    return;
+  }
+  
+  tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+  
+  const numericTaskId = parseInt(taskId);
+  
+  if (isNaN(numericTaskId)) {
+    console.error('❌ taskId is not a valid number:', taskId);
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align: center; padding: 20px; color: #dc3545;">
+          <i class="fas fa-exclamation-circle"></i> 
+          Error: Task ID must be a number
+        </td>
+      </tr>
+    `;
+    return;
+  }
+  
+  const apiUrl = `https://www.fist-o.com/web_crm/get-task-reports.php?taskId=${numericTaskId}`;
+  console.log('🔗 Fetching from:', apiUrl);
+  
+  fetch(apiUrl)
+    .then(response => {
+      console.log('📨 Response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return response.json();
+    })
+    .then(data => {
+      console.log('📋 History response:', data);
+      
+      if (data.success && data.reports && data.reports.length > 0) {
+        // ✅ FIXED: Generate S.No from index instead of report.sno
+        tableBody.innerHTML = data.reports.map((report, index) => `
+          <tr>
+            <td style="text-align: center;"><strong>${index + 1}</strong></td>
+            <td>${report.task || taskName}</td>
+            <td style="text-align: center;">${report.progress || 0}%</td>
+            <td style="text-align: center;">${report.status || 'N/A'}</td>
+            <td>${report.outcome || report.comments || '-'}</td>
+            <td>${report.date || '-'}</td>
+          </tr>
+        `).join('');
+        console.log(`✅ Displayed ${data.reports.length} reports`);
+      } else {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 40px;">
+              <i class="fas fa-inbox" style="font-size: 48px; color: #ddd; display: block; margin-bottom: 10px;"></i>
+              <p style="color: #999; font-size: 14px; margin: 10px 0;">No data's are available now</p>
+              <small style="color: #bbb;">No reports submitted yet for this task</small>
+            </td>
+          </tr>
+        `;
+        console.log('ℹ️ No reports found for this task');
+      }
+    })
+    .catch(error => {
+      console.error('❌ Error:', error);
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align: center; padding: 40px; color: #dc3545;">
+            <i class="fas fa-exclamation-circle" style="font-size: 48px; display: block; margin-bottom: 10px;"></i>
+            <p style="margin: 10px 0;">Error loading reports</p>
+            <small>${error.message}</small>
+          </td>
+        </tr>
+      `;
+    });
+}
+
+
+
+
+function loadViewReportHistory(taskId, taskName) {
+  const tableBody = document.getElementById('viewHistoryTableBody');
+  
+  if (!tableBody) {
+    console.error('❌ viewHistoryTableBody not found');
+    return;
+  }
+  
+  tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+  
+  fetch(`https://www.fist-o.com/web_crm/get-task-reports.php?taskId=${taskId}`)
+    .then(response => response.json())
+    .then(data => {
+      console.log('📊 View report history response:', data);
+      
+      if (data.success && data.reports && data.reports.length > 0) {
+        // ✅ FIXED: Generate S.No from index instead of report.sno
+        tableBody.innerHTML = data.reports.map((report, index) => `
+          <tr>
+            <td style="text-align: center;"><strong>${index + 1}</strong></td>
+            <td>${report.task || taskName}</td>
+            <td style="text-align: center;">${report.progress || 0}%</td>
+            <td style="text-align: center;">${report.status || 'N/A'}</td>
+            <td>${report.outcome || report.comments || '-'}</td>
+            <td>${report.date || '-'}</td>
+          </tr>
+        `).join('');
+        console.log(`✅ Displayed ${data.reports.length} reports`);
+      } else {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 40px;">
+              <i class="fas fa-inbox" style="font-size: 48px; color: #ddd; display: block; margin-bottom: 10px;"></i>
+              <p style="color: #999; font-size: 14px; margin: 10px 0;">No data's are available now</p>
+              <small style="color: #bbb;">No reports have been submitted yet</small>
+            </td>
+          </tr>
+        `;
+        console.log('ℹ️ No reports found');
+      }
+    })
+    .catch(error => {
+      console.error('❌ Error:', error);
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align: center; padding: 40px; color: #dc3545;">
+            <i class="fas fa-exclamation-circle" style="font-size: 48px; display: block; margin-bottom: 10px;"></i>
+            <p style="margin: 10px 0;">Error loading reports</p>
+            <small>${error.message}</small>
+          </td>
+        </tr>
+      `;
+    });
+}
+
 
 
 
@@ -725,14 +1272,31 @@ function updateTaskAllocationUI() {
 function formatDateDisplay(dateStr) {
   if (!dateStr) return '-';
   const d = new Date(dateStr);
-  return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString();
+  return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  });
 }
 function formatTime(timeStr) {
-  return timeStr || '-';
+  if (!timeStr) return '-';
+  
+  // If already in HH:MM:SS format, convert to AM/PM
+  if (timeStr.includes(':')) {
+    const [hours, minutes] = timeStr.split(':');
+    const hour = parseInt(hours);
+    const min = minutes || '00';
+    
+    if (hour === 0) return `12:${min} AM`;
+    if (hour < 12) return `${hour}:${min} AM`;
+    if (hour === 12) return `12:${min} PM`;
+    return `${hour - 12}:${min} PM`;
+  }
+  
+  return timeStr;
 }
-function capitalizeFirst(str) {
-  return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
-}
+
+
 
 // Usage
 loadProjectTasksTable();
